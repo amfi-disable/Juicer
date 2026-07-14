@@ -341,7 +341,7 @@ struct appuninstallerview: View {
                 AppLogger.shared.log("All selected files trashed successfully.")
                 NotificationManager.shared.sendNotification(
                     title: "Application Leftovers Removed",
-                    body: "Successfully removed selected support folders for \(manager.appInfo?.name ?? "the app")."
+                    body: "Successfully removed selected support folders for \(manager.appInfo?.appName ?? "the app")."
                 )
                 // Refresh list if still selected
                 if let app = manager.appInfo {

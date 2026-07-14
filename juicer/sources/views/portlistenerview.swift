@@ -144,9 +144,9 @@ struct portlistenerview: View {
             self.filterToDevPorts = filterDevSaved
         }
         // First Confirmation Alert
-        .alert("Confirm Process Termination", isPresented: $showingFirstAlert) {
+        .alert("Confirm Process Termination", isPresented: $showFirstAlert) {
             Button("Proceed", role: .none) {
-                showingSecondAlert = true
+                showSecondAlert = true
             }
             Button("Cancel", role: .cancel) {
                 self.selectedPort = nil
@@ -157,7 +157,7 @@ struct portlistenerview: View {
             }
         }
         // Second Confirmation Alert
-        .alert("Final Verification Required", isPresented: $showingSecondAlert) {
+        .alert("Final Verification Required", isPresented: $showSecondAlert) {
             Button("Force Terminate", role: .destructive) {
                 executeProcessKill()
             }
@@ -232,7 +232,7 @@ struct portlistenerview: View {
                     
                     Button("Kill") {
                         self.selectedPort = item
-                        self.showingFirstAlert = true
+                        self.showFirstAlert = true
                     }
                     .buttonStyle(.bordered)
                     .tint(.red)
@@ -319,7 +319,7 @@ struct portlistenerview: View {
                                         // Kill Shortcut button
                                         Button(action: {
                                             self.selectedPort = item
-                                            self.showingFirstAlert = true
+                                            self.showFirstAlert = true
                                         }) {
                                             Image(systemName: "xmark.circle.fill")
                                                 .foregroundColor(.red)

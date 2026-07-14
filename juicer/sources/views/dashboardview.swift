@@ -37,10 +37,11 @@ class QuickLinksManager: ObservableObject {
             UserDefaults.standard.set(data, forKey: storageKey)
         }
     }
-    
     func addLink(name: String, path: String) {
         let expanded = NSString(string: path).expandingTildeInPath
-        let isFolder = (try? FileManager.default.attributesOfItem(atPath: expanded)[.fileType] as? FileAttributeType) == .typeDirectory
+        var isDir: ObjCBool = false
+        let exists = FileManager.default.fileExists(atPath: expanded, isDirectory: &isDir)
+        let isFolder = exists && isDir.boolValue
         let icon = isFolder ? "folder.fill" : "doc.fill"
         let newLink = QuickLink(id: UUID(), name: name, path: path, icon: icon)
         self.links.append(newLink)
