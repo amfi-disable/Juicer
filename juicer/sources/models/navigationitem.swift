@@ -12,6 +12,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case launchServices
     case hiddenFiles
     case appLipo
+    case largeFiles
     
     var id: NavigationItem { self }
     
@@ -28,6 +29,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .launchServices: return "File Associations"
         case .hiddenFiles: return "Hidden File Explorer"
         case .appLipo: return "App Lipo Slicer"
+        case .largeFiles: return "Large & Old Files"
         }
     }
     
@@ -44,6 +46,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .launchServices: return "doc.badge.gearshape.fill"
         case .hiddenFiles: return "eye.slash.fill"
         case .appLipo: return "cpu.fill"
+        case .largeFiles: return "doc.badge.ellipsis"
         }
     }
 }

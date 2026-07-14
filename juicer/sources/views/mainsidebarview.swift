@@ -45,6 +45,8 @@ struct mainsidebarview: View {
                         hiddenfileview()
                     case .appLipo:
                         applipoview()
+                    case .largeFiles:
+                        largefilesview()
                     default:
                         placeholderView(for: item)
                     }
