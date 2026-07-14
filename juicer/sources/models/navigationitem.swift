@@ -54,7 +54,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .appLipo: return "cpu.fill"
         case .largeFiles: return "doc.badge.ellipsis"
         case .brewExplorer: return "shippingbox.fill"
-        case .sdkSwitcher: return "point.3.filled.connected.trianglepath.dolly"
+        case .sdkSwitcher: return "square.stack.3d.up.fill"
         case .portListener: return "network.badge.shield.half.filled"
         }
     }

@@ -194,7 +194,7 @@ struct sdkmanagerview: View {
     private func iconName(for type: SDKRuntime.RuntimeType) -> String {
         switch type {
         case .nodeNvm, .nodeFnm:
-            return "point.3.filled.connected.trianglepath.dolly"
+            return "square.stack.3d.up.fill"
         case .pythonPyenv:
             return "curlybraces"
         case .rubyRbenv, .rubyRvm:

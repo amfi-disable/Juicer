@@ -191,40 +191,6 @@ struct dashboardview: View {
                         }
                     }
                 }
-                
-                // Features Grid
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Quick Tools")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
-                        FeatureCard(
-                            title: "App Uninstaller",
-                            description: "Completely remove any application and all its hidden support files, logs, and preferences.",
-                            icon: "trash.fill",
-                            color: .red
-                        )
-                        FeatureCard(
-                            title: "Orphan Finder",
-                            description: "Detect and sweep away orphaned directories from apps that are no longer installed on your Mac.",
-                            icon: "folder.badge.minus",
-                            color: .orange
-                        )
-                        FeatureCard(
-                            title: "Developer Caches",
-                            description: "Instantly reclaim gigabytes by cleaning DerivedData, packages, caches, and unused docker images.",
-                            icon: "hammer.fill",
-                            color: .blue
-                        )
-                        FeatureCard(
-                            title: "System Tweaks",
-                            description: "Speed up Dock animations, key repeat rate, Finder features, and customize screenshooting.",
-                            icon: "slider.horizontal.3",
-                            color: .green
-                        )
-                    }
-                }
             }
             .padding(.horizontal, 30)
             .padding(.bottom, 30)
