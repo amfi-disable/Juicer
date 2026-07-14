@@ -339,12 +339,20 @@ struct appuninstallerview: View {
         manager.trashSelectedLeftovers { success in
             if success {
                 AppLogger.shared.log("All selected files trashed successfully.")
+                NotificationManager.shared.sendNotification(
+                    title: "Application Leftovers Removed",
+                    body: "Successfully removed selected support folders for \(manager.appInfo?.name ?? "the app")."
+                )
                 // Refresh list if still selected
                 if let app = manager.appInfo {
                     manager.scan(for: app)
                 }
             } else {
                 AppLogger.shared.log("Some files could not be trashed.")
+                NotificationManager.shared.sendNotification(
+                    title: "Removal Incomplete",
+                    body: "Some leftovers could not be deleted from disk."
+                )
             }
         }
     }

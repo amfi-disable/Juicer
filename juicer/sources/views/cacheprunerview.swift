@@ -208,8 +208,16 @@ struct cacheprunerview: View {
             manager.pruneSelectedCaches { success in
                 if success {
                     AppLogger.shared.log("All selected caches pruned successfully.")
+                    NotificationManager.shared.sendNotification(
+                        title: "Developer Caches Cleaned",
+                        body: "Successfully reclaimed developer storage space."
+                    )
                 } else {
                     AppLogger.shared.log("Some caches could not be pruned.")
+                    NotificationManager.shared.sendNotification(
+                        title: "Cleanup Incomplete",
+                        body: "Some cache targets could not be removed."
+                    )
                 }
             }
         }

@@ -231,6 +231,9 @@ struct dashboardview: View {
         .onAppear {
             updateDiskMetrics()
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.action.addBookmark"))) { _ in
+            isShowingAddLink = true
+        }
         .sheet(isPresented: $isShowingAddLink) {
             addLinkSheet()
         }
