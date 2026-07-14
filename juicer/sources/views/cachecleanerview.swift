@@ -15,6 +15,7 @@ struct cachecleanerview: View {
     enum InsightsTab: String, CaseIterable {
         case insights = "Space Insights"
         case projects = "Project Cleaner"
+        case backups  = "Rollback Backups"
         case log      = "Clean Log"
     }
 
@@ -26,12 +27,16 @@ struct cachecleanerview: View {
             switch activeTab {
             case .insights: insightsTab()
             case .projects: projectCleanerTab()
+            case .backups: backupsTab()
             case .log: logTab()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
-        .onAppear { manager.scanSizes() }
+        .onAppear {
+            manager.pruneOldBackups()
+            manager.scanSizes()
+        }
         .alert("Move to Trash?", isPresented: $showFirstAlert) {
             Button("Proceed") { showSecondAlert = true }
             Button("Cancel", role: .cancel) {}
@@ -487,5 +492,71 @@ struct cachecleanerview: View {
         if ["venv", ".venv", "__pycache__"].contains(type) { return .blue }
         if type == "Pods" || type == "DerivedData" { return .purple }
         return .secondary
+    }
+
+    // MARK: - Backups Tab UI
+    @ViewBuilder
+    private func backupsTab() -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Rollback Backups Cabinet")
+                    .font(.headline)
+                Spacer()
+                Text("Backups are automatically purged after 3 days to maintain local drive space.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            .padding()
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.15))
+            
+            Divider()
+
+            if manager.backups.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 48)).foregroundStyle(.secondary)
+                    Text("No Cache Backups Recorded").font(.headline).foregroundStyle(.secondary)
+                    Text("When you clean derived data or caches, Juicer copies them here so you can roll them back if compilation breaks.")
+                        .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.horizontal, 40)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List(manager.backups) { backup in
+                    HStack(spacing: 16) {
+                        Image(systemName: "folder.badge.gearshape")
+                            .font(.title2).foregroundColor(.orange)
+                        
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(backup.name).font(.headline)
+                            Text("Original: \(backup.originalPath)").font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            Text("Backed Up: \(formatDate(backup.timestamp))").font(.caption2).foregroundStyle(.tertiary)
+                        }
+                        
+                        Spacer()
+                        
+                        Text(CacheCleanerManager.formatBytes(backup.sizeBytes))
+                            .font(.subheadline).bold().foregroundColor(.secondary)
+                        
+                        Button("Restore Rollback") {
+                            manager.restoreBackup(backup)
+                            manager.loadBackups() // Refresh view
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.green)
+                    }
+                    .padding(.vertical, 6)
+                }
+                .listStyle(.inset)
+            }
+        }
+        .onAppear {
+            manager.loadBackups()
+        }
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }

@@ -40,7 +40,9 @@ struct StoreApp: Identifiable, Codable, Hashable {
 
 class StoreManager: ObservableObject {
     @Published var apps: [StoreApp] = []
+    @Published var outdatedApps: [StoreApp] = []
     @Published var isLoading: Bool = false
+    @Published var isCheckingUpdates: Bool = false
     @Published var progressLog: String = ""
     @Published var isRunningAction: Bool = false
     @Published var errorMessage: String? = nil
@@ -91,12 +93,90 @@ class StoreManager: ObservableObject {
                 await MainActor.run {
                     self.apps = finalApps
                     self.isLoading = false
+                    self.checkForUpdates() // Trigger updates check automatically
                 }
             } catch {
                 await MainActor.run {
                     self.errorMessage = "Failed to load Software Center: \(error.localizedDescription)"
                     self.isLoading = false
                 }
+            }
+        }
+    }
+
+    struct BrewOutdatedJSON: Codable {
+        struct OutdatedItem: Codable {
+            let name: String
+            let current_version: String
+        }
+        let formulae: [OutdatedItem]
+        let casks: [OutdatedItem]
+    }
+
+    func checkForUpdates() {
+        guard !isCheckingUpdates else { return }
+        isCheckingUpdates = true
+        
+        Task.detached(priority: .background) { [weak self] in
+            guard let self else { return }
+            
+            let proc = Process()
+            proc.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/brew")
+            proc.arguments = ["outdated", "--json"]
+            
+            let pipe = Pipe()
+            proc.standardOutput = pipe
+            proc.standardError = Pipe() // Ignore errors
+            
+            do {
+                try proc.run()
+                let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                proc.waitUntilExit()
+                
+                if let decoded = try? JSONDecoder().decode(BrewOutdatedJSON.self, from: data) {
+                    var outdatedList: [StoreApp] = []
+                    
+                    // Match casks
+                    for cask in decoded.casks {
+                        if let matched = self.apps.first(where: { $0.id == cask.name && $0.isCask }) {
+                            var updated = matched
+                            updated.status = .installedViaHomebrew // Flag as installed for updates view
+                            outdatedList.append(updated)
+                        } else {
+                            // Dummy cask fallback
+                            outdatedList.append(StoreApp(
+                                id: cask.name, name: cask.name, desc: "Outdated graphical application.",
+                                homepage: "", version: cask.current_version, isCask: true,
+                                appNames: [], pricing: .free, status: .installedViaHomebrew
+                            ))
+                        }
+                    }
+                    
+                    // Match formulae
+                    for formula in decoded.formulae {
+                        if let matched = self.apps.first(where: { $0.id == formula.name && !$0.isCask }) {
+                            var updated = matched
+                            updated.status = .installedViaHomebrew
+                            outdatedList.append(updated)
+                        } else {
+                            // Dummy formula fallback
+                            outdatedList.append(StoreApp(
+                                id: formula.name, name: formula.name, desc: "Outdated command-line tool.",
+                                homepage: "", version: formula.current_version, isCask: false,
+                                appNames: [], pricing: .free, status: .installedViaHomebrew
+                            ))
+                        }
+                    }
+                    
+                    await MainActor.run {
+                        self.outdatedApps = outdatedList
+                        self.isCheckingUpdates = false
+                    }
+                } else {
+                    await MainActor.run { self.isCheckingUpdates = false }
+                }
+            } catch {
+                await MainActor.run { self.isCheckingUpdates = false }
             }
         }
     }

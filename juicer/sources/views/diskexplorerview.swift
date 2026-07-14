@@ -237,8 +237,69 @@ struct diskexplorerview: View {
     @ViewBuilder
     private func treemapView() -> some View {
         VStack(spacing: 0) {
+            // Proportional Block Treemap Grid (Top 8 items)
+            let topEntries = manager.entries.prefix(8)
+            let totalBytes = manager.entries.reduce(0) { $0 + $1.sizeBytes }
+            
+            if totalBytes > 0 && !topEntries.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Visual Disk Distribution (Treemap Grid)").font(.headline)
+                    
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        ForEach(Array(topEntries.enumerated()), id: \.element.id) { idx, entry in
+                            let fraction = Double(entry.sizeBytes) / Double(totalBytes)
+                            let colors: [Color] = [.blue, .purple, .teal, .orange, .pink, .indigo, .cyan, .mint]
+                            let color = colors[idx % colors.count]
+                            
+                            Button(action: {
+                                selectedEntry = entry
+                                if entry.isDirectory {
+                                    pathInput = entry.path
+                                    manager.scanDirectory(path: entry.path)
+                                }
+                            }) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack {
+                                        Image(systemName: entry.isDirectory ? "folder.fill" : "doc.fill")
+                                        Text(entry.name)
+                                            .font(.subheadline).bold()
+                                            .lineLimit(1)
+                                        Spacer()
+                                        Text(String(format: "%.1f%%", fraction * 100))
+                                            .font(.caption2).bold()
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    HStack {
+                                        Text(formatBytes(entry.sizeBytes))
+                                            .font(.caption)
+                                        Spacer()
+                                        if entry.isDirectory {
+                                            Text("Drill Down →").font(.caption2).foregroundStyle(.secondary)
+                                        }
+                                    }
+                                }
+                                .padding()
+                                .frame(height: max(70, CGFloat(140 * fraction + 50)))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(color.opacity(0.12))
+                                .cornerRadius(10)
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(color.opacity(0.3), lineWidth: 1.5))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.bottom, 15)
+                }
+                .padding()
+            }
+            
+            Divider()
+            
+            // Bar Map list below
             HStack {
-                Text("Space Distribution")
+                Text("Folder Size Breakdown")
                     .font(.headline).padding()
                 Spacer()
                 Text("\(manager.entries.count) items")

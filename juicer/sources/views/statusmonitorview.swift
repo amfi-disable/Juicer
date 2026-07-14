@@ -7,6 +7,7 @@ struct statusmonitorview: View {
     @State private var showKillConfirm = false
     @State private var killMessage: String = ""
     @State private var showKillResult = false
+    @State private var selectedRogueProcess: ProcessMonitorEntry? = nil
 
     enum MonitorTab: String, CaseIterable {
         case overview = "Overview"
@@ -460,21 +461,33 @@ struct statusmonitorview: View {
             Divider()
 
             List(manager.filteredProcesses) { proc in
+                let isRogue = proc.cpuPercent > 80.0 || proc.memBytes > 2_000_000_000
                 HStack {
                     Text("\(proc.pid)")
                         .font(.system(.caption, design: .monospaced))
                         .frame(width: 60, alignment: .leading)
                         .foregroundStyle(.secondary)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(proc.name)
-                            .font(.subheadline)
-                            .lineLimit(1)
-                        Text(proc.command)
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
+                    HStack(spacing: 8) {
+                        if isRogue {
+                            Button(action: { selectedRogueProcess = proc }) {
+                                Image(systemName: "exclamationmark.octagon.fill")
+                                    .foregroundColor(.orange)
+                                    .help("Rogue resource pressure warning")
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(proc.name)
+                                .font(.subheadline)
+                                .lineLimit(1)
+                            Text(proc.command)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -500,6 +513,48 @@ struct statusmonitorview: View {
                     .frame(width: 60)
                 }
                 .padding(.vertical, 3)
+                .popover(item: $selectedRogueProcess) { rogueProc in
+                    VStack(alignment: .leading, spacing: 14) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange).font(.title3)
+                            Text("Rogue Resource Alert").font(.headline).bold()
+                        }
+                        Divider()
+                        Text("Process '\(rogueProc.name)' (PID \(rogueProc.pid)) is consuming abnormally high system resources:")
+                            .font(.subheadline)
+                        
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("• CPU Consumption: \(String(format: "%.1f%%", rogueProc.cpuPercent))")
+                            Text("• Memory Footprint: \(StatusMonitorManager.formatBytes(rogueProc.memBytes))")
+                        }
+                        .font(.caption).bold()
+                        
+                        Text("This resource pressure might drain battery, lock core execution threads, or cause macOS UI stuttering. Terminating the process is recommended.")
+                            .font(.caption).foregroundColor(.secondary)
+                        
+                        Divider()
+                        HStack {
+                            Button("Force Quit Process") {
+                                manager.kill(pid: rogueProc.pid) { success in
+                                    killMessage = success ? "Process \(rogueProc.pid) terminated." : "Failed to terminate process \(rogueProc.pid)."
+                                    showKillResult = true
+                                    selectedRogueProcess = nil
+                                    manager.refresh()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent).tint(.red)
+                            
+                            Spacer()
+                            
+                            Button("Ignore") {
+                                selectedRogueProcess = nil
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                    .padding()
+                    .frame(width: 380)
+                }
             }
             .listStyle(.inset)
 

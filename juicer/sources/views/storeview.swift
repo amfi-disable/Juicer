@@ -4,7 +4,15 @@ struct storeview: View {
     @StateObject private var manager = StoreManager()
     @State private var searchText: String = ""
     @State private var selectedApp: StoreApp? = nil
-    @State private var isCaskTab: Bool = true
+    @State private var selectedTab: StoreTab = .casks
+
+    enum StoreTab: String, CaseIterable, Identifiable {
+        case casks = "Applications"
+        case formulae = "Command Line"
+        case updates = "Updates"
+        
+        var id: String { rawValue }
+    }
 
     // Sidebar Filters
     @State private var selectedStatus: StatusFilter = .all
@@ -80,12 +88,14 @@ struct storeview: View {
             }
             Spacer()
 
-            Picker("", selection: $isCaskTab) {
-                Text("Applications (Casks)").tag(true)
-                Text("Command Line (Formulae)").tag(false)
+            Picker("", selection: $selectedTab) {
+                Text("Applications (Casks)").tag(StoreTab.casks)
+                Text("Command Line (Formulae)").tag(StoreTab.formulae)
+                let updatesText = manager.outdatedApps.isEmpty ? "Updates" : "Updates (\(manager.outdatedApps.count))"
+                Text(updatesText).tag(StoreTab.updates)
             }
             .pickerStyle(.segmented)
-            .frame(width: 380)
+            .frame(width: 440)
             .disabled(manager.isLoading)
 
             Button(action: { manager.loadStore(forceRefresh: true) }) {
@@ -149,9 +159,11 @@ struct storeview: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            let filtered = manager.apps.filter { app in
+            let sourceApps = selectedTab == .updates ? manager.outdatedApps : manager.apps
+            let filtered = sourceApps.filter { app in
                 // Tab filter
-                if app.isCask != isCaskTab { return false }
+                if selectedTab == .casks && !app.isCask { return false }
+                if selectedTab == .formulae && app.isCask { return false }
 
                 // Search query
                 if !searchText.isEmpty {
@@ -308,15 +320,27 @@ struct storeview: View {
                         .buttonStyle(.borderedProminent)
                         .disabled(manager.isRunningAction)
                     } else if app.status == .installedViaHomebrew {
-                        Button(action: { manager.runAction(action: "uninstall", app: app) }) {
-                            HStack {
-                                Image(systemName: "trash.fill")
-                                Text("Uninstall Package")
+                        if selectedTab == .updates {
+                            Button(action: { manager.runAction(action: "upgrade", app: app) }) {
+                                HStack {
+                                    Image(systemName: "arrow.up.circle.fill")
+                                    Text("Upgrade Package")
+                                }
+                                .frame(maxWidth: .infinity).padding(.vertical, 6)
                             }
-                            .frame(maxWidth: .infinity).padding(.vertical, 6)
+                            .buttonStyle(.borderedProminent)
+                            .disabled(manager.isRunningAction)
+                        } else {
+                            Button(action: { manager.runAction(action: "uninstall", app: app) }) {
+                                HStack {
+                                    Image(systemName: "trash.fill")
+                                    Text("Uninstall Package")
+                                }
+                                .frame(maxWidth: .infinity).padding(.vertical, 6)
+                            }
+                            .buttonStyle(.borderedProminent).tint(.red)
+                            .disabled(manager.isRunningAction)
                         }
-                        .buttonStyle(.borderedProminent).tint(.red)
-                        .disabled(manager.isRunningAction)
                     } else if app.status == .installedExternally {
                         Button(action: { manager.runAction(action: "install", app: app) }) {
                             HStack {

@@ -97,6 +97,12 @@ struct appuninstallerview: View {
                 manager.scan(for: app)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.action.triggerScan"))) { notification in
+            if let appURL = notification.object as? URL {
+                let app = AppInfo(path: appURL)
+                manager.appInfo = app
+            }
+        }
     }
     
     // MARK: - App Store Style Product Details

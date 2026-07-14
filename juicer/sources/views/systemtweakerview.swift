@@ -14,6 +14,25 @@ struct systemtweakerview: View {
                     Text("Customize advanced macOS preferences beyond standard system limits.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                    
+                    // Quick Links to Apple's Native System Settings Panes
+                    HStack(spacing: 12) {
+                        Link(destination: URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension")!) {
+                            Label("Login Items", systemImage: "arrow.up.forward.app.fill")
+                        }
+                        .buttonStyle(.bordered)
+                        
+                        Link(destination: URL(string: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension")!) {
+                            Label("Keyboard Shortcuts", systemImage: "keyboard")
+                        }
+                        .buttonStyle(.bordered)
+                        
+                        Link(destination: URL(string: "x-apple.systempreferences:com.apple.ScreenSaver-Settings.extension")!) {
+                            Label("Lock Screen", systemImage: "lock.laptopcomputer")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding(.top, 10)
                 }
                 
                 Divider()

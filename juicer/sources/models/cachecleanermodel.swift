@@ -43,9 +43,19 @@ struct ProjectCleanEntry: Identifiable {
 
 // MARK: - Manager
 
+struct RollbackBackup: Identifiable, Codable {
+    let id: UUID
+    let name: String
+    let originalPath: String
+    let backupPath: String
+    let timestamp: Date
+    let sizeBytes: Int64
+}
+
 class CacheCleanerManager: ObservableObject {
     @Published var insights: [InsightItem] = []
     @Published var projectEntries: [ProjectCleanEntry] = []
+    @Published var backups: [RollbackBackup] = []
     @Published var isScanning: Bool = false
     @Published var isCleaning: Bool = false
     @Published var totalCleanableBytes: Int64 = 0
@@ -53,6 +63,17 @@ class CacheCleanerManager: ObservableObject {
     @Published var log: [String] = []
 
     private let fm = FileManager.default
+
+    private var backupsDir: URL {
+        let caches = fm.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        let dir = caches.appendingPathComponent("com.even.juicer/backups")
+        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    private var backupsMetadataFile: URL {
+        backupsDir.appendingPathComponent("metadata.json")
+    }
 
     // MARK: - Build Insight List
 
@@ -290,34 +311,134 @@ class CacheCleanerManager: ObservableObject {
         }
     }
 
-    // MARK: - Trash Selected Insights
+    // MARK: - Backups Persistence & Management
+
+    func loadBackups() {
+        if let data = try? Data(contentsOf: backupsMetadataFile),
+           let decoded = try? JSONDecoder().decode([RollbackBackup].self, from: data) {
+            self.backups = decoded
+        } else {
+            self.backups = []
+        }
+    }
+
+    func saveBackups() {
+        if let data = try? JSONEncoder().encode(backups) {
+            try? data.write(to: backupsMetadataFile)
+        }
+    }
+
+    func pruneOldBackups() {
+        loadBackups()
+        let cutoff = Date().addingTimeInterval(-259200) // 3 days (3 * 86400)
+        var updated: [RollbackBackup] = []
+        
+        for backup in backups {
+            if backup.timestamp < cutoff {
+                AppLogger.shared.log("Pruning expired cache backup: \(backup.name)")
+                try? fm.removeItem(at: URL(fileURLWithPath: backup.backupPath))
+            } else {
+                updated.append(backup)
+            }
+        }
+        self.backups = updated
+        saveBackups()
+    }
+
+    func restoreBackup(_ backup: RollbackBackup) {
+        let sourceURL = URL(fileURLWithPath: backup.backupPath)
+        let destURL = URL(fileURLWithPath: backup.originalPath)
+        
+        // Ensure parent directory exists
+        let parentDir = destURL.deletingLastPathComponent()
+        try? fm.createDirectory(at: parentDir, withIntermediateDirectories: true)
+        
+        do {
+            if fm.fileExists(atPath: destURL.path) {
+                try fm.removeItem(at: destURL)
+            }
+            try fm.moveItem(at: sourceURL, to: destURL)
+            
+            // Remove from metadata list
+            if let idx = backups.firstIndex(where: { $0.id == backup.id }) {
+                backups.remove(at: idx)
+                saveBackups()
+            }
+            log.append("✅ Restored: \(backup.name) to \(backup.originalPath)")
+        } catch {
+            log.append("❌ Failed to restore \(backup.name): \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - Trash Selected Insights (With Rollback Backup support)
 
     func trashSelected(completion: @escaping (Int, Int64) -> Void) {
         isCleaning = true
         let toClean = insights.filter { $0.isSelected && $0.exists }
+        let timestamp = Date()
 
         Task.detached(priority: .userInitiated) { [weak self] in
             guard let self else { return }
             var cleaned = 0
             var freed: Int64 = 0
+            var newBackups: [RollbackBackup] = []
+
+            // Reload backups metadata first
+            await MainActor.run {
+                self.loadBackups()
+            }
 
             for item in toClean {
                 let url = URL(fileURLWithPath: item.path)
+                let backupDestURL = self.backupsDir.appendingPathComponent("\(item.name)_\(Int(timestamp.timeIntervalSince1970))")
+                
+                var backedUp = false
                 do {
-                    try self.fm.trashItem(at: url, resultingItemURL: nil)
-                    cleaned += 1
-                    freed += max(0, item.sizeBytes)
-                    await MainActor.run {
-                        self.log.append("🗑 Trashed: \(item.name)")
+                    // Try to move folder/file to backup dir
+                    if self.fm.fileExists(atPath: url.path) {
+                        try self.fm.moveItem(at: url, to: backupDestURL)
+                        backedUp = true
+                        
+                        let backupObj = RollbackBackup(
+                            id: UUID(),
+                            name: item.name,
+                            originalPath: item.path,
+                            backupPath: backupDestURL.path,
+                            timestamp: timestamp,
+                            sizeBytes: item.sizeBytes
+                        )
+                        newBackups.append(backupObj)
+                        
+                        cleaned += 1
+                        freed += max(0, item.sizeBytes)
+                        await MainActor.run {
+                            self.log.append("📦 Cleaned & Backed up: \(item.name)")
+                        }
                     }
                 } catch {
-                    await MainActor.run {
-                        self.log.append("❌ Failed: \(item.name) — \(error.localizedDescription)")
+                    // Fallback to standard trash if move fails (e.g. across mount volumes)
+                    do {
+                        if self.fm.fileExists(atPath: url.path) {
+                            try self.fm.trashItem(at: url, resultingItemURL: nil)
+                            cleaned += 1
+                            freed += max(0, item.sizeBytes)
+                            await MainActor.run {
+                                self.log.append("🗑 Trashed (No Backup): \(item.name)")
+                            }
+                        }
+                    } catch {
+                        await MainActor.run {
+                            self.log.append("❌ Failed: \(item.name) — \(error.localizedDescription)")
+                        }
                     }
                 }
             }
 
             await MainActor.run {
+                if !newBackups.isEmpty {
+                    self.backups.append(contentsOf: newBackups)
+                    self.saveBackups()
+                }
                 self.isCleaning = false
                 completion(cleaned, freed)
             }

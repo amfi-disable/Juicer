@@ -93,6 +93,16 @@ struct juicerapp: App {
                         NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.appStore"), object: nil)
                     }
                     .keyboardShortcut("a", modifiers: [.command, .shift])
+                    
+                    Button("Go to Diagnostic Snapshots") {
+                        NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.snapshots"), object: nil)
+                    }
+                    .keyboardShortcut("d", modifiers: [.command, .shift])
+                    
+                    Button("Go to Script Console") {
+                        NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.scriptConsole"), object: nil)
+                    }
+                    .keyboardShortcut("c", modifiers: [.command, .shift])
                 }
             }
             

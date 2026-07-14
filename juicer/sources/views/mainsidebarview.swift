@@ -41,6 +41,8 @@ struct mainsidebarview: View {
                         sidebarLink(for: .dnsEditor)
                         sidebarLink(for: .launchServices)
                         sidebarLink(for: .sdkSwitcher)
+                        sidebarLink(for: .snapshots)
+                        sidebarLink(for: .scriptConsole)
                     }
                 }
                 .listStyle(.sidebar)
@@ -68,6 +70,8 @@ struct mainsidebarview: View {
                     case .statusMonitor:    statusmonitorview()
                     case .cacheCleaner:     cachecleanerview()
                     case .appStore:         storeview()
+                    case .snapshots:        snapshotsview()
+                    case .scriptConsole:    scriptconsoleview()
                     }
                 } else {
                     VStack {
@@ -99,6 +103,21 @@ struct mainsidebarview: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.statusMonitor"))) { _ in selectedItem = .statusMonitor }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.cacheCleaner"))) { _ in selectedItem = .cacheCleaner }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.appStore"))) { _ in selectedItem = .appStore }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.snapshots"))) { _ in selectedItem = .snapshots }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.scriptConsole"))) { _ in selectedItem = .scriptConsole }
+        
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.uninstaller.scan"))) { notification in
+            if let appURL = notification.object as? URL {
+                selectedItem = .appUninstaller
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    NotificationCenter.default.post(name: NSNotification.Name("juicer.action.triggerScan"), object: appURL)
+                }
+            }
+        }
+        
+        .onAppear {
+            TrashObserver.shared.startObserving()
+        }
         
         // Help & Guide triggers
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.action.showGuide"))) { _ in
