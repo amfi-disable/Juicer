@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct moleinsightsview: View {
-    @StateObject private var manager = MoleInsightsManager()
+struct cachecleanerview: View {
+    @StateObject private var manager = CacheCleanerManager()
     @State private var activeTab: InsightsTab = .insights
     @State private var filterCategory: InsightItem.InsightCategory? = nil
     @State private var projectRootInput: String = ""
@@ -15,7 +15,7 @@ struct moleinsightsview: View {
     enum InsightsTab: String, CaseIterable {
         case insights = "Space Insights"
         case projects = "Project Cleaner"
-        case log = "Clean Log"
+        case log      = "Clean Log"
     }
 
     var body: some View {
@@ -41,7 +41,7 @@ struct moleinsightsview: View {
         .alert("Confirm Clean", isPresented: $showSecondAlert) {
             Button("Confirm & Trash", role: .destructive) {
                 manager.trashSelected { count, freed in
-                    resultMessage = "Trashed \(count) items, freed \(MoleInsightsManager.formatBytes(freed))."
+                    resultMessage = "Trashed \(count) items, freed \(CacheCleanerManager.formatBytes(freed))."
                     showResult = true
                     manager.scanSizes()
                 }
@@ -59,7 +59,7 @@ struct moleinsightsview: View {
         .alert("Confirm Project Clean", isPresented: $showProjectSecondAlert) {
             Button("Confirm & Clean", role: .destructive) {
                 manager.trashProjectDeps { count, freed in
-                    resultMessage = "Cleaned \(count) directories, freed \(MoleInsightsManager.formatBytes(freed))."
+                    resultMessage = "Cleaned \(count) directories, freed \(CacheCleanerManager.formatBytes(freed))."
                     showResult = true
                 }
             }
@@ -79,9 +79,9 @@ struct moleinsightsview: View {
     private func headerSection() -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
-                Text("Mole Insights & Project Cleaner")
+                Text("Cache Cleaner & Space Insights")
                     .font(.title2).bold()
-                Text("27 cleanable space categories and project dependency detection — inspired by Mole's \u{2018}mo clean\u{2019} and \u{2018}mo analyze\u{2019}.")
+                Text("27 cleanable space categories plus project dependency detection. Find what\'s taking up space and clean it safely.")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
             Spacer()
@@ -89,7 +89,7 @@ struct moleinsightsview: View {
             if manager.totalCleanableBytes > 0 {
                 HStack(spacing: 4) {
                     Image(systemName: "externaldrive.badge.minus").foregroundStyle(.orange)
-                    Text(MoleInsightsManager.formatBytes(manager.totalCleanableBytes))
+                    Text(CacheCleanerManager.formatBytes(manager.totalCleanableBytes))
                         .font(.subheadline).bold().foregroundStyle(.orange)
                     Text("cleanable").font(.caption2).foregroundStyle(.secondary)
                 }
@@ -110,9 +110,7 @@ struct moleinsightsview: View {
         .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
     }
 
-    // MARK: ─────────────────────────────────────────
-    // MARK: INSIGHTS TAB
-    // MARK: ─────────────────────────────────────────
+    // MARK: - Insights Tab
     @ViewBuilder
     private func insightsTab() -> some View {
         VStack(spacing: 0) {
@@ -196,7 +194,7 @@ struct moleinsightsview: View {
 
             VStack(alignment: .trailing, spacing: 3) {
                 if item.sizeBytes >= 0 && item.exists {
-                    Text(MoleInsightsManager.formatBytes(item.sizeBytes))
+                    Text(CacheCleanerManager.formatBytes(item.sizeBytes))
                         .font(.subheadline).bold()
                         .foregroundStyle(item.sizeBytes > 500_000_000 ? .red : item.sizeBytes > 100_000_000 ? .orange : .primary)
                 } else if item.exists {
@@ -225,7 +223,7 @@ struct moleinsightsview: View {
             let selectedCount = manager.insights.filter { $0.isSelected && $0.exists }.count
             let selectedSize = manager.insights.filter { $0.isSelected && $0.exists }.reduce(0) { $0 + $1.sizeBytes }
 
-            Text("\(selectedCount) selected (\(MoleInsightsManager.formatBytes(selectedSize)))")
+            Text("\(selectedCount) selected (\(CacheCleanerManager.formatBytes(selectedSize)))")
                 .font(.subheadline).foregroundStyle(.secondary)
             Spacer()
 
@@ -258,9 +256,7 @@ struct moleinsightsview: View {
         .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
     }
 
-    // MARK: ─────────────────────────────────────────
-    // MARK: PROJECT CLEANER TAB
-    // MARK: ─────────────────────────────────────────
+    // MARK: - Project Cleaner Tab
     @ViewBuilder
     private func projectCleanerTab() -> some View {
         VStack(spacing: 0) {
@@ -359,7 +355,7 @@ struct moleinsightsview: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                        Text(MoleInsightsManager.formatBytes(entry.sizeBytes))
+                        Text(CacheCleanerManager.formatBytes(entry.sizeBytes))
                             .font(.subheadline).bold()
                             .foregroundStyle(entry.sizeBytes > 500_000_000 ? .red : .primary)
                             .frame(width: 80, alignment: .trailing)
@@ -384,7 +380,7 @@ struct moleinsightsview: View {
             let selectedCount = manager.projectEntries.filter { $0.isSelected }.count
             let selectedSize = manager.projectEntries.filter { $0.isSelected }.reduce(0) { $0 + $1.sizeBytes }
 
-            Text("\(manager.projectEntries.count) dirs found · \(selectedCount) selected (\(MoleInsightsManager.formatBytes(selectedSize)))")
+            Text("\(manager.projectEntries.count) dirs found · \(selectedCount) selected (\(CacheCleanerManager.formatBytes(selectedSize)))")
                 .font(.subheadline).foregroundStyle(.secondary)
             Spacer()
 
@@ -409,9 +405,7 @@ struct moleinsightsview: View {
         .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
     }
 
-    // MARK: ─────────────────────────────────────────
-    // MARK: LOG TAB
-    // MARK: ─────────────────────────────────────────
+    // MARK: - Log Tab
     @ViewBuilder
     private func logTab() -> some View {
         VStack(spacing: 0) {

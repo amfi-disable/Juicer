@@ -60,7 +60,7 @@ class SystemOptimizerManager: ObservableObject {
         buildDefaultTasks()
     }
 
-    // MARK: - Build Default Task List (Mole-inspired)
+    // MARK: - Build Default Task List
 
     private func buildDefaultTasks() {
         tasks = [
@@ -173,7 +173,7 @@ class SystemOptimizerManager: ObservableObject {
         ]
     }
 
-    // MARK: - Load System Health Metrics (Mole status-inspired)
+    // MARK: - Load System Health Metrics
 
     func loadHealthMetrics() {
         isLoadingMetrics = true

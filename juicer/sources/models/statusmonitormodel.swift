@@ -1,7 +1,7 @@
 import Foundation
 import AppKit
 
-// MARK: - Data Models (Mole mo-status inspired)
+// MARK: - Data Models
 
 struct CPUStatusData {
     var usagePercent: Double = 0
@@ -65,12 +65,12 @@ struct HealthScoreData {
     var memPenalty: Double = 0
     var tips: [String] = []
 
-    // Mole-inspired thresholds
+    // Thresholds
     static func compute(cpu: CPUStatusData, mem: MemoryStatusData) -> HealthScoreData {
         var score = 100.0
         var tips: [String] = []
 
-        // CPU penalty (Mole uses cpuNormalThreshold=50, cpuHighThreshold=85)
+        // CPU penalty (elevated at 50%, high load at 85%)
         if cpu.usagePercent > 85 {
             let penalty = 30.0 * min((cpu.usagePercent - 50) / 85, 1.0)
             score -= penalty
@@ -80,7 +80,7 @@ struct HealthScoreData {
             score -= penalty
         }
 
-        // Memory penalty (Mole memNormalThreshold=70, memHighThreshold=88)
+        // Memory penalty (elevated at 70%, high load at 88%)
         if mem.usedPercent > 88 {
             let penalty = 25.0 * min((mem.usedPercent - 70) / 70, 1.0)
             score -= penalty
@@ -136,6 +136,33 @@ class StatusMonitorManager: ObservableObject {
         case name = "Name"
     }
 
+    /// Refresh interval options shown to the user.
+    enum RefreshInterval: String, CaseIterable, Identifiable {
+        case oneSecond   = "1s"
+        case twoSeconds  = "2s"
+        case fiveSeconds = "5s"
+        case tenSeconds  = "10s"
+        case thirtySeconds = "30s"
+        case manual      = "Manual"
+
+        var id: String { rawValue }
+
+        var seconds: TimeInterval? {
+            switch self {
+            case .oneSecond:    return 1
+            case .twoSeconds:   return 2
+            case .fiveSeconds:  return 5
+            case .tenSeconds:   return 10
+            case .thirtySeconds: return 30
+            case .manual:       return nil
+            }
+        }
+    }
+
+    @Published var refreshInterval: RefreshInterval = .twoSeconds {
+        didSet { resetTimer() }
+    }
+
     private var timer: Timer?
     private var prevNetworkBytes: (rx: UInt64, tx: UInt64, time: Date)?
 
@@ -160,15 +187,22 @@ class StatusMonitorManager: ObservableObject {
     func start() {
         collectHardwareInfo()
         refresh()
-        timer = Timer(timeInterval: 2.0, repeats: true) { [weak self] _ in
-            self?.refresh()
-        }
-        RunLoop.main.add(timer!, forMode: .common)
+        resetTimer()
     }
 
     func stop() {
         timer?.invalidate()
         timer = nil
+    }
+
+    private func resetTimer() {
+        timer?.invalidate()
+        timer = nil
+        guard let interval = refreshInterval.seconds else { return }
+        timer = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
+            self?.refresh()
+        }
+        RunLoop.main.add(timer!, forMode: .common)
     }
 
     func refresh() {
@@ -198,7 +232,7 @@ class StatusMonitorManager: ObservableObject {
         }
     }
 
-    // MARK: - CPU Collection (Mole-inspired ps approach)
+    // MARK: - CPU Collection
 
     private func collectCPU() -> CPUStatusData {
         var data = CPUStatusData()
@@ -232,7 +266,7 @@ class StatusMonitorManager: ObservableObject {
         return data
     }
 
-    // MARK: - Memory Collection (Mole vm_stat approach)
+    // MARK: - Memory Collection
 
     private func collectMemory() -> MemoryStatusData {
         var data = MemoryStatusData()
@@ -310,7 +344,7 @@ class StatusMonitorManager: ObservableObject {
         return data
     }
 
-    // MARK: - Network Collection (Mole netstat delta approach)
+    // MARK: - Network Collection
 
     private func collectNetwork() -> NetworkSpeedData {
         var data = NetworkSpeedData()
@@ -359,7 +393,7 @@ class StatusMonitorManager: ObservableObject {
         return data
     }
 
-    // MARK: - Process Collection (Mole ps approach)
+    // MARK: - Process Collection
 
     private func collectProcesses() -> [ProcessMonitorEntry] {
         guard let out = shell("/bin/sh", ["-c", "ps -Aceo pid=,ppid=,pcpu=,pmem=,rss=,comm= -r"]) else { return [] }
@@ -387,7 +421,7 @@ class StatusMonitorManager: ObservableObject {
         return entries
     }
 
-    // MARK: - Hardware Info (Mole system_profiler approach)
+    // MARK: - Hardware Info
 
     private func collectHardwareInfo() {
         Task.detached(priority: .background) { [weak self] in

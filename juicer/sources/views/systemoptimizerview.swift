@@ -45,7 +45,7 @@ struct systemoptimizerview: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text("System Optimizer")
                     .font(.title2).bold()
-                Text("Run targeted optimization tasks to refresh caches, flush DNS, purge memory, and tune system performance — inspired by Mole.")
+                Text("Run targeted optimization tasks to refresh caches, flush DNS, purge memory, and tune system performance.")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
 

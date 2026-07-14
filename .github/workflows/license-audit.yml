@@ -15,10 +15,10 @@ jobs:
 
       - name: Scan Permissible License Guidelines
         run: |
-          if [ -f "LICENSE" ] || [ -f "LICENSE.md" ]; then
+          if [ -f "license" ] || [ -f "license.md" ]; then
             echo "License file detected!"
             exit 0
           else
-            echo "Error: LICENSE file not found in root. Every open-source module must publish license compliance rules."
+            echo "Error: license file not found in root. Every open-source module must publish license compliance rules."
             exit 1
           fi

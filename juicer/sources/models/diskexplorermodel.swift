@@ -12,6 +12,14 @@ struct DiskVolume: Identifiable {
     let freeBytes: Int64
     var usagePercent: Double { totalBytes > 0 ? Double(usedBytes) / Double(totalBytes) : 0 }
     var fileSystemType: String
+    var isRemovable: Bool = false
+    var isExternal: Bool = false
+    var icon: String {
+        if mountPoint == "/" { return "internaldrive.fill" }
+        if isRemovable { return "externaldrive.fill" }
+        if isExternal { return "externaldrive.badge.wifi" }
+        return "internaldrive.fill"
+    }
 }
 
 struct DiskEntry: Identifiable {
@@ -39,140 +47,147 @@ class DiskExplorerManager: ObservableObject {
     private let fileManager = FileManager.default
     private var scanTask: Task<Void, Never>?
 
-    // MARK: - Load Volumes
+    // MARK: - Load All Volumes (including externals, Time Machine, etc.)
 
     func loadVolumes() {
-        let home = fileManager.homeDirectoryForCurrentUser.path
-        let paths = ["/", home]
-
-        var seen: Set<String> = []
         var result: [DiskVolume] = []
+        var seen: Set<String> = []
 
-        for path in paths {
-            if let attrs = try? fileManager.attributesOfFileSystem(forPath: path),
-               let total = attrs[.systemSize] as? Int64,
-               let free = attrs[.systemFreeSize] as? Int64 {
-                let key = "\(total)-\(free)"
+        // Primary approach: mountedVolumeURLs with all options
+        let keys: [URLResourceKey] = [.volumeNameKey, .volumeTotalCapacityKey, .volumeAvailableCapacityKey,
+                                       .volumeIsRemovableKey, .volumeIsLocalKey, .volumeTypeNameKey,
+                                       .volumeSupportsVolumeSizesKey]
+        let options: FileManager.VolumeEnumerationOptions = [.skipHiddenVolumes]
+
+        if let urls = fileManager.mountedVolumeURLs(includingResourceValuesForKeys: keys, options: options) {
+            for url in urls {
+                let mp = url.path
+                guard let attrs = try? fileManager.attributesOfFileSystem(forPath: mp),
+                      let total = attrs[.systemSize] as? Int64,
+                      let free  = attrs[.systemFreeSize] as? Int64,
+                      total > 0 else { continue }
+
+                // Deduplicate by total+free fingerprint
+                let key = "\(mp)-\(total)"
                 guard !seen.contains(key) else { continue }
                 seen.insert(key)
-                let used = total - free
 
-                // Try to get FS type via statvfs
-                let fsType = getFSType(for: path)
+                let used = total - free
+                let res = try? url.resourceValues(forKeys: Set(keys))
+                let name = res?.volumeName ?? url.lastPathComponent
+                let isRemovable = res?.volumeIsRemovable ?? false
+                let isLocal = res?.volumeIsLocal ?? true
+                let fsType = (try? fileManager.attributesOfFileSystem(forPath: mp))?[.systemNumber] != nil ? "apfs" : "hfs"
 
                 result.append(DiskVolume(
-                    name: path == "/" ? "Macintosh HD" : "Home (\(URL(fileURLWithPath: home).lastPathComponent))",
-                    mountPoint: path,
+                    name: name.isEmpty ? (mp == "/" ? "Macintosh HD" : url.lastPathComponent) : name,
+                    mountPoint: mp,
                     totalBytes: total,
                     usedBytes: used,
                     freeBytes: free,
-                    fileSystemType: fsType
+                    fileSystemType: fsType,
+                    isRemovable: isRemovable,
+                    isExternal: !isLocal
                 ))
             }
         }
-        DispatchQueue.main.async {
-            self.volumes = result
-        }
-    }
 
-    private func getFSType(for path: String) -> String {
-        var st = statvfs()
-        if statvfs(path, &st) == 0 {
-            return "apfs"
+        // Sort: internal first, then external, then removable
+        result.sort {
+            if $0.mountPoint == "/" { return true }
+            if $1.mountPoint == "/" { return false }
+            if $0.isRemovable != $1.isRemovable { return !$0.isRemovable }
+            return $0.name < $1.name
         }
-        return "unknown"
+
+        DispatchQueue.main.async { self.volumes = result }
     }
 
     // MARK: - Scan Directory
 
     func scanDirectory(path: String) {
         scanTask?.cancel()
-        let targetPath = path.isEmpty ? fileManager.homeDirectoryForCurrentUser.path : path
-
-        DispatchQueue.main.async {
-            self.isScanning = true
-            self.scanProgress = 0.0
-            self.currentPath = targetPath
-            self.entries = []
-            self.topConsumers = []
-            self.errorMessage = nil
-        }
+        let resolvedPath = path.isEmpty ? fileManager.homeDirectoryForCurrentUser.path : path
+        currentPath = resolvedPath
+        isScanning = true
+        entries = []
+        topConsumers = []
+        errorMessage = nil
 
         scanTask = Task.detached(priority: .userInitiated) { [weak self] in
             guard let self else { return }
-            let url = URL(fileURLWithPath: targetPath)
-            let children = self.scanDir(url: url, depth: 0, maxDepth: 1)
-            let sorted = children.sorted { $0.sizeBytes > $1.sizeBytes }
-            let top = sorted.prefix(10).map { $0 }
+
+            guard let contents = try? self.fileManager.contentsOfDirectory(atPath: resolvedPath) else {
+                await MainActor.run {
+                    self.errorMessage = "Cannot read directory: \(resolvedPath)"
+                    self.isScanning = false
+                }
+                return
+            }
+
+            var scanned: [DiskEntry] = []
+            let skippable: Set<String> = [".DS_Store", ".Spotlight-V100", ".fseventsd", ".Trashes"]
+            let total = contents.count
+
+            for (idx, name) in contents.enumerated() {
+                guard !Task.isCancelled else { break }
+                if skippable.contains(name) { continue }
+
+                let fullPath = (resolvedPath as NSString).appendingPathComponent(name)
+                var isDir: ObjCBool = false
+                self.fileManager.fileExists(atPath: fullPath, isDirectory: &isDir)
+
+                let size: Int64
+                if isDir.boolValue {
+                    size = self.directorySize(path: fullPath, maxDepth: 3)
+                } else {
+                    size = (try? self.fileManager.attributesOfItem(atPath: fullPath))?[.size] as? Int64 ?? 0
+                }
+
+                let entry = DiskEntry(name: name, path: fullPath, sizeBytes: size, isDirectory: isDir.boolValue)
+                scanned.append(entry)
+
+                let progress = Double(idx + 1) / Double(max(total, 1))
+                await MainActor.run { self.scanProgress = progress }
+            }
+
+            let sorted = scanned.sorted { $0.sizeBytes > $1.sizeBytes }
+            let top = Array(sorted.prefix(20))
 
             await MainActor.run {
                 self.entries = sorted
                 self.topConsumers = top
                 self.isScanning = false
-                self.scanProgress = 1.0
+                self.scanProgress = 0
             }
         }
     }
 
-    func scanDir(url: URL, depth: Int, maxDepth: Int) -> [DiskEntry] {
-        guard !Task.isCancelled else { return [] }
-        var result: [DiskEntry] = []
-        let opts: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles, .skipsPackageDescendants]
+    // MARK: - Scan by Volume
 
-        guard let contents = try? fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: [.fileSizeKey, .isDirectoryKey, .isPackageKey], options: opts) else {
-            return []
-        }
-
-        for item in contents {
-            if Task.isCancelled { break }
-            var isDir: ObjCBool = false
-            fileManager.fileExists(atPath: item.path, isDirectory: &isDir)
-
-            let size: Int64
-            if isDir.boolValue {
-                size = getDirectorySize(url: item)
-            } else {
-                size = (try? item.resourceValues(forKeys: [.fileSizeKey]).fileSize).flatMap { Int64($0) } ?? 0
-            }
-
-            var entry = DiskEntry(
-                name: item.lastPathComponent,
-                path: item.path,
-                sizeBytes: size,
-                isDirectory: isDir.boolValue,
-                depth: depth
-            )
-
-            if isDir.boolValue && depth < maxDepth {
-                entry.children = scanDir(url: item, depth: depth + 1, maxDepth: maxDepth)
-            }
-
-            result.append(entry)
-        }
-        return result
+    func scanVolume(_ volume: DiskVolume) {
+        scanDirectory(path: volume.mountPoint)
     }
 
-    private func getDirectorySize(url: URL) -> Int64 {
+    // MARK: - Directory Size (bounded depth)
+
+    private func directorySize(path: String, maxDepth: Int) -> Int64 {
         var size: Int64 = 0
-        let opts: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles]
-        guard let enumerator = fileManager.enumerator(at: url, includingPropertiesForKeys: [.fileSizeKey], options: opts) else {
-            return 0
-        }
-        for case let fileURL as URL in enumerator {
-            if let fileSize = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize {
-                size += Int64(fileSize)
+        let resourceKeys: Set<URLResourceKey> = [.fileSizeKey, .isDirectoryKey, .isSymbolicLinkKey]
+        guard let enumerator = fileManager.enumerator(
+            at: URL(fileURLWithPath: path),
+            includingPropertiesForKeys: Array(resourceKeys),
+            options: [.skipsHiddenFiles, .skipsPackageDescendants]
+        ) else { return 0 }
+
+        for case let url as URL in enumerator {
+            if enumerator.level > maxDepth { enumerator.skipDescendants(); continue }
+            if let vals = try? url.resourceValues(forKeys: resourceKeys),
+               !(vals.isDirectory ?? false),
+               !(vals.isSymbolicLink ?? false) {
+                size += Int64(vals.fileSize ?? 0)
             }
         }
         return size
-    }
-
-    func revealInFinder(path: String) {
-        NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: "")
-    }
-
-    func formatBytes(_ bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: bytes)
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 import AppKit
 
-// MARK: - Insight Category (from Mole analyze/insights.go)
+// MARK: - Insight Category
 
 struct InsightItem: Identifiable {
     let id = UUID()
@@ -43,7 +43,7 @@ struct ProjectCleanEntry: Identifiable {
 
 // MARK: - Manager
 
-class MoleInsightsManager: ObservableObject {
+class CacheCleanerManager: ObservableObject {
     @Published var insights: [InsightItem] = []
     @Published var projectEntries: [ProjectCleanEntry] = []
     @Published var isScanning: Bool = false
@@ -54,7 +54,7 @@ class MoleInsightsManager: ObservableObject {
 
     private let fm = FileManager.default
 
-    // MARK: - Build Insight List (Mole insights.go port)
+    // MARK: - Build Insight List
 
     func buildInsights() {
         let home = fm.homeDirectoryForCurrentUser.path
@@ -218,7 +218,7 @@ class MoleInsightsManager: ObservableObject {
         }
     }
 
-    // MARK: - Project Dependency Cleaner (Mole foldDirs inspired)
+    // MARK: - Project Dependency Cleaner
 
     static let cleanableDirNames: Set<String> = [
         // JS/Node
@@ -266,13 +266,13 @@ class MoleInsightsManager: ObservableObject {
         guard let contents = try? fm.contentsOfDirectory(atPath: dir) else { return }
 
         for item in contents {
-            if item.hasPrefix(".") && !MoleInsightsManager.cleanableDirNames.contains(item) { continue }
+            if item.hasPrefix(".") && !CacheCleanerManager.cleanableDirNames.contains(item) { continue }
             let fullPath = (dir as NSString).appendingPathComponent(item)
 
             var isDir: ObjCBool = false
             guard fm.fileExists(atPath: fullPath, isDirectory: &isDir), isDir.boolValue else { continue }
 
-            if MoleInsightsManager.cleanableDirNames.contains(item) {
+            if CacheCleanerManager.cleanableDirNames.contains(item) {
                 let size = directorySize(path: fullPath)
                 if size > 0 {
                     found.append(ProjectCleanEntry(

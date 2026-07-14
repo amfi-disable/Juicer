@@ -70,7 +70,7 @@ struct statusmonitorview: View {
                             .opacity(0.8)
                     }
                 }
-                Text("Real-time CPU, memory, network, and process monitoring — inspired by Mole's \u{2018}mo status\u{2019}.")
+                Text("Real-time CPU, memory, network and process monitoring.")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
             Spacer()
@@ -88,6 +88,22 @@ struct statusmonitorview: View {
                 .background(Color.secondary.opacity(0.1))
                 .cornerRadius(8)
             }
+
+            // Refresh rate control
+            HStack(spacing: 4) {
+                Image(systemName: "clock").foregroundStyle(.secondary).font(.caption)
+                Picker("", selection: $manager.refreshInterval) {
+                    ForEach(StatusMonitorManager.RefreshInterval.allCases) { interval in
+                        Text(interval.rawValue).tag(interval)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(width: 90)
+                .help("Auto-refresh interval")
+            }
+            .padding(.horizontal, 6).padding(.vertical, 3)
+            .background(Color.secondary.opacity(0.1))
+            .cornerRadius(7)
 
             Picker("", selection: $activeTab) {
                 ForEach(MonitorTab.allCases, id: \.self) { tab in

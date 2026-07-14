@@ -26,7 +26,7 @@ struct mainsidebarview: View {
                     
                     Section("Storage & Disk") {
                         sidebarLink(for: .diskExplorer)
-                        sidebarLink(for: .moleInsights)
+                        sidebarLink(for: .cacheCleaner)
                         sidebarLink(for: .devCaches)
                         sidebarLink(for: .largeFiles)
                         sidebarLink(for: .hiddenFiles)
@@ -65,7 +65,7 @@ struct mainsidebarview: View {
                     case .diskExplorer:     diskexplorerview()
                     case .systemOptimizer:  systemoptimizerview()
                     case .statusMonitor:    statusmonitorview()
-                    case .moleInsights:     moleinsightsview()
+                    case .cacheCleaner:     cachecleanerview()
                     }
                 } else {
                     VStack {
@@ -95,7 +95,7 @@ struct mainsidebarview: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.diskExplorer"))) { _ in selectedItem = .diskExplorer }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.systemOptimizer"))) { _ in selectedItem = .systemOptimizer }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.statusMonitor"))) { _ in selectedItem = .statusMonitor }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.moleInsights"))) { _ in selectedItem = .moleInsights }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.cacheCleaner"))) { _ in selectedItem = .cacheCleaner }
         
         // Help & Guide triggers
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.action.showGuide"))) { _ in
@@ -143,7 +143,7 @@ struct mainsidebarview: View {
                     Group {
                         Text("Welcome to Juicer")
                             .font(.title2).bold().foregroundColor(.accentColor)
-                        Text("Juicer is an open-source macOS developer utility inspired by Mole. It combines disk analysis, live system monitoring, developer cache management, app uninstalling, and system optimization — all in one native app.")
+                        Text("Juicer is an open-source macOS developer utility. It combines disk analysis, live system monitoring, developer cache management, app uninstalling, and system optimization — all in one native app.")
                             .foregroundColor(.secondary)
                     }
                     
@@ -154,22 +154,22 @@ struct mainsidebarview: View {
                             .font(.headline)
                         
                         guideItem(title: "Live Status Monitor", icon: "waveform.path.ecg", color: .green,
-                            desc: "Real-time CPU gauges, memory pressure bars, network speed, health score, and a full process list with kill support — mirrors Mole's 'mo status'.")
+                            desc: "Real-time CPU gauges, memory pressure, network speed, health scoring, and a full process list with force-quit support. Refresh rate is fully configurable (1s / 2s / 5s / 10s / 30s / Manual).")
                         
-                        guideItem(title: "Mole Insights & Project Cleaner", icon: "sparkles", color: .orange,
-                            desc: "27 categorized cleanable space items (iOS Backups, Xcode Simulators, Docker, Spotify, JetBrains, etc.) plus a project scanner that finds node_modules, .build, target/, venv/ and more — mirrors Mole's 'mo clean' and 'mo analyze'.")
+                        guideItem(title: "Cache Cleaner & Space Insights", icon: "sparkle.magnifyingglass", color: .orange,
+                            desc: "27 categorised cleanable space items (iOS Backups, Xcode Simulators, Docker, Spotify, JetBrains, and more) plus a project scanner that finds node_modules, .build, target/, venv/ and other dependency directories.")
                         
                         guideItem(title: "Disk Explorer", icon: "internaldrive.fill", color: .blue,
-                            desc: "Visualize disk usage with Mole-inspired proportional bar maps. Drill into any folder, find space hogs, and reveal items in Finder.")
+                            desc: "Visualize disk usage with proportional bar maps. Browse all mounted volumes including external drives, drill into any folder, and reveal items in Finder.")
                         
                         guideItem(title: "System Optimizer", icon: "bolt.fill", color: .yellow,
-                            desc: "15 targeted optimization tasks: flush DNS, purge memory, rebuild LaunchServices DB, clear QuickLook caches — mirrors Mole's 'mo optimize'.")
+                            desc: "15 targeted optimisation tasks: flush DNS, purge memory, rebuild LaunchServices DB, clear QuickLook caches, update Homebrew and more.")
                         
                         guideItem(title: "Developer Caches", icon: "hammer.fill", color: .indigo,
                             desc: "50+ cache targets covering Xcode, Node, Python, Ruby, Rust, Go, Java, Docker, VS Code, JetBrains, Terraform, and more.")
                         
                         guideItem(title: "App Uninstaller & Orphan Finder", icon: "trash.fill", color: .red,
-                            desc: "Detect and remove leftover files from previously uninstalled apps — mirrors Mole's 'mo uninstall'.")
+                            desc: "Detect and remove leftover files from previously uninstalled apps.")
                         
                         guideItem(title: "SDK & Runtime Switcher", icon: "square.stack.3d.up.fill", color: .purple,
                             desc: "Switch between Node.js, Python, Ruby, and Rust versions using nvm, pyenv, rbenv, and rustup.")
@@ -196,7 +196,7 @@ struct mainsidebarview: View {
                             shortcutRow(keys: "Cmd + 8", desc: "Service Manager")
                             shortcutRow(keys: "Cmd + 9", desc: "System Tweaks")
                             shortcutRow(keys: "Cmd + Shift + S", desc: "Live Status Monitor")
-                            shortcutRow(keys: "Cmd + Shift + M", desc: "Mole Insights")
+                            shortcutRow(keys: "Cmd + Shift + M", desc: "Cache Cleaner")
                             shortcutRow(keys: "Cmd + Shift + D", desc: "Disk Explorer")
                             shortcutRow(keys: "Cmd + Shift + O", desc: "System Optimizer")
                             shortcutRow(keys: "Cmd + ,", desc: "Preferences / Settings")

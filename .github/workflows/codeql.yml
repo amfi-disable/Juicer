@@ -26,8 +26,18 @@ jobs:
       - name: Generate Xcode Project
         run: xcodegen generate
 
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer || sudo xcode-select -s $(ls -d /Applications/Xcode*.app | sort -r | head -1)/Contents/Developer
+
       - name: Build Code For Compilation Target Scan
-        run: xcodebuild build -project juicer.xcodeproj -scheme juicer -sdk macosx
+        run: |
+          xcodebuild build \
+            -project juicer.xcodeproj \
+            -scheme juicer \
+            -sdk macosx \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO
 
       - name: Perform CodeQL Analysis Diagnostics
         uses: github/codeql-action/analyze@v3

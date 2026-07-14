@@ -22,9 +22,18 @@ jobs:
       - name: Generate Xcode Project
         run: xcodegen generate
 
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer || sudo xcode-select -s $(ls -d /Applications/Xcode*.app | sort -r | head -1)/Contents/Developer
+
       - name: Build and Archive Release Application
         run: |
-          xcodebuild archive -project juicer.xcodeproj -scheme juicer -archivePath build/juicer.xcarchive
+          xcodebuild archive \
+            -project juicer.xcodeproj \
+            -scheme juicer \
+            -archivePath build/juicer.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO
           mkdir -p build/Payload
           cp -r build/juicer.xcarchive/Products/Applications/juicer.app build/Payload/
           cd build
