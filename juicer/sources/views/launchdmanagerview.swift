@@ -422,7 +422,7 @@ struct launchdmanagerview: View {
         self.unifiedLog = ""
         
         Task.detached(priority: .userInitiated) {
-            let logs = self.manager.loadLogs(for: service)
+            let logs = LaunchdManager.loadLogs(for: service)
             await MainActor.run {
                 self.stdoutLog = logs.stdout
                 self.stderrLog = logs.stderr

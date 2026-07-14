@@ -14,7 +14,6 @@ class LaunchdManager: ObservableObject {
         AppLogger.shared.log("Enumerating launchd agents and daemons...")
         
         Task.detached(priority: .userInitiated) {
-            let uid = getuid()
             let home = FileManager.default.homeDirectoryForCurrentUser.path
             
             let directories: [(type: String, path: String)] = [
@@ -39,7 +38,7 @@ class LaunchdManager: ObservableObject {
             }
             
             // Query running state via launchctl list
-            let runningStates = self.getRunningStates()
+            let runningStates = LaunchdManager.getRunningStates()
             
             for i in 0..<discovered.count {
                 let label = discovered[i].label
@@ -66,9 +65,6 @@ class LaunchdManager: ObservableObject {
         Task.detached(priority: .userInitiated) {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-            
-            // GUI uid for user agents or system for system daemons
-            let uid = getuid()
             
             if isRunning {
                 // Unload service
@@ -134,7 +130,7 @@ class LaunchdManager: ObservableObject {
         }
     }
     
-    func loadLogs(for service: LaunchdService) -> (stdout: String, stderr: String, unified: String) {
+    static func loadLogs(for service: LaunchdService) -> (stdout: String, stderr: String, unified: String) {
         var stdout = ""
         var stderr = ""
         var unified = ""
@@ -191,14 +187,18 @@ class LaunchdManager: ObservableObject {
         
         // Unload first
         toggleServiceState(service) { [weak self] _ in
-            Task.detached(priority: .userInitiated) {
+            guard let self = self else {
+                completion(false)
+                return
+            }
+            Task {
                 do {
                     if FileManager.default.fileExists(atPath: service.plistURL.path) {
                         try FileManager.default.trashItem(at: service.plistURL, resultingItemURL: nil)
                     }
                     
                     await MainActor.run {
-                        self?.loadServices()
+                        self.loadServices()
                         completion(true)
                     }
                 } catch {
@@ -211,7 +211,7 @@ class LaunchdManager: ObservableObject {
         }
     }
     
-    private func getRunningStates() -> [String: (pid: Int?, exitCode: Int?)] {
+    private static func getRunningStates() -> [String: (pid: Int?, exitCode: Int?)] {
         var states: [String: (pid: Int?, exitCode: Int?)] = [:]
         
         let process = Process()
