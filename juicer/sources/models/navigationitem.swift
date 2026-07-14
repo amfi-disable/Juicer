@@ -20,6 +20,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case systemOptimizer
     case statusMonitor
     case cacheCleaner
+    case appStore
     
     var id: NavigationItem { self }
     
@@ -44,6 +45,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .systemOptimizer: return "System Optimizer"
         case .statusMonitor: return "Live Status"
         case .cacheCleaner: return "Cache Cleaner"
+        case .appStore: return "Software Center"
         }
     }
     
@@ -68,6 +70,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .systemOptimizer: return "bolt.fill"
         case .statusMonitor: return "waveform.path.ecg"
         case .cacheCleaner: return "sparkle.magnifyingglass"
+        case .appStore: return "square.grid.3x3.fill"
         }
     }
 }

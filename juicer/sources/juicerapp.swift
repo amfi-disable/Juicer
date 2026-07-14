@@ -79,6 +79,13 @@ struct juicerapp: App {
                         NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.systemTweaks"), object: nil)
                     }
                     .keyboardShortcut("9", modifiers: [.command])
+                    
+                    Divider()
+                    
+                    Button("Go to Software Center") {
+                        NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.appStore"), object: nil)
+                    }
+                    .keyboardShortcut("a", modifiers: [.command, .shift])
                 }
             }
             

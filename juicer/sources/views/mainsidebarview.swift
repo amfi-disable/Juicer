@@ -18,6 +18,7 @@ struct mainsidebarview: View {
                     }
                     
                     Section("Applications") {
+                        sidebarLink(for: .appStore)
                         sidebarLink(for: .appUninstaller)
                         sidebarLink(for: .orphanScanner)
                         sidebarLink(for: .appLipo)
@@ -66,6 +67,7 @@ struct mainsidebarview: View {
                     case .systemOptimizer:  systemoptimizerview()
                     case .statusMonitor:    statusmonitorview()
                     case .cacheCleaner:     cachecleanerview()
+                    case .appStore:         storeview()
                     }
                 } else {
                     VStack {
@@ -96,6 +98,7 @@ struct mainsidebarview: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.systemOptimizer"))) { _ in selectedItem = .systemOptimizer }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.statusMonitor"))) { _ in selectedItem = .statusMonitor }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.cacheCleaner"))) { _ in selectedItem = .cacheCleaner }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.appStore"))) { _ in selectedItem = .appStore }
         
         // Help & Guide triggers
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.action.showGuide"))) { _ in
@@ -168,6 +171,9 @@ struct mainsidebarview: View {
                         guideItem(title: "Developer Caches", icon: "hammer.fill", color: .indigo,
                             desc: "50+ cache targets covering Xcode, Node, Python, Ruby, Rust, Go, Java, Docker, VS Code, JetBrains, Terraform, and more.")
                         
+                        guideItem(title: "Software Center", icon: "square.grid.3x3.fill", color: .purple,
+                            desc: "Explore Homebrew's vast catalog of graphical applications (Casks) and command line utilities (Formulae). Installs and uninstalls items directly with a real-time console log.")
+                        
                         guideItem(title: "App Uninstaller & Orphan Finder", icon: "trash.fill", color: .red,
                             desc: "Detect and remove leftover files from previously uninstalled apps.")
                         
@@ -199,6 +205,7 @@ struct mainsidebarview: View {
                             shortcutRow(keys: "Cmd + Shift + M", desc: "Cache Cleaner")
                             shortcutRow(keys: "Cmd + Shift + D", desc: "Disk Explorer")
                             shortcutRow(keys: "Cmd + Shift + O", desc: "System Optimizer")
+                            shortcutRow(keys: "Cmd + Shift + A", desc: "Software Center")
                             shortcutRow(keys: "Cmd + ,", desc: "Preferences / Settings")
                             shortcutRow(keys: "Cmd + ?", desc: "This Help Guide")
                         }
