@@ -23,4 +23,10 @@ jobs:
 
       - name: Check Git Diff Cleanliness
         run: |
-          git diff --exit-code juicer.xcodeproj/project.pbxproj || (echo "Error: project.pbxproj is out of sync with project.yml. Please run xcodegen generate locally and push the changes." && exit 1)
+          # Allow non-zero exit if .xcodeproj isn't tracked (it may be gitignored)
+          if git ls-files --error-unmatch juicer.xcodeproj/project.pbxproj 2>/dev/null; then
+            git diff --exit-code juicer.xcodeproj/project.pbxproj \
+              || (echo "Error: project.pbxproj is out of sync with project.yml. Run xcodegen generate locally and commit changes." && exit 1)
+          else
+            echo "project.pbxproj is not tracked by git (gitignored). Skipping sync check."
+          fi

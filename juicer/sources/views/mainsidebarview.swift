@@ -19,13 +19,15 @@ struct mainsidebarview: View {
                         sidebarLink(for: .brewExplorer)
                     }
                     
-                    Section("Storage Clean") {
+                    Section("Storage & Disk") {
+                        sidebarLink(for: .diskExplorer)
                         sidebarLink(for: .devCaches)
                         sidebarLink(for: .largeFiles)
                         sidebarLink(for: .hiddenFiles)
                     }
                     
                     Section("System & Advanced") {
+                        sidebarLink(for: .systemOptimizer)
                         sidebarLink(for: .serviceManager)
                         sidebarLink(for: .systemTweaks)
                         sidebarLink(for: .quarantineStripper)
@@ -70,6 +72,10 @@ struct mainsidebarview: View {
                         sdkmanagerview()
                     case .portListener:
                         portlistenerview()
+                    case .diskExplorer:
+                        diskexplorerview()
+                    case .systemOptimizer:
+                        systemoptimizerview()
                     }
                 } else {
                     VStack {
@@ -96,6 +102,8 @@ struct mainsidebarview: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.brewExplorer"))) { _ in selectedItem = .brewExplorer }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.serviceManager"))) { _ in selectedItem = .serviceManager }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.systemTweaks"))) { _ in selectedItem = .systemTweaks }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.diskExplorer"))) { _ in selectedItem = .diskExplorer }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.systemOptimizer"))) { _ in selectedItem = .systemOptimizer }
         
         // Help & Guide triggers
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.action.showGuide"))) { _ in
@@ -167,15 +175,29 @@ struct mainsidebarview: View {
                         )
                         
                         guideItem(
+                            title: "Disk Explorer",
+                            icon: "internaldrive.fill",
+                            color: .blue,
+                            desc: "Visualize disk usage across your volumes with a Mole-inspired bar map. Drill down into folders, identify space hogs, and reveal items in Finder."
+                        )
+                        
+                        guideItem(
+                            title: "System Optimizer",
+                            icon: "bolt.fill",
+                            color: .orange,
+                            desc: "Run 15+ targeted optimization tasks: flush DNS cache, purge memory, rebuild Launch Services, clear QuickLook caches, update Homebrew, and more. Inspired by Mole's 'mo optimize' command."
+                        )
+                        
+                        guideItem(
                             title: "Developer Caches",
                             icon: "hammer.fill",
-                            color: .blue,
+                            color: .indigo,
                             desc: "Quickly reclaim gigabytes of disk space by purging DerivedData, Node packages caches, Cargo/Rust target folders, and dangling Docker images."
                         )
                         
                         guideItem(
                             title: "SDK & Runtime Switcher",
-                            icon: "point.3.filled.connected.trianglepath.dolly",
+                            icon: "square.stack.3d.up.fill",
                             color: .purple,
                             desc: "Seamlessly swap between active versions of Node.js (nvm/fnm), Python (pyenv), Ruby (rbenv/rvm), and Rust (rustup). Changes require double confirmation dialog checks for safety."
                         )
@@ -211,6 +233,8 @@ struct mainsidebarview: View {
                             shortcutRow(keys: "Cmd + 7", desc: "Go to Homebrew Explorer")
                             shortcutRow(keys: "Cmd + 8", desc: "Go to Service Manager")
                             shortcutRow(keys: "Cmd + 9", desc: "Go to System Tweaks")
+                            shortcutRow(keys: "Cmd + Shift + D", desc: "Go to Disk Explorer")
+                            shortcutRow(keys: "Cmd + Shift + O", desc: "Go to System Optimizer")
                             shortcutRow(keys: "Cmd + Shift + B", desc: "Add Custom Bookmark Link")
                             shortcutRow(keys: "Cmd + ,", desc: "Open Preferences / Settings")
                             shortcutRow(keys: "Cmd + ?", desc: "Open this Help Guide Manual")
@@ -223,7 +247,7 @@ struct mainsidebarview: View {
                 .padding()
             }
         }
-        .frame(width: 580, height: 480)
+        .frame(width: 600, height: 540)
     }
     
     @ViewBuilder
@@ -253,7 +277,7 @@ struct mainsidebarview: View {
                 .font(.system(.body, design: .monospaced))
                 .bold()
                 .foregroundColor(.accentColor)
-                .frame(width: 160, alignment: .leading)
+                .frame(width: 180, alignment: .leading)
             Text(desc)
                 .foregroundColor(.secondary)
             Spacer()

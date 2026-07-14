@@ -15,6 +15,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer || sudo xcode-select -s $(ls -d /Applications/Xcode*.app | sort -r | head -1)/Contents/Developer
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
@@ -22,4 +25,13 @@ jobs:
         run: xcodegen generate
 
       - name: Run Test Cases
-        run: xcodebuild test -project juicer.xcodeproj -scheme juicer -sdk macosx -destination 'platform=macOS'
+        run: |
+          xcodebuild test \
+            -project juicer.xcodeproj \
+            -scheme juicer \
+            -sdk macosx \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcpretty || true

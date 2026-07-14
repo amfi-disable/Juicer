@@ -16,6 +16,8 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case brewExplorer
     case sdkSwitcher
     case portListener
+    case diskExplorer
+    case systemOptimizer
     
     var id: NavigationItem { self }
     
@@ -36,6 +38,8 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .brewExplorer: return "Homebrew Explorer"
         case .sdkSwitcher: return "SDK & Runtime Switcher"
         case .portListener: return "Port Listener"
+        case .diskExplorer: return "Disk Explorer"
+        case .systemOptimizer: return "System Optimizer"
         }
     }
     
@@ -56,6 +60,8 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .brewExplorer: return "shippingbox.fill"
         case .sdkSwitcher: return "square.stack.3d.up.fill"
         case .portListener: return "network.badge.shield.half.filled"
+        case .diskExplorer: return "internaldrive.fill"
+        case .systemOptimizer: return "bolt.fill"
         }
     }
 }
