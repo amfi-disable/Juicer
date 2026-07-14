@@ -43,6 +43,8 @@ struct mainsidebarview: View {
                         launchservicesview()
                     case .hiddenFiles:
                         hiddenfileview()
+                    case .appLipo:
+                        applipoview()
                     default:
                         placeholderView(for: item)
                     }

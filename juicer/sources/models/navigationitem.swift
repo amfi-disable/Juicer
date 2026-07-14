@@ -11,6 +11,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case dnsEditor
     case launchServices
     case hiddenFiles
+    case appLipo
     
     var id: NavigationItem { self }
     
@@ -26,6 +27,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .dnsEditor: return "DNS Editor"
         case .launchServices: return "File Associations"
         case .hiddenFiles: return "Hidden File Explorer"
+        case .appLipo: return "App Lipo Slicer"
         }
     }
     
@@ -41,6 +43,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .dnsEditor: return "network"
         case .launchServices: return "doc.badge.gearshape.fill"
         case .hiddenFiles: return "eye.slash.fill"
+        case .appLipo: return "cpu.fill"
         }
     }
 }

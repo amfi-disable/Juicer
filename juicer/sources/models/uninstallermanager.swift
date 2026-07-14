@@ -143,13 +143,23 @@ class UninstallerManager: ObservableObject {
             let home = FileManager.default.homeDirectoryForCurrentUser.path
             
             let searchLocations: [(category: String, path: String)] = [
+                ("Application Scripts", "\(home)/Library/Application Scripts"),
                 ("Application Support", "\(home)/Library/Application Support"),
                 ("Caches", "\(home)/Library/Caches"),
-                ("Preferences", "\(home)/Library/Preferences"),
                 ("Containers", "\(home)/Library/Containers"),
                 ("Group Containers", "\(home)/Library/Group Containers"),
+                ("HTTPStorages", "\(home)/Library/HTTPStorages"),
+                ("LaunchAgents", "\(home)/Library/LaunchAgents"),
                 ("Logs", "\(home)/Library/Logs"),
-                ("LaunchAgents", "\(home)/Library/LaunchAgents")
+                ("Preferences", "\(home)/Library/Preferences"),
+                ("Saved Application State", "\(home)/Library/Saved Application State"),
+                ("Global Application Support", "/Library/Application Support"),
+                ("Global Caches", "/Library/Caches"),
+                ("Global LaunchAgents", "/Library/LaunchAgents"),
+                ("Global LaunchDaemons", "/Library/LaunchDaemons"),
+                ("Global Preferences", "/Library/Preferences"),
+                ("Global Logs", "/Library/Logs"),
+                ("Package Receipts", "/private/var/db/receipts")
             ]
             
             var discovered: [LeftoverItem] = []
