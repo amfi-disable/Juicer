@@ -1,6 +1,6 @@
 # juicer
 
-Juicer is a 100% free, open-source, local-first macOS utility for power users and developers. It consolidates app uninstallers, orphan file cleaners, launchd/service editors, developer cache pruners, hidden system tweakers, Gatekeeper tools, DNS editor, and LaunchServices overrides into a unified, high-performance native SwiftUI desktop system app.
+Juicer is the ultimate all-in-one app for **macOS developers and power users**. It is a 100% free, open-source, local-first utility that consolidates app uninstallers, orphan file cleaners, launchd/service editors, developer cache pruners, hidden system tweakers, Gatekeeper tools, DNS editor, LaunchServices overrides, and a Software Center into a unified, high-performance native SwiftUI desktop system app.
 
 ## features
 
