@@ -15,6 +15,7 @@ struct mainsidebarview: View {
                         sidebarLink(for: .appUninstaller)
                         sidebarLink(for: .orphanScanner)
                         sidebarLink(for: .appLipo)
+                        sidebarLink(for: .brewExplorer)
                     }
                     
                     Section("Storage Clean") {
@@ -60,6 +61,8 @@ struct mainsidebarview: View {
                         applipoview()
                     case .largeFiles:
                         largefilesview()
+                    case .brewExplorer:
+                        brewmanagerview()
                     default:
                         placeholderView(for: item)
                     }
