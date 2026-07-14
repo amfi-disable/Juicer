@@ -13,7 +13,18 @@ struct launchdmanagerview: View {
     @State private var editProgramArguments = ""
     @State private var editRunAtLoad = false
     @State private var editKeepAlive = false
+    @State private var editStandardOutPath = ""
+    @State private var editStandardErrorPath = ""
     @State private var editPlistPath = ""
+    
+    // Detail View tab
+    @State private var selectedDetailTab = 0
+    
+    // Log Viewer states
+    @State private var stdoutLog = ""
+    @State private var stderrLog = ""
+    @State private var unifiedLog = ""
+    @State private var isLoadingLogs = false
     
     var filteredServices: [LaunchdService] {
         if searchText.isEmpty {
@@ -68,7 +79,6 @@ struct launchdmanagerview: View {
                             
                             Spacer()
                             
-                            // Badge indicating running or stopped
                             statusBadge(for: service)
                         }
                     }
@@ -104,6 +114,7 @@ struct launchdmanagerview: View {
         .onChange(of: selectedService) { _, newService in
             if let service = newService {
                 loadPlistContent(for: service)
+                loadLogsContent(for: service)
             }
         }
         .sheet(isPresented: $isShowingEditor) {
@@ -155,14 +166,35 @@ struct launchdmanagerview: View {
             .padding()
             .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
             
+            Picker("", selection: $selectedDetailTab) {
+                Text("Properties").tag(0)
+                Text("Raw Plist").tag(1)
+                Text("Service Logs").tag(2)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.bottom, 8)
+            
             Divider()
             
-            // Metadata / Path Cards
-            VStack(alignment: .leading, spacing: 12) {
+            if selectedDetailTab == 0 {
+                propertiesTab(for: service)
+            } else if selectedDetailTab == 1 {
+                plistSourceTab()
+            } else {
+                logsTab(for: service)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func propertiesTab(for service: LaunchdService) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     Text("Plist Path:")
                         .bold()
-                        .frame(width: 80, alignment: .leading)
+                        .frame(width: 140, alignment: .leading)
                     Text(service.filepath)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -177,8 +209,28 @@ struct launchdmanagerview: View {
                 HStack {
                     Text("Command:")
                         .bold()
-                        .frame(width: 80, alignment: .leading)
+                        .frame(width: 140, alignment: .leading)
                     Text(service.commandLine.isEmpty ? "None specified" : service.commandLine)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                
+                HStack {
+                    Text("Standard Out Path:")
+                        .bold()
+                        .frame(width: 140, alignment: .leading)
+                    Text(service.standardOutPath ?? "Not redirected")
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                
+                HStack {
+                    Text("Standard Error Path:")
+                        .bold()
+                        .frame(width: 140, alignment: .leading)
+                    Text(service.standardErrorPath ?? "Not redirected")
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -187,7 +239,7 @@ struct launchdmanagerview: View {
                 HStack {
                     Text("Options:")
                         .bold()
-                        .frame(width: 80, alignment: .leading)
+                        .frame(width: 140, alignment: .leading)
                     HStack(spacing: 16) {
                         HStack(spacing: 4) {
                             Image(systemName: service.runAtLoad ? "checkmark.circle.fill" : "xmark.circle")
@@ -204,28 +256,83 @@ struct launchdmanagerview: View {
                 }
             }
             .padding()
-            
-            Divider()
-            
-            // Code Viewer
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Configuration Plist Source")
+        }
+    }
+    
+    @ViewBuilder
+    private func plistSourceTab() -> some View {
+        ScrollView {
+            Text(plistContent)
+                .font(.system(.body, design: .monospaced))
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.1))
+    }
+    
+    @ViewBuilder
+    private func logsTab(for service: LaunchdService) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Service Logs")
                     .font(.headline)
-                    .padding(.horizontal)
-                    .padding(.top, 10)
-                
-                ScrollView {
-                    Text(plistContent)
-                        .font(.system(.body, design: .monospaced))
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer()
+                Button(action: { loadLogsContent(for: service) }) {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Refresh")
                 }
-                .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
-                .cornerRadius(8)
-                .padding([.horizontal, .bottom])
+                .buttonStyle(.bordered)
+                .disabled(isLoadingLogs)
+            }
+            .padding()
+            
+            if isLoadingLogs {
+                VStack {
+                    ProgressView("Tailing process logs...")
+                        .progressViewStyle(.circular)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        if !stdoutLog.isEmpty {
+                            Text("=== Standard Output ===")
+                                .bold()
+                                .foregroundColor(.accentColor)
+                            Text(stdoutLog)
+                                .font(.system(.caption, design: .monospaced))
+                                .padding(8)
+                                .background(Color(NSColor.controlBackgroundColor).opacity(0.2))
+                                .cornerRadius(6)
+                        }
+                        
+                        if !stderrLog.isEmpty {
+                            Text("=== Standard Error ===")
+                                .bold()
+                                .foregroundColor(.red)
+                            Text(stderrLog)
+                                .font(.system(.caption, design: .monospaced))
+                                .padding(8)
+                                .background(Color(NSColor.controlBackgroundColor).opacity(0.2))
+                                .cornerRadius(6)
+                        }
+                        
+                        if !unifiedLog.isEmpty {
+                            Text("=== Unified Log Fallback (Last 1 hour) ===")
+                                .bold()
+                                .foregroundColor(.secondary)
+                            Text(unifiedLog)
+                                .font(.system(.caption, design: .monospaced))
+                                .padding(8)
+                                .background(Color(NSColor.controlBackgroundColor).opacity(0.2))
+                                .cornerRadius(6)
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
         }
-        .background(Color(NSColor.windowBackgroundColor))
     }
     
     // MARK: - Editor Sheet
@@ -238,10 +345,16 @@ struct launchdmanagerview: View {
             
             Form {
                 TextField("Label (Unique ID):", text: $editLabel)
-                    .disabled(!isCreatingNew) // Immutable label after creation
+                    .disabled(!isCreatingNew)
                 
                 TextField("Program Arguments:", text: $editProgramArguments)
                     .help("Provide command arguments separated by spaces.")
+                
+                TextField("Standard Out Path (Optional):", text: $editStandardOutPath)
+                    .help("Path to write stdout logs to.")
+                
+                TextField("Standard Error Path (Optional):", text: $editStandardErrorPath)
+                    .help("Path to write stderr logs to.")
                 
                 Toggle("Run At Load", isOn: $editRunAtLoad)
                 Toggle("Keep Alive", isOn: $editKeepAlive)
@@ -275,7 +388,7 @@ struct launchdmanagerview: View {
             }
             .padding()
         }
-        .frame(width: 480, height: 380)
+        .frame(width: 500, height: 460)
         .padding()
     }
     
@@ -302,12 +415,31 @@ struct launchdmanagerview: View {
         }
     }
     
+    private func loadLogsContent(for service: LaunchdService) {
+        self.isLoadingLogs = true
+        self.stdoutLog = ""
+        self.stderrLog = ""
+        self.unifiedLog = ""
+        
+        Task.detached(priority: .userInitiated) {
+            let logs = self.manager.loadLogs(for: service)
+            await MainActor.run {
+                self.stdoutLog = logs.stdout
+                self.stderrLog = logs.stderr
+                self.unifiedLog = logs.unified
+                self.isLoadingLogs = false
+            }
+        }
+    }
+    
     private func openEditor(for service: LaunchdService) {
         self.isCreatingNew = false
         self.editLabel = service.label
         self.editProgramArguments = service.programArguments.joined(separator: " ")
         self.editRunAtLoad = service.runAtLoad
         self.editKeepAlive = service.keepAlive
+        self.editStandardOutPath = service.standardOutPath ?? ""
+        self.editStandardErrorPath = service.standardErrorPath ?? ""
         self.editPlistPath = service.plistURL.path
         self.isShowingEditor = true
     }
@@ -318,6 +450,8 @@ struct launchdmanagerview: View {
         self.editProgramArguments = "/usr/bin/say hello"
         self.editRunAtLoad = true
         self.editKeepAlive = false
+        self.editStandardOutPath = ""
+        self.editStandardErrorPath = ""
         self.editPlistPath = "user"
         self.isShowingEditor = true
     }
@@ -348,11 +482,16 @@ struct launchdmanagerview: View {
         
         let args = editProgramArguments.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
         
+        let outPath = editStandardOutPath.trimmingCharacters(in: .whitespacesAndNewlines)
+        let errPath = editStandardErrorPath.trimmingCharacters(in: .whitespacesAndNewlines)
+        
         let service = LaunchdService(
             label: editLabel,
             programArguments: args,
             runAtLoad: editRunAtLoad,
             keepAlive: editKeepAlive,
+            standardOutPath: outPath.isEmpty ? nil : outPath,
+            standardErrorPath: errPath.isEmpty ? nil : errPath,
             plistURL: plistURL,
             type: type
         )

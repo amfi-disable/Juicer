@@ -134,6 +134,58 @@ class LaunchdManager: ObservableObject {
         }
     }
     
+    func loadLogs(for service: LaunchdService) -> (stdout: String, stderr: String, unified: String) {
+        var stdout = ""
+        var stderr = ""
+        var unified = ""
+        
+        if let outPath = service.standardOutPath {
+            let expanded = NSString(string: outPath).expandingTildeInPath
+            if let data = try? Data(contentsOf: URL(fileURLWithPath: expanded)),
+               let text = String(data: data, encoding: .utf8) {
+                stdout = text.components(separatedBy: "\n").suffix(200).joined(separator: "\n")
+            } else {
+                stdout = "Log file empty or not found: \(expanded)"
+            }
+        }
+        
+        if let errPath = service.standardErrorPath {
+            let expanded = NSString(string: errPath).expandingTildeInPath
+            if let data = try? Data(contentsOf: URL(fileURLWithPath: expanded)),
+               let text = String(data: data, encoding: .utf8) {
+                stderr = text.components(separatedBy: "\n").suffix(200).joined(separator: "\n")
+            } else {
+                stderr = "Log file empty or not found: \(expanded)"
+            }
+        }
+        
+        if stdout.isEmpty && stderr.isEmpty {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/log")
+            let predicate = "eventMessage CONTAINS \"\(service.label)\""
+            process.arguments = ["show", "--last", "1h", "--style", "compact", "--predicate", predicate]
+            
+            let pipe = Pipe()
+            process.standardOutput = pipe
+            process.standardError = Pipe()
+            
+            do {
+                try process.run()
+                process.waitUntilExit()
+                let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                if let text = String(data: data, encoding: .utf8), !text.isEmpty {
+                    unified = text.components(separatedBy: "\n").suffix(200).joined(separator: "\n")
+                } else {
+                    unified = "No system log messages recorded for \(service.label) in the last hour."
+                }
+            } catch {
+                unified = "Failed to query system log: \(error.localizedDescription)"
+            }
+        }
+        
+        return (stdout, stderr, unified)
+    }
+    
     func deleteService(_ service: LaunchdService, completion: @escaping (Bool) -> Void) {
         AppLogger.shared.log("Trashing plist file for \(service.label)...")
         

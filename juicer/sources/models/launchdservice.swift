@@ -6,6 +6,8 @@ struct LaunchdService: Identifiable, Hashable {
     let programArguments: [String]
     let runAtLoad: Bool
     let keepAlive: Bool
+    let standardOutPath: String?
+    let standardErrorPath: String?
     let plistURL: URL
     let type: String // "User Agent", "Global Agent", "Global Daemon"
     var pid: Int? // If running
@@ -62,19 +64,23 @@ struct LaunchdService: Identifiable, Hashable {
         if let keep = plistDict["KeepAlive"] as? Bool {
             self.keepAlive = keep
         } else if plistDict["KeepAlive"] != nil {
-            // KeepAlive can be a dictionary of conditions (e.g. SuccessfulExit)
             self.keepAlive = true
         } else {
             self.keepAlive = false
         }
+        
+        self.standardOutPath = plistDict["StandardOutPath"] as? String
+        self.standardErrorPath = plistDict["StandardErrorPath"] as? String
     }
     
     // Initializer to create a service from raw fields (for the form editor)
-    init(label: String, programArguments: [String], runAtLoad: Bool, keepAlive: Bool, plistURL: URL, type: String) {
+    init(label: String, programArguments: [String], runAtLoad: Bool, keepAlive: Bool, standardOutPath: String?, standardErrorPath: String?, plistURL: URL, type: String) {
         self.label = label
         self.programArguments = programArguments
         self.runAtLoad = runAtLoad
         self.keepAlive = keepAlive
+        self.standardOutPath = standardOutPath
+        self.standardErrorPath = standardErrorPath
         self.plistURL = plistURL
         self.type = type
     }
@@ -89,6 +95,14 @@ struct LaunchdService: Identifiable, Hashable {
         
         if !programArguments.isEmpty {
             dict["ProgramArguments"] = programArguments
+        }
+        
+        if let outPath = standardOutPath, !outPath.isEmpty {
+            dict["StandardOutPath"] = outPath
+        }
+        
+        if let errPath = standardErrorPath, !errPath.isEmpty {
+            dict["StandardErrorPath"] = errPath
         }
         
         return dict
