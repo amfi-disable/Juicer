@@ -41,6 +41,8 @@ struct mainsidebarview: View {
                         dnseditorview()
                     case .launchServices:
                         launchservicesview()
+                    case .hiddenFiles:
+                        hiddenfileview()
                     default:
                         placeholderView(for: item)
                     }

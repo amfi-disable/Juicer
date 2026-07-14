@@ -3,81 +3,132 @@ import UniformTypeIdentifiers
 
 struct appuninstallerview: View {
     @StateObject private var manager = UninstallerManager()
+    @State private var searchText = ""
     @State private var isDragging = false
     @State private var isShowingTerminationAlert = false
     
+    var filteredApps: [AppInfo] {
+        if searchText.isEmpty {
+            return manager.installedApps
+        } else {
+            return manager.installedApps.filter {
+                $0.appName.localizedCaseInsensitiveContains(searchText) ||
+                $0.bundleIdentifier.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
+    
     var body: some View {
-        VStack(spacing: 0) {
+        NavigationSplitView {
+            VStack(spacing: 0) {
+                // Search & Manual select Toolbar
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    TextField("Search apps...", text: $searchText)
+                        .textFieldStyle(.plain)
+                    
+                    if !searchText.isEmpty {
+                        Button(action: { searchText = "" }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
+                    Button(action: selectAppManually) {
+                        Image(systemName: "plus")
+                    }
+                    .buttonStyle(.plain)
+                    .help("Select app from custom folder...")
+                }
+                .padding(10)
+                .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
+                
+                // List of installed applications
+                List(filteredApps, selection: $manager.appInfo) { app in
+                    NavigationLink(value: app) {
+                        HStack(spacing: 12) {
+                            Image(nsImage: app.icon)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(app.appName)
+                                    .font(.headline)
+                                    .lineLimit(1)
+                                Text(app.bundleIdentifier)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+                .listStyle(.sidebar)
+            }
+            .navigationSplitViewColumnWidth(min: 250, ideal: 300, max: 350)
+            .onAppear {
+                if manager.installedApps.isEmpty {
+                    manager.scanInstalledApplications()
+                }
+            }
+        } detail: {
             if let app = manager.appInfo {
                 appDetailsView(app: app)
             } else {
-                dragAndDropPlaceholder()
+                VStack(spacing: 20) {
+                    Image(systemName: "app.badge")
+                        .font(.system(size: 64))
+                        .foregroundStyle(.secondary.opacity(0.8))
+                        .padding(.bottom, 8)
+                    Text("Select an Application")
+                        .font(.title2)
+                        .bold()
+                        .foregroundStyle(.secondary)
+                    Text("Choose any installed app from the sidebar to inspect its file paths and clean leftovers.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    
+                    // Fallback drag and drop target in the detail panel
+                    VStack(spacing: 12) {
+                        Text("Or drop a .app bundle here:")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(isDragging ? Color.accentColor : Color.secondary.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [4]))
+                            .background(Color(NSColor.controlBackgroundColor).opacity(0.1))
+                            .frame(width: 260, height: 100)
+                            .overlay(
+                                Image(systemName: "arrow.down.doc.fill")
+                                    .font(.title)
+                                    .foregroundStyle(isDragging ? Color.accentColor : Color.secondary)
+                            )
+                            .onDrop(of: [.fileURL], isTargeted: $isDragging) { providers in
+                                guard let provider = providers.first else { return false }
+                                _ = provider.loadObject(ofClass: URL.self) { url, error in
+                                    guard let url = url, url.pathExtension.lowercased() == "app" else { return }
+                                    DispatchQueue.main.async {
+                                        let app = AppInfo(path: url)
+                                        manager.appInfo = app
+                                    }
+                                }
+                                return true
+                            }
+                    }
+                    .padding(.top, 20)
+                }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.windowBackgroundColor))
-    }
-    
-    // MARK: - Drag and Drop Landing UI
-    @ViewBuilder
-    private func dragAndDropPlaceholder() -> some View {
-        VStack(spacing: 24) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(isDragging ? Color.accentColor.opacity(0.15) : Color(NSColor.controlBackgroundColor).opacity(0.3))
-                    .frame(width: 320, height: 220)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24)
-                            .strokeBorder(
-                                isDragging ? Color.accentColor : Color.secondary.opacity(0.3),
-                                style: StrokeStyle(lineWidth: 2, dash: isDragging ? [] : [8])
-                            )
-                    )
-                
-                VStack(spacing: 16) {
-                    Image(systemName: "arrow.down.doc.fill")
-                        .font(.system(size: 50))
-                        .foregroundStyle(isDragging ? Color.accentColor : Color.secondary)
-                        .scaleEffect(isDragging ? 1.1 : 1.0)
-                        .animation(.spring(), value: isDragging)
-                    
-                    VStack(spacing: 4) {
-                        Text("Drag & Drop Application")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                        Text("Drop any .app bundle here to scan leftovers")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+        .onChange(of: manager.appInfo) { _, newApp in
+            if let app = newApp {
+                manager.scan(for: app)
             }
-            .onDrop(of: [.fileURL], isTargeted: $isDragging) { providers in
-                guard let provider = providers.first else { return false }
-                
-                _ = provider.loadObject(ofClass: URL.self) { url, error in
-                    guard let url = url, url.pathExtension.lowercased() == "app" else {
-                        AppLogger.shared.log("Dropped item is not a .app bundle.")
-                        return
-                    }
-                    
-                    DispatchQueue.main.async {
-                        let app = AppInfo(path: url)
-                        manager.scan(for: app)
-                    }
-                }
-                return true
-            }
-            
-            // Choose app manual button
-            Button(action: selectAppManually) {
-                HStack {
-                    Image(systemName: "folder.fill")
-                    Text("Select App Manually...")
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-            }
-            .buttonStyle(.bordered)
         }
     }
     
@@ -90,12 +141,12 @@ struct appuninstallerview: View {
                 Image(nsImage: app.icon)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 64, height: 64)
+                    .frame(width: 56, height: 56)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .firstTextBaseline) {
                         Text(app.appName)
-                            .font(.title2)
+                            .font(.title3)
                             .bold()
                         Text("v\(app.version)")
                             .font(.caption)
@@ -155,9 +206,12 @@ struct appuninstallerview: View {
             
             // Leftovers List
             if manager.isScanning {
-                VStack {
-                    ProgressView("Scanning for leftovers...")
+                VStack(spacing: 16) {
+                    ProgressView()
                         .progressViewStyle(.circular)
+                    Text("Scanning directory crawl matches...")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -239,7 +293,6 @@ struct appuninstallerview: View {
             ))
             .toggleStyle(.checkbox)
             
-            // File icon representation
             Image(systemName: item.category == "Application Bundle" ? "app" : "folder.fill")
                 .foregroundStyle(item.category == "Application Bundle" ? Color.accentColor : Color.orange)
             
@@ -271,13 +324,14 @@ struct appuninstallerview: View {
     private func selectAppManually() {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.application]
+        panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
         panel.prompt = "Select App"
         
         if panel.runModal() == .OK, let url = panel.url {
             let app = AppInfo(path: url)
-            manager.scan(for: app)
+            manager.appInfo = app
         }
     }
     
@@ -285,6 +339,10 @@ struct appuninstallerview: View {
         manager.trashSelectedLeftovers { success in
             if success {
                 AppLogger.shared.log("All selected files trashed successfully.")
+                // Refresh list if still selected
+                if let app = manager.appInfo {
+                    manager.scan(for: app)
+                }
             } else {
                 AppLogger.shared.log("Some files could not be trashed.")
             }

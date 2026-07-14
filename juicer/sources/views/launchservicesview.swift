@@ -1,20 +1,56 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct launchservicesview: View {
     @StateObject private var manager = LaunchServicesManager()
+    @State private var searchText = ""
+    
+    var filteredAssociations: [GlobalAssociationItem] {
+        if searchText.isEmpty {
+            return manager.globalAssociations
+        } else {
+            return manager.globalAssociations.filter {
+                $0.fileExtension.localizedCaseInsensitiveContains(searchText) ||
+                $0.uti.localizedCaseInsensitiveContains(searchText) ||
+                $0.handlerAppName.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
     
     var body: some View {
         VStack(spacing: 0) {
             headerSection()
             
-            if let app = manager.selectedApp {
-                appDetailsAndExtensionsView(app: app)
+            // Search / Filter Row
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                TextField("Search file extensions (e.g. .py, .rs, Xcode)...", text: $searchText)
+                    .textFieldStyle(.plain)
+                
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding()
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
+            
+            // Global Associations list
+            if manager.isUpdating && manager.globalAssociations.isEmpty {
+                loadingPlaceholder()
             } else {
-                selectAppPlaceholder()
+                associationsList()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
+        .onAppear {
+            manager.loadGlobalAssociations()
+        }
     }
     
     // MARK: - Header UI
@@ -22,218 +58,143 @@ struct launchservicesview: View {
     private func headerSection() -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("File Associations Override")
+                Text("File Associations Registry")
                     .font(.title2)
                     .bold()
-                Text("Reassign default applications for file extensions by interfacing with LaunchServices.")
+                Text("Visualize and reassign default application handlers for common extensions in LaunchServices.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            
+            Button(action: { manager.loadGlobalAssociations() }) {
+                HStack {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Refresh")
+                }
+            }
+            .buttonStyle(.bordered)
+            .disabled(manager.isUpdating)
         }
         .padding()
         .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
     }
     
-    // MARK: - Select App Placeholder UI
+    // MARK: - Loading Indicator
     @ViewBuilder
-    private func selectAppPlaceholder() -> some View {
-        VStack(spacing: 20) {
-            Spacer()
-            ZStack {
-                Circle()
-                    .fill(Color.accentColor.opacity(0.1))
-                    .frame(width: 80, height: 80)
-                Image(systemName: "doc.badge.gearshape")
-                    .font(.system(size: 36))
-                    .foregroundStyle(Color.accentColor)
-            }
-            
-            VStack(spacing: 6) {
-                Text("Select an Application")
-                    .font(.headline)
-                Text("Choose any text editor, IDE, or utility to view and override its file associations.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-            }
-            
-            Button("Select Application...") {
-                selectAppManually()
-            }
-            .buttonStyle(.borderedProminent)
-            
-            Spacer()
+    private func loadingPlaceholder() -> some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .progressViewStyle(.circular)
+            Text("Querying default application registry...")
+                .font(.headline)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    // MARK: - Details & Extensions Table UI
+    // MARK: - Associations List UI
     @ViewBuilder
-    private func appDetailsAndExtensionsView(app: AppInfo) -> some View {
+    private func associationsList() -> some View {
         VStack(spacing: 0) {
-            // App Metadata Row
-            HStack(spacing: 16) {
-                Image(nsImage: app.icon)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 50, height: 50)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(app.appName)
-                            .font(.headline)
-                            .bold()
-                        Text("v\(app.version)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+            List {
+                Section(header: listHeader()) {
+                    ForEach(filteredAssociations) { item in
+                        associationRow(item: item)
                     }
-                    Text(app.bundleIdentifier)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
-                
+            }
+            .listStyle(.inset)
+            
+            // Summary Bar
+            HStack {
+                Text("Total indexed associations: \(manager.globalAssociations.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Spacer()
-                
-                Button("Change App...", action: selectAppManually)
-                    .buttonStyle(.bordered)
             }
             .padding()
-            .background(Color(NSColor.windowBackgroundColor).opacity(0.3))
-            
-            // List of supported file types
-            if manager.fileTypes.isEmpty {
-                VStack {
-                    Spacer()
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.title)
-                        .foregroundStyle(.secondary)
-                        .padding(.bottom, 6)
-                    Text("No Declared File Extensions")
-                        .font(.headline)
-                    Text("This application does not declare any document types in its Info.plist bundle.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List {
-                    Section(header: listHeader()) {
-                        ForEach(manager.fileTypes) { item in
-                            fileTypeRow(item: item, app: app)
-                        }
-                    }
-                }
-                .listStyle(.inset)
-                
-                // Bottom Batch Operation Bar
-                HStack {
-                    let totalCount = manager.fileTypes.count
-                    let defaultCount = manager.fileTypes.filter { $0.isCurrentlyDefault }.count
-                    
-                    Text("\(defaultCount) of \(totalCount) types currently bound to \(app.appName)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    
-                    Spacer()
-                    
-                    Button("Make Default for All Supported Types") {
-                        makeDefaultForAll(app: app)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.accentColor)
-                    .disabled(defaultCount == totalCount)
-                }
-                .padding()
-                .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
-            }
+            .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
         }
     }
     
     @ViewBuilder
     private func listHeader() -> some View {
         HStack {
-            Text("File Extension")
+            Text("Extension")
                 .bold()
-                .frame(width: 120, alignment: .leading)
-            Text("UTI Type Identifier")
+                .frame(width: 100, alignment: .leading)
+            Text("UTI Content Type")
+                .bold()
+                .frame(width: 250, alignment: .leading)
+            Text("Default Handler App")
                 .bold()
             Spacer()
-            Text("Status")
+            Text("Actions")
                 .bold()
-                .frame(width: 140, alignment: .trailing)
+                .frame(width: 120, alignment: .trailing)
         }
         .padding(.vertical, 4)
     }
     
     @ViewBuilder
-    private func fileTypeRow(item: AssociatedFileType, app: AppInfo) -> some View {
+    private func associationRow(item: GlobalAssociationItem) -> some View {
         HStack {
             Text(".\(item.fileExtension.lowercased())")
                 .font(.system(.body, design: .monospaced))
                 .bold()
-                .frame(width: 120, alignment: .leading)
+                .frame(width: 100, alignment: .leading)
             
             Text(item.uti)
                 .font(.system(.body, design: .monospaced))
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(width: 250, alignment: .leading)
+            
+            // Handler App Name + Icon
+            HStack(spacing: 8) {
+                if let icon = item.handlerIcon {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 20, height: 20)
+                } else {
+                    Image(systemName: "app.dashed")
+                        .foregroundColor(.secondary)
+                        .frame(width: 20, height: 20)
+                }
+                
+                Text(item.handlerAppName)
+                    .bold()
+                    .lineLimit(1)
+            }
             
             Spacer()
             
-            HStack {
-                if item.isCurrentlyDefault {
-                    HStack(spacing: 4) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                        Text("Default Handler")
-                            .font(.caption)
-                            .foregroundStyle(.green)
-                    }
-                    .padding(.trailing, 8)
-                } else {
-                    Button("Assign Handler") {
-                        _ = manager.setAsDefaultHandler(for: item, appBundleId: app.bundleIdentifier)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                }
+            // Reassign action
+            Button("Reassign...") {
+                selectAppForReassignment(for: item)
             }
-            .frame(width: 140, alignment: .trailing)
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .frame(width: 120, alignment: .trailing)
         }
         .padding(.vertical, 4)
     }
     
     // MARK: - Actions
-    private func selectAppManually() {
+    private func selectAppForReassignment(for item: GlobalAssociationItem) {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.application]
+        panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
-        panel.prompt = "Select App"
+        panel.prompt = "Choose Application"
         
         if panel.runModal() == .OK, let url = panel.url {
             let app = AppInfo(path: url)
-            manager.loadFileTypes(for: app)
-        }
-    }
-    
-    private func makeDefaultForAll(app: AppInfo) {
-        manager.isUpdating = true
-        
-        Task {
-            let nonDefaultItems = manager.fileTypes.filter { !$0.isCurrentlyDefault }
-            
-            for item in nonDefaultItems {
-                _ = manager.setAsDefaultHandler(for: item, appBundleId: app.bundleIdentifier)
-            }
-            
-            manager.loadFileTypes(for: app)
-            manager.isUpdating = false
-            AppLogger.shared.log("Completed batch associations override for \(app.appName).")
+            _ = manager.setGlobalDefaultHandler(for: item, toApp: app.bundleIdentifier)
         }
     }
 }

@@ -10,6 +10,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case quarantineStripper
     case dnsEditor
     case launchServices
+    case hiddenFiles
     
     var id: NavigationItem { self }
     
@@ -24,6 +25,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .quarantineStripper: return "Quarantine Stripper"
         case .dnsEditor: return "DNS Editor"
         case .launchServices: return "File Associations"
+        case .hiddenFiles: return "Hidden File Explorer"
         }
     }
     
@@ -38,6 +40,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .quarantineStripper: return "shield.slash.fill"
         case .dnsEditor: return "network"
         case .launchServices: return "doc.badge.gearshape.fill"
+        case .hiddenFiles: return "eye.slash.fill"
         }
     }
 }

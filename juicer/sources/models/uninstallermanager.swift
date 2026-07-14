@@ -18,8 +18,55 @@ class UninstallerManager: ObservableObject {
     @Published var isScanning = false
     @Published var isRunning = false
     @Published var isTrashing = false
+    @Published var installedApps: [AppInfo] = []
     
     private let fileManager = FileManager.default
+    
+    func scanInstalledApplications() {
+        self.isScanning = true
+        self.installedApps = []
+        AppLogger.shared.log("Scanning system and user Applications folders...")
+        
+        Task.detached(priority: .userInitiated) {
+            let scanPaths = [
+                "/Applications",
+                "/System/Applications",
+                FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path
+            ]
+            
+            var discovered: [AppInfo] = []
+            
+            for path in scanPaths {
+                let url = URL(fileURLWithPath: path)
+                guard let enumerator = FileManager.default.enumerator(
+                    at: url,
+                    includingPropertiesForKeys: [.isApplicationKey],
+                    options: [.skipsSubdirectoryDescendants, .skipsHiddenFiles]
+                ) else { continue }
+                
+                for case let fileURL as URL in enumerator {
+                    if fileURL.pathExtension == "app" {
+                        let info = AppInfo(path: fileURL)
+                        if !info.appName.isEmpty {
+                            discovered.append(info)
+                        }
+                    }
+                }
+            }
+            
+            let sorted = discovered.reduce(into: [AppInfo]()) { unique, app in
+                if !unique.contains(where: { $0.path == app.path }) {
+                    unique.append(app)
+                }
+            }.sorted(by: { $0.appName.localizedCompare(String($1.appName)) == .orderedAscending })
+            
+            await MainActor.run {
+                self.installedApps = sorted
+                self.isScanning = false
+                AppLogger.shared.log("Found \(sorted.count) installed applications.")
+            }
+        }
+    }
     
     func checkRunningState(for app: AppInfo) {
         let runningApps = NSWorkspace.shared.runningApplications
