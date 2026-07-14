@@ -29,6 +29,10 @@ struct mainsidebarview: View {
                         appuninstallerview()
                     case .orphanScanner:
                         orphanscannerview()
+                    case .serviceManager:
+                        launchdmanagerview()
+                    case .devCaches:
+                        cacheprunerview()
                     default:
                         placeholderView(for: item)
                     }
