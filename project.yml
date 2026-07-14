@@ -1,0 +1,17 @@
+name: juicer
+options:
+  bundleIdPrefix: com.even.juicer
+targets:
+  juicer:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: juicer/sources
+    settings:
+      CODE_SIGN_ENTITLEMENTS: juicer/sources/resources/juicer.entitlements
+      INFOPLIST_FILE: juicer/sources/resources/info.plist
+      PRODUCT_BUNDLE_IDENTIFIER: com.even.juicer
+      MACOSX_DEPLOYMENT_TARGET: "14.0"
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      ENABLE_HARDENED_RUNTIME: YES
