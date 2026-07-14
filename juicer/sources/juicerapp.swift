@@ -8,5 +8,9 @@ struct juicerapp: App {
                 .frame(minWidth: 950, minHeight: 650)
         }
         .windowStyle(.hiddenTitleBar)
+        
+        Settings {
+            settingsview()
+        }
     }
 }

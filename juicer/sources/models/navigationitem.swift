@@ -15,6 +15,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case largeFiles
     case brewExplorer
     case sdkSwitcher
+    case portListener
     
     var id: NavigationItem { self }
     
@@ -34,6 +35,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .largeFiles: return "Large & Old Files"
         case .brewExplorer: return "Homebrew Explorer"
         case .sdkSwitcher: return "SDK & Runtime Switcher"
+        case .portListener: return "Port Listener"
         }
     }
     
@@ -53,6 +55,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .largeFiles: return "doc.badge.ellipsis"
         case .brewExplorer: return "shippingbox.fill"
         case .sdkSwitcher: return "point.3.filled.connected.trianglepath.dolly"
+        case .portListener: return "network.badge.shield.half.filled"
         }
     }
 }

@@ -31,6 +31,7 @@ struct mainsidebarview: View {
                         sidebarLink(for: .dnsEditor)
                         sidebarLink(for: .launchServices)
                         sidebarLink(for: .sdkSwitcher)
+                        sidebarLink(for: .portListener)
                     }
                 }
                 .listStyle(.sidebar)
@@ -66,6 +67,8 @@ struct mainsidebarview: View {
                         brewmanagerview()
                     case .sdkSwitcher:
                         sdkmanagerview()
+                    case .portListener:
+                        portlistenerview()
                     default:
                         placeholderView(for: item)
                     }
