@@ -140,85 +140,144 @@ struct settingsview: View {
     var body: some View {
         TabView {
             // Tab 1: General
-            Form {
-                Section(header: Text("App Notifications & Logs").bold()) {
-                    Toggle("Enable completion banner notifications", isOn: $enableNotifications)
-                    Picker("Console Logs Detail Level:", selection: $logLevel) {
-                        Text("Standard Info").tag(0)
-                        Text("Verbose Debugging").tag(1)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("General App Configurations")
+                        .font(.title3)
+                        .bold()
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Toggle("Enable completion banner notifications", isOn: $enableNotifications)
+                            .toggleStyle(.checkbox)
+                        
+                        Picker("Console Logs Detail Level:", selection: $logLevel) {
+                            Text("Standard Info").tag(0)
+                            Text("Verbose Debugging").tag(1)
+                        }
+                        .pickerStyle(.inline)
                     }
-                }
-                
-                Section(header: Text("Startup").bold()) {
-                    Picker("Default Launch View Panel:", selection: $launchTab) {
-                        Text("Dashboard").tag("Dashboard")
-                        Text("App Uninstaller").tag("App Uninstaller")
-                        Text("Developer Caches").tag("Developer Caches")
-                        Text("Service Manager").tag("Service Manager")
+                    .padding()
+                    .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+                    .cornerRadius(8)
+                    
+                    Text("Startup Preferences")
+                        .font(.headline)
+                        .bold()
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Picker("Default Launch View Panel:", selection: $launchTab) {
+                            Text("Dashboard").tag("Dashboard")
+                            Text("App Uninstaller").tag("App Uninstaller")
+                            Text("Developer Caches").tag("Developer Caches")
+                            Text("Service Manager").tag("Service Manager")
+                        }
+                        .pickerStyle(.menu)
                     }
-                }
-                
-                Section {
+                    .padding()
+                    .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+                    .cornerRadius(8)
+                    
+                    Spacer(minLength: 20)
+                    
                     Button(role: .destructive) {
                         showingResetAlert1 = true
                     } label: {
-                        Label("Reset All Settings to Defaults", systemImage: "arrow.counterclockwise")
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset All Settings to Defaults")
+                        }
+                        .foregroundColor(.red)
                     }
-                    .padding(.top, 10)
+                    .buttonStyle(.bordered)
                 }
+                .padding()
             }
             .tabItem { Label("General", systemImage: "gearshape") }
-            .padding()
             
             // Tab 2: Uninstaller
-            Form {
-                Section(header: Text("Leftovers Deep Scan").bold()) {
-                    Picker("Search Locations Scope Level:", selection: $uninstallerDepth) {
-                        Text("Normal (Basic containers)").tag(0)
-                        Text("Deep (Caches + Library targets)").tag(1)
-                        Text("Extended (Receipts + Obscure folders)").tag(2)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("Uninstaller & Scan Settings")
+                        .font(.title3)
+                        .bold()
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Search Locations Scope Level:")
+                            .font(.headline)
+                        
+                        Picker("", selection: $uninstallerDepth) {
+                            Text("Normal (Basic containers)").tag(0)
+                            Text("Deep (Caches + Library targets)").tag(1)
+                            Text("Extended (Receipts + Obscure folders)").tag(2)
+                        }
+                        .pickerStyle(.radioGroup)
                     }
-                    .pickerStyle(.inline)
+                    .padding()
+                    .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+                    .cornerRadius(8)
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Application Library Indexes:")
+                            .font(.headline)
+                        
+                        Toggle("Auto-scan installed applications on launch", isOn: $autoScanApps)
+                            .toggleStyle(.checkbox)
+                        Toggle("Prevent deletion of Apple system applications", isOn: $protectSystemApps)
+                            .toggleStyle(.checkbox)
+                    }
+                    .padding()
+                    .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+                    .cornerRadius(8)
                 }
-                
-                Section(header: Text("Application Library Indexes").bold()) {
-                    Toggle("Auto-scan installed applications on launch", isOn: $autoScanApps)
-                    Toggle("Prevent deletion of Apple system applications", isOn: $protectSystemApps)
-                }
+                .padding()
             }
             .tabItem { Label("Uninstaller", systemImage: "trash") }
-            .padding()
             
             // Tab 3: Caches & Tweaks
-            Form {
-                Section(header: Text("Default Prune Targets Selection").bold()) {
-                    HStack(spacing: 30) {
-                        VStack(alignment: .leading) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("Caches & System Tweaks")
+                        .font(.title3)
+                        .bold()
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Default Prune Targets Selection:")
+                            .font(.headline)
+                        
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                             Toggle("Xcode DerivedData", isOn: $cleanXcode)
                             Toggle("NPM packages cache", isOn: $cleanNpm)
                             Toggle("Yarn cache folders", isOn: $cleanYarn)
-                        }
-                        VStack(alignment: .leading) {
                             Toggle("Bun temporary files", isOn: $cleanBun)
                             Toggle("Cargo build targets", isOn: $cleanCargo)
                             Toggle("Docker images/containers", isOn: $cleanDocker)
                         }
                     }
+                    .padding()
+                    .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+                    .cornerRadius(8)
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("System Tweaks Action:")
+                            .font(.headline)
+                        
+                        Toggle("Auto-restart Finder/Dock after tweaks", isOn: $autoRestartShell)
+                            .toggleStyle(.checkbox)
+                    }
+                    .padding()
+                    .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+                    .cornerRadius(8)
                 }
-                
-                Section(header: Text("System Tweaks Action").bold()) {
-                    Toggle("Auto-restart Finder/Dock after tweaks", isOn: $autoRestartShell)
-                }
+                .padding()
             }
             .tabItem { Label("Caches & Tweaks", systemImage: "hammer") }
-            .padding()
             
             // Tab 4: Custom Rules lists
             VStack(spacing: 12) {
                 Text("Custom Filters & Rules Manager")
-                    .font(.headline)
+                    .font(.title3)
                     .bold()
-                Text("Configure custom paths or ignored lists to personalize scan results.")
+                Text("Configure custom paths, bypassed applications, or custom cache folders.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -226,7 +285,7 @@ struct settingsview: View {
                     VStack(alignment: .leading, spacing: 16) {
                         // 1. Ignored Paths
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Ignored Scanning Paths (e.g. bypass workspace folders)").bold()
+                            Text("Ignored Scanning Paths (e.g. bypass directories)").bold()
                             HStack {
                                 TextField("Enter directory path...", text: $inputIgnoredPath)
                                     .textFieldStyle(.roundedBorder)
@@ -277,6 +336,25 @@ struct settingsview: View {
                                 listRow(item: path, onRemove: { settingsManager.removeCustomCachePath(path) })
                             }
                         }
+                        
+                        Divider()
+                        
+                        // 3. Ignored Applications
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Ignored Scan Applications (ignored by Uninstaller)").bold()
+                            HStack {
+                                TextField("Enter application name (e.g. Safari)...", text: $inputIgnoredApp)
+                                    .textFieldStyle(.roundedBorder)
+                                Button("Add") {
+                                    settingsManager.addIgnoredApp(inputIgnoredApp)
+                                    inputIgnoredApp = ""
+                                }
+                            }
+                            
+                            ForEach(settingsManager.ignoredApps, id: \.self) { app in
+                                listRow(item: app, onRemove: { settingsManager.removeIgnoredApp(app) })
+                            }
+                        }
                     }
                     .padding(5)
                 }
@@ -284,7 +362,7 @@ struct settingsview: View {
             .tabItem { Label("Custom Rules", systemImage: "list.bullet.rectangle.portrait") }
             .padding()
         }
-        .frame(width: 580, height: 420)
+        .frame(width: 760, height: 530)
         // First Confirmation Alert
         .alert("Reset Settings to Defaults?", isPresented: $showingResetAlert1) {
             Button("Proceed", role: .none) {

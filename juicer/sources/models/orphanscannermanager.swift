@@ -33,6 +33,14 @@ class OrphanScannerManager: ObservableObject {
         "adobe"
     ])
     
+    private func sanitize(_ string: String) -> String {
+        return string.lowercased()
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: ".", with: "")
+            .replacingOccurrences(of: "-", with: "")
+            .replacingOccurrences(of: "_", with: "")
+    }
+    
     func scanOrphans() {
         self.orphans = []
         self.isScanning = true
@@ -49,6 +57,7 @@ class OrphanScannerManager: ObservableObject {
             
             var activeAppNames = Set<String>()
             var activeBundleIds = Set<String>()
+            var sanitizedSignatures = Set<String>()
             
             for appDir in appDirs {
                 guard let contents = try? FileManager.default.contentsOfDirectory(atPath: appDir) else {
@@ -62,10 +71,16 @@ class OrphanScannerManager: ObservableObject {
                     activeAppNames.insert(info.appName.lowercased())
                     activeBundleIds.insert(info.bundleIdentifier.lowercased())
                     
+                    // Add sanitized name signatures
+                    sanitizedSignatures.insert(self.sanitize(info.appName))
+                    let rawAppName = item.replacingOccurrences(of: ".app", with: "")
+                    sanitizedSignatures.insert(self.sanitize(rawAppName))
+                    
                     // Also insert last component of bundle ID as an active signifier
                     let bundleParts = info.bundleIdentifier.split(separator: ".").map { String($0).lowercased() }
                     if let lastPart = bundleParts.last {
                         activeAppNames.insert(lastPart)
+                        sanitizedSignatures.insert(self.sanitize(lastPart))
                     }
                 }
             }
@@ -86,6 +101,7 @@ class OrphanScannerManager: ObservableObject {
                 
                 for item in contents {
                     let itemLower = item.lowercased()
+                    let sanitizedItem = self.sanitize(item)
                     
                     // Skip system skip lists and macOS internal files
                     if item.hasPrefix(".") || item.hasPrefix("com.apple.") || self.systemSkipList.contains(itemLower) {
@@ -103,10 +119,22 @@ class OrphanScannerManager: ObservableObject {
                     }
                     
                     // Check contains app names or bundle ID subcomponents
-                    for appName in activeAppNames {
-                        if itemLower == appName || itemLower.contains(".\(appName)") || itemLower.contains("\(appName).") {
-                            matchesAnyApp = true
-                            break
+                    if !matchesAnyApp {
+                        for appName in activeAppNames {
+                            if itemLower == appName || itemLower.contains(".\(appName)") || itemLower.contains("\(appName).") {
+                                matchesAnyApp = true
+                                break
+                            }
+                        }
+                    }
+                    
+                    // Check fuzzy sanitized signatures
+                    if !matchesAnyApp {
+                        for signature in sanitizedSignatures {
+                            if sanitizedItem == signature || sanitizedItem.contains(signature) || signature.contains(sanitizedItem) {
+                                matchesAnyApp = true
+                                break
+                            }
                         }
                     }
                     
@@ -120,7 +148,7 @@ class OrphanScannerManager: ObservableObject {
                                 size: size,
                                 isSelected: true,
                                 category: library.category
-                            ))
+                             ))
                         }
                     }
                 }

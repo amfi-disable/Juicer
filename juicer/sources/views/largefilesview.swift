@@ -2,6 +2,8 @@ import SwiftUI
 
 struct largefilesview: View {
     @StateObject private var manager = LargeFilesManager()
+    @State private var showFirstAlert = false
+    @State private var showSecondAlert = false
     
     private let sizeOptions: [Double] = [50, 100, 250, 500, 1000]
     private let ageOptions: [Int] = [1, 3, 6, 12, 24]
@@ -27,6 +29,24 @@ struct largefilesview: View {
         .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
             manager.startScan()
+        }
+        // First warning confirmation
+        .alert("Warning: Move Selected Files to Trash?", isPresented: $showFirstAlert) {
+            Button("Proceed", role: .none) {
+                showSecondAlert = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will move the selected space-consuming files to the system Trash. Do you want to proceed?")
+        }
+        // Second final confirmation
+        .alert("Confirm File Deletion", isPresented: $showSecondAlert) {
+            Button("Confirm & Delete", role: .destructive) {
+                executeTrash()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you absolutely sure you want to delete these files? This will clear up space but the files will be moved to the Trash.")
         }
     }
     
@@ -252,21 +272,15 @@ struct largefilesview: View {
     
     // MARK: - Actions
     private func trashSelected() {
-        let count = manager.largeFiles.filter { $0.isSelected }.count
-        let alert = NSAlert()
-        alert.messageText = "Trash \(count) Large Files?"
-        alert.informativeText = "Are you sure you want to move the selected files to the system Trash?"
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Move to Trash")
-        alert.addButton(withTitle: "Cancel")
-        
-        if alert.runModal() == .alertFirstButtonReturn {
-            manager.trashSelectedItems { success in
-                if success {
-                    AppLogger.shared.log("Successfully moved selected large files to Trash.")
-                } else {
-                    AppLogger.shared.log("Some files could not be trashed.")
-                }
+        showFirstAlert = true
+    }
+    
+    private func executeTrash() {
+        manager.trashSelectedItems { success in
+            if success {
+                AppLogger.shared.log("Successfully moved selected large files to Trash.")
+            } else {
+                AppLogger.shared.log("Some files could not be trashed.")
             }
         }
     }

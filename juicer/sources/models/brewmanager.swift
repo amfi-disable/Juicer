@@ -192,6 +192,20 @@ class BrewManager: ObservableObject {
         }
     }
     
+    func fetchPackageInfo(name: String, completion: @escaping (String) -> Void) {
+        guard let brew = Self.brewPath else {
+            completion("Homebrew not found on this system.")
+            return
+        }
+        
+        Task.detached(priority: .userInitiated) {
+            let output = (try? Self.runCommand(brew, arguments: ["info", name])) ?? "No information found."
+            await MainActor.run {
+                completion(output)
+            }
+        }
+    }
+    
     // Command runner helper
     private static func runCommand(_ executable: String, arguments: [String]) throws -> String {
         let process = Process()

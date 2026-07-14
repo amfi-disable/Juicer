@@ -2,6 +2,8 @@ import SwiftUI
 
 struct cacheprunerview: View {
     @StateObject private var manager = CachePrunerManager()
+    @State private var showFirstAlert = false
+    @State private var showSecondAlert = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -17,6 +19,24 @@ struct cacheprunerview: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
+        // First warning confirmation
+        .alert("Warning: Prune Selected Developer Caches?", isPresented: $showFirstAlert) {
+            Button("Proceed", role: .none) {
+                showSecondAlert = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will move the selected developer build caches to the Trash. Large projects may take longer to compile on their next build. Do you want to proceed?")
+        }
+        // Second final confirmation
+        .alert("Confirm Cache Pruning", isPresented: $showSecondAlert) {
+            Button("Confirm & Clean", role: .destructive) {
+                executePrune()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you absolutely sure you want to prune these cache directories? This action cannot be easily undone without rebuilding your projects.")
+        }
     }
     
     // MARK: - Header UI
@@ -197,28 +217,23 @@ struct cacheprunerview: View {
     
     // MARK: - Actions
     private func pruneSelected() {
-        let alert = NSAlert()
-        alert.messageText = "Prune Selected Caches?"
-        alert.informativeText = "Are you sure you want to delete these developer cache folders? The files will be moved to the system Trash for safety, but large projects may take longer to compile on their next build."
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Prune Caches")
-        alert.addButton(withTitle: "Cancel")
-        
-        if alert.runModal() == .alertFirstButtonReturn {
-            manager.pruneSelectedCaches { success in
-                if success {
-                    AppLogger.shared.log("All selected caches pruned successfully.")
-                    NotificationManager.shared.sendNotification(
-                        title: "Developer Caches Cleaned",
-                        body: "Successfully reclaimed developer storage space."
-                    )
-                } else {
-                    AppLogger.shared.log("Some caches could not be pruned.")
-                    NotificationManager.shared.sendNotification(
-                        title: "Cleanup Incomplete",
-                        body: "Some cache targets could not be removed."
-                    )
-                }
+        showFirstAlert = true
+    }
+    
+    private func executePrune() {
+        manager.pruneSelectedCaches { success in
+            if success {
+                AppLogger.shared.log("All selected caches pruned successfully.")
+                NotificationManager.shared.sendNotification(
+                    title: "Developer Caches Cleaned",
+                    body: "Successfully reclaimed developer storage space."
+                )
+            } else {
+                AppLogger.shared.log("Some caches could not be pruned.")
+                NotificationManager.shared.sendNotification(
+                    title: "Cleanup Incomplete",
+                    body: "Some cache targets could not be removed."
+                )
             }
         }
     }

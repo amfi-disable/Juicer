@@ -2,6 +2,8 @@ import SwiftUI
 
 struct orphanscannerview: View {
     @StateObject private var manager = OrphanScannerManager()
+    @State private var showFirstAlert = false
+    @State private var showSecondAlert = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -17,6 +19,24 @@ struct orphanscannerview: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
+        // First warning confirmation
+        .alert("Warning: Move Selected Leftovers to Trash?", isPresented: $showFirstAlert) {
+            Button("Proceed", role: .none) {
+                showSecondAlert = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will move the selected orphaned folders to the system Trash. Do you want to proceed?")
+        }
+        // Second final confirmation
+        .alert("Confirm Leftovers Deletion", isPresented: $showSecondAlert) {
+            Button("Confirm & Delete", role: .destructive) {
+                executeTrash()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you absolutely sure you want to proceed with trashing these folders? This action will remove their preferences and temporary files.")
+        }
     }
     
     // MARK: - Header UI
@@ -195,6 +215,10 @@ struct orphanscannerview: View {
     
     // MARK: - Actions
     private func trashSelected() {
+        showFirstAlert = true
+    }
+    
+    private func executeTrash() {
         manager.trashSelectedOrphans { success in
             if success {
                 AppLogger.shared.log("All selected orphans trashed successfully.")

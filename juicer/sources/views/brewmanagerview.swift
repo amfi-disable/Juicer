@@ -7,6 +7,10 @@ struct brewmanagerview: View {
     @State private var isProcessing = false
     @State private var statusMessage = ""
     
+    @State private var selectedPackageForInfo: BrewPackage?
+    @State private var detailedInfoText = ""
+    @State private var isLoadingInfo = false
+    
     var filteredPackages: [BrewPackage] {
         let list: [BrewPackage]
         switch selectedTab {
@@ -125,6 +129,57 @@ struct brewmanagerview: View {
                 manager.loadPackages()
             }
         }
+        .sheet(item: $selectedPackageForInfo) { package in
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Image(systemName: package.type == .cask ? "macwindow" : "terminal.fill")
+                        .font(.title)
+                        .foregroundColor(package.type == .cask ? .blue : .orange)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(package.name)
+                            .font(.title2)
+                            .bold()
+                        Text("Active Version: \(package.version)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button("Done") {
+                        selectedPackageForInfo = nil
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding(.bottom, 8)
+                
+                Divider()
+                
+                if isLoadingInfo {
+                    HStack {
+                        Spacer()
+                        ProgressView("Loading package info from Homebrew...")
+                        Spacer()
+                    }
+                    .frame(maxHeight: .infinity)
+                } else {
+                    ScrollView {
+                        Text(detailedInfoText)
+                            .font(.system(.body, design: .monospaced))
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 4)
+                    }
+                }
+            }
+            .padding()
+            .frame(width: 580, height: 420)
+            .onAppear {
+                isLoadingInfo = true
+                manager.fetchPackageInfo(name: package.name) { info in
+                    detailedInfoText = info
+                    isLoadingInfo = false
+                }
+            }
+        }
     }
     
     // MARK: - Packages List View
@@ -161,8 +216,19 @@ struct brewmanagerview: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(package.name)
-                            .font(.headline)
+                        HStack(spacing: 6) {
+                            Text(package.name)
+                                .font(.headline)
+                            
+                            Button(action: {
+                                self.selectedPackageForInfo = package
+                            }) {
+                                Image(systemName: "info.circle")
+                                    .foregroundColor(.accentColor)
+                            }
+                            .buttonStyle(.plain)
+                            .help("View Package Details")
+                        }
                         
                         HStack(spacing: 6) {
                             Text("Installed: \(package.version)")

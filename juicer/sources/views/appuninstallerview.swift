@@ -6,6 +6,7 @@ struct appuninstallerview: View {
     @State private var searchText = ""
     @State private var isDragging = false
     @State private var isShowingTerminationAlert = false
+    @State private var selectedLeftoverForInfo: LeftoverItem?
     
     var filteredApps: [AppInfo] {
         if searchText.isEmpty {
@@ -297,8 +298,21 @@ struct appuninstallerview: View {
                 .foregroundStyle(item.category == "Application Bundle" ? Color.accentColor : Color.orange)
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.name)
-                    .font(.body)
+                HStack(spacing: 6) {
+                    Text(item.name)
+                        .font(.body)
+                        .bold()
+                    
+                    Button(action: {
+                        self.selectedLeftoverForInfo = item
+                    }) {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(.accentColor)
+                    }
+                    .buttonStyle(.plain)
+                    .help("View File Details")
+                }
+                
                 Text(item.path)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -318,6 +332,52 @@ struct appuninstallerview: View {
                 .frame(width: 80, alignment: .trailing)
         }
         .padding(.vertical, 2)
+        .popover(item: $selectedLeftoverForInfo) { infoItem in
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Leftover File Details")
+                    .font(.headline)
+                    .bold()
+                
+                Divider()
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Name:").bold().font(.caption)
+                    Text(infoItem.name).font(.subheadline)
+                    
+                    Text("Category:").bold().font(.caption)
+                    Text(infoItem.category).font(.subheadline).foregroundColor(.orange)
+                    
+                    Text("Size on Disk:").bold().font(.caption)
+                    Text(formatBytes(infoItem.size)).font(.subheadline)
+                    
+                    Text("Full Path:").bold().font(.caption)
+                    Text(infoItem.path)
+                        .font(.system(.caption, design: .monospaced))
+                        .textSelection(.enabled)
+                        .padding(6)
+                        .background(Color.secondary.opacity(0.1))
+                        .cornerRadius(6)
+                }
+                
+                Divider()
+                
+                HStack {
+                    Button("Reveal in Finder") {
+                        NSWorkspace.shared.selectFile(infoItem.path, inFileViewerRootedAtPath: "")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    
+                    Spacer()
+                    
+                    Button("Close") {
+                        selectedLeftoverForInfo = nil
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+            .padding()
+            .frame(width: 420)
+        }
     }
     
     // MARK: - Action Functions
