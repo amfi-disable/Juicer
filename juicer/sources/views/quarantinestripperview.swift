@@ -38,7 +38,7 @@ struct quarantinestripperview: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.underlyingWindowBackgroundColor))
+        .background(Color(NSColor.windowBackgroundColor))
     }
     
     // MARK: - Header UI
@@ -170,7 +170,6 @@ struct quarantinestripperview: View {
         .listStyle(.inset)
     }
     
-    @ViewBuilder
     private func statusBadge(status: String) -> some View {
         let color: Color
         let bgColor: Color
@@ -187,7 +186,7 @@ struct quarantinestripperview: View {
             bgColor = .secondary.opacity(0.15)
         }
         
-        Text(status)
+        return Text(status)
             .font(.caption2)
             .bold()
             .padding(.horizontal, 8)

@@ -15,7 +15,7 @@ struct appuninstallerview: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.underlyingWindowBackgroundColor))
+        .background(Color(NSColor.windowBackgroundColor))
     }
     
     // MARK: - Drag and Drop Landing UI

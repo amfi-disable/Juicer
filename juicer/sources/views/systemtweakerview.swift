@@ -140,7 +140,7 @@ struct systemtweakerview: View {
                         
                         Toggle("Disable Shadow on Window Captures", isOn: $tweaker.screenshotDisableShadow)
                         
-                        Picker("File Format Output:", text: $tweaker.screenshotFormat) {
+                        Picker("File Format Output:", selection: $tweaker.screenshotFormat) {
                             Text("PNG").tag("png")
                             Text("JPG").tag("jpg")
                             Text("PDF").tag("pdf")
@@ -160,7 +160,7 @@ struct systemtweakerview: View {
             }
             .padding(30)
         }
-        .background(Color(NSColor.underlyingWindowBackgroundColor))
+        .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
             tweaker.loadAllPreferences()
         }

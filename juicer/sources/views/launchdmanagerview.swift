@@ -225,7 +225,7 @@ struct launchdmanagerview: View {
                 .padding([.horizontal, .bottom])
             }
         }
-        .background(Color(NSColor.underlyingWindowBackgroundColor))
+        .background(Color(NSColor.windowBackgroundColor))
     }
     
     // MARK: - Editor Sheet

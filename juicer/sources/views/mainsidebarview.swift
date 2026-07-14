@@ -87,6 +87,6 @@ struct mainsidebarview: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.underlyingWindowBackgroundColor))
+        .background(Color(NSColor.windowBackgroundColor))
     }
 }
