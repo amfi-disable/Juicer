@@ -224,20 +224,16 @@ struct launchservicesview: View {
     private func makeDefaultForAll(app: AppInfo) {
         manager.isUpdating = true
         
-        Task.detached(priority: .userInitiated) {
-            let nonDefaultItems = await MainActor.run {
-                manager.fileTypes.filter { !$0.isCurrentlyDefault }
-            }
+        Task {
+            let nonDefaultItems = manager.fileTypes.filter { !$0.isCurrentlyDefault }
             
             for item in nonDefaultItems {
                 _ = manager.setAsDefaultHandler(for: item, appBundleId: app.bundleIdentifier)
             }
             
-            await MainActor.run {
-                manager.loadFileTypes(for: app)
-                manager.isUpdating = false
-                AppLogger.shared.log("Completed batch associations override for \(app.appName).")
-            }
+            manager.loadFileTypes(for: app)
+            manager.isUpdating = false
+            AppLogger.shared.log("Completed batch associations override for \(app.appName).")
         }
     }
 }

@@ -247,7 +247,7 @@ struct launchdmanagerview: View {
                 Toggle("Keep Alive", isOn: $editKeepAlive)
                 
                 if isCreatingNew {
-                    Picker("Save Destination:", text: $editPlistPath) {
+                    Picker("Save Destination:", selection: $editPlistPath) {
                         Text("User Agents (~/Library/LaunchAgents)").tag("user")
                         Text("Global Agents (/Library/LaunchAgents)").tag("globalAgent")
                         Text("Global Daemons (/Library/LaunchDaemons)").tag("globalDaemon")
