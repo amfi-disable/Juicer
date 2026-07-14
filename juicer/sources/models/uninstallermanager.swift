@@ -35,6 +35,7 @@ class UninstallerManager: ObservableObject {
             ]
             
             var discovered: [AppInfo] = []
+            let ignoredApps = UserDefaults.standard.stringArray(forKey: "juicer.settings.ignoredApps") ?? ["Safari", "Finder"]
             
             for path in scanPaths {
                 let url = URL(fileURLWithPath: path)
@@ -47,7 +48,7 @@ class UninstallerManager: ObservableObject {
                 for case let fileURL as URL in enumerator {
                     if fileURL.pathExtension == "app" {
                         let info = AppInfo(path: fileURL)
-                        if !info.appName.isEmpty {
+                        if !info.appName.isEmpty && !ignoredApps.contains(info.appName) {
                             discovered.append(info)
                         }
                     }
@@ -63,7 +64,7 @@ class UninstallerManager: ObservableObject {
             await MainActor.run {
                 self.installedApps = sorted
                 self.isScanning = false
-                AppLogger.shared.log("Found \(sorted.count) installed applications.")
+                AppLogger.shared.log("Found \(sorted.count) installed applications (excluding ignored ones).")
             }
         }
     }
@@ -141,40 +142,68 @@ class UninstallerManager: ObservableObject {
         
         Task.detached(priority: .userInitiated) {
             let home = FileManager.default.homeDirectoryForCurrentUser.path
+            let depth = UserDefaults.standard.integer(forKey: "juicer.settings.uninstallerDepth")
             
-            let searchLocations: [(category: String, path: String)] = [
-                ("Application Scripts", "\(home)/Library/Application Scripts"),
+            var searchLocations: [(category: String, path: String)] = []
+            
+            // Level 0: Normal
+            searchLocations.append(contentsOf: [
                 ("Application Support", "\(home)/Library/Application Support"),
                 ("Caches", "\(home)/Library/Caches"),
                 ("Containers", "\(home)/Library/Containers"),
-                ("Group Containers", "\(home)/Library/Group Containers"),
-                ("HTTPStorages", "\(home)/Library/HTTPStorages"),
-                ("LaunchAgents", "\(home)/Library/LaunchAgents"),
-                ("Logs", "\(home)/Library/Logs"),
-                ("Preferences", "\(home)/Library/Preferences"),
-                ("Saved Application State", "\(home)/Library/Saved Application State"),
-                ("Global Application Support", "/Library/Application Support"),
-                ("Global Caches", "/Library/Caches"),
-                ("Global LaunchAgents", "/Library/LaunchAgents"),
-                ("Global LaunchDaemons", "/Library/LaunchDaemons"),
-                ("Global Preferences", "/Library/Preferences"),
-                ("Global Logs", "/Library/Logs"),
-                ("Package Receipts", "/private/var/db/receipts")
-            ]
+                ("Group Containers", "\(home)/Library/Group Containers")
+            ])
+            
+            // Level 1: Deep
+            if depth >= 1 {
+                searchLocations.append(contentsOf: [
+                    ("Application Scripts", "\(home)/Library/Application Scripts"),
+                    ("HTTPStorages", "\(home)/Library/HTTPStorages"),
+                    ("Logs", "\(home)/Library/Logs"),
+                    ("Preferences", "\(home)/Library/Preferences"),
+                    ("Saved Application State", "\(home)/Library/Saved Application State"),
+                    ("Global Application Support", "/Library/Application Support"),
+                    ("Global Caches", "/Library/Caches")
+                ])
+            }
+            
+            // Level 2: Extended
+            if depth >= 2 {
+                searchLocations.append(contentsOf: [
+                    ("LaunchAgents", "\(home)/Library/LaunchAgents"),
+                    ("Global LaunchAgents", "/Library/LaunchAgents"),
+                    ("Global LaunchDaemons", "/Library/LaunchDaemons"),
+                    ("Global Preferences", "/Library/Preferences"),
+                    ("Global Logs", "/Library/Logs"),
+                    ("Package Receipts", "/private/var/db/receipts")
+                ])
+            }
             
             var discovered: [LeftoverItem] = []
+            let protectSystem = UserDefaults.standard.bool(forKey: "juicer.settings.protectSystemApps")
             
-            // Add the app binary itself
+            // Add the app binary itself if it's not a protected system app
             if FileManager.default.fileExists(atPath: app.path.path) {
-                let size = self.getPathSize(app.path)
-                discovered.append(LeftoverItem(url: app.path, size: size, isSelected: true, category: "Application Bundle"))
+                if protectSystem && app.path.path.hasPrefix("/System/Applications") {
+                    AppLogger.shared.log("Protecting system application bundle from being removed: \(app.appName)")
+                } else {
+                    let size = self.getPathSize(app.path)
+                    discovered.append(LeftoverItem(url: app.path, size: size, isSelected: true, category: "Application Bundle"))
+                }
             }
             
             let bundleComponents = app.bundleIdentifier.split(separator: ".").map { String($0).lowercased() }
             let lastBundleComponent = bundleComponents.last ?? ""
             let appNameLower = app.appName.lowercased()
             
+            let ignoredPaths = UserDefaults.standard.stringArray(forKey: "juicer.settings.ignoredPaths") ?? []
+            
             for location in searchLocations {
+                // Skip scan if this search directory starts with any ignored paths
+                if ignoredPaths.contains(where: { location.path.hasPrefix($0) }) {
+                    continue
+                }
+                
                 guard let contents = try? FileManager.default.contentsOfDirectory(atPath: location.path) else {
                     continue
                 }
@@ -182,6 +211,11 @@ class UninstallerManager: ObservableObject {
                 for item in contents {
                     let itemLower = item.lowercased()
                     let fullPath = URL(fileURLWithPath: location.path).appendingPathComponent(item)
+                    
+                    // Skip scan if item starts with any ignored paths
+                    if ignoredPaths.contains(where: { fullPath.path.hasPrefix($0) }) {
+                        continue
+                    }
                     
                     var isMatch = false
                     
@@ -193,13 +227,13 @@ class UninstallerManager: ObservableObject {
                     else if itemLower.contains(appNameLower) {
                         isMatch = true
                     }
-                    // Match 3: Match on the last component of bundle identifier (e.g. Rectangle in com.knollsoft.Rectangle)
+                    // Match 3: Match on the last component of bundle identifier
                     else if !lastBundleComponent.isEmpty && itemLower == lastBundleComponent {
                         isMatch = true
                     }
                     
                     if isMatch {
-                        // Skip system apps or critical directories just in case
+                        // Skip system files
                         if item.hasPrefix("com.apple.") && !app.bundleIdentifier.hasPrefix("com.apple.") {
                             continue
                         }
