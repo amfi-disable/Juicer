@@ -168,7 +168,7 @@ struct systemtweakerview: View {
     
     // MARK: - Reusable Card Component
     @ViewBuilder
-    private func tweakSectionCard<Content: View>(title: String, systemImage: String, @ViewBuilder content: () -> Content) -> View {
+    private func tweakSectionCard<Content: View>(title: String, systemImage: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
                 Image(systemName: systemImage)

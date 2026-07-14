@@ -113,7 +113,7 @@ struct launchdmanagerview: View {
     
     // MARK: - Detail View UI
     @ViewBuilder
-    private func detailView(for service: LaunchdService) -> View {
+    private func detailView(for service: LaunchdService) -> some View {
         VStack(spacing: 0) {
             // Header
             HStack {
@@ -230,7 +230,7 @@ struct launchdmanagerview: View {
     
     // MARK: - Editor Sheet
     @ViewBuilder
-    private func editorSheet() -> View {
+    private func editorSheet() -> some View {
         VStack(spacing: 20) {
             Text(isCreatingNew ? "Create Launch Task" : "Edit Launch Task")
                 .font(.title2)
@@ -281,7 +281,7 @@ struct launchdmanagerview: View {
     
     // MARK: - Helper UI Components
     @ViewBuilder
-    private func statusBadge(for service: LaunchdService) -> View {
+    private func statusBadge(for service: LaunchdService) -> some View {
         let isRunning = service.pid != nil
         Text(isRunning ? "Active" : "Stopped")
             .font(.caption2)
