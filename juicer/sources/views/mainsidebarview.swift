@@ -25,6 +25,10 @@ struct mainsidebarview: View {
                     switch item {
                     case .dashboard:
                         dashboardview()
+                    case .appUninstaller:
+                        appuninstallerview()
+                    case .orphanScanner:
+                        orphanscannerview()
                     default:
                         placeholderView(for: item)
                     }
