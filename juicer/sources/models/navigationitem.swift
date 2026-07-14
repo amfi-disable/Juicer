@@ -18,6 +18,8 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case portListener
     case diskExplorer
     case systemOptimizer
+    case statusMonitor
+    case moleInsights
     
     var id: NavigationItem { self }
     
@@ -40,6 +42,8 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .portListener: return "Port Listener"
         case .diskExplorer: return "Disk Explorer"
         case .systemOptimizer: return "System Optimizer"
+        case .statusMonitor: return "Live Status"
+        case .moleInsights: return "Mole Insights"
         }
     }
     
@@ -62,6 +66,8 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .portListener: return "network.badge.shield.half.filled"
         case .diskExplorer: return "internaldrive.fill"
         case .systemOptimizer: return "bolt.fill"
+        case .statusMonitor: return "waveform.path.ecg"
+        case .moleInsights: return "sparkles"
         }
     }
 }

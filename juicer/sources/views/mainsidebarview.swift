@@ -12,6 +12,11 @@ struct mainsidebarview: View {
                         sidebarLink(for: .dashboard)
                     }
                     
+                    Section("Monitor") {
+                        sidebarLink(for: .statusMonitor)
+                        sidebarLink(for: .portListener)
+                    }
+                    
                     Section("Applications") {
                         sidebarLink(for: .appUninstaller)
                         sidebarLink(for: .orphanScanner)
@@ -21,6 +26,7 @@ struct mainsidebarview: View {
                     
                     Section("Storage & Disk") {
                         sidebarLink(for: .diskExplorer)
+                        sidebarLink(for: .moleInsights)
                         sidebarLink(for: .devCaches)
                         sidebarLink(for: .largeFiles)
                         sidebarLink(for: .hiddenFiles)
@@ -34,7 +40,6 @@ struct mainsidebarview: View {
                         sidebarLink(for: .dnsEditor)
                         sidebarLink(for: .launchServices)
                         sidebarLink(for: .sdkSwitcher)
-                        sidebarLink(for: .portListener)
                     }
                 }
                 .listStyle(.sidebar)
@@ -42,40 +47,25 @@ struct mainsidebarview: View {
             } detail: {
                 if let item = selectedItem {
                     switch item {
-                    case .dashboard:
-                        dashboardview()
-                    case .appUninstaller:
-                        appuninstallerview()
-                    case .orphanScanner:
-                        orphanscannerview()
-                    case .serviceManager:
-                        launchdmanagerview()
-                    case .devCaches:
-                        cacheprunerview()
-                    case .systemTweaks:
-                        systemtweakerview()
-                    case .quarantineStripper:
-                        quarantinestripperview()
-                    case .dnsEditor:
-                        dnseditorview()
-                    case .launchServices:
-                        launchservicesview()
-                    case .hiddenFiles:
-                        hiddenfileview()
-                    case .appLipo:
-                        applipoview()
-                    case .largeFiles:
-                        largefilesview()
-                    case .brewExplorer:
-                        brewmanagerview()
-                    case .sdkSwitcher:
-                        sdkmanagerview()
-                    case .portListener:
-                        portlistenerview()
-                    case .diskExplorer:
-                        diskexplorerview()
-                    case .systemOptimizer:
-                        systemoptimizerview()
+                    case .dashboard:        dashboardview()
+                    case .appUninstaller:   appuninstallerview()
+                    case .orphanScanner:    orphanscannerview()
+                    case .serviceManager:   launchdmanagerview()
+                    case .devCaches:        cacheprunerview()
+                    case .systemTweaks:     systemtweakerview()
+                    case .quarantineStripper: quarantinestripperview()
+                    case .dnsEditor:        dnseditorview()
+                    case .launchServices:   launchservicesview()
+                    case .hiddenFiles:      hiddenfileview()
+                    case .appLipo:          applipoview()
+                    case .largeFiles:       largefilesview()
+                    case .brewExplorer:     brewmanagerview()
+                    case .sdkSwitcher:      sdkmanagerview()
+                    case .portListener:     portlistenerview()
+                    case .diskExplorer:     diskexplorerview()
+                    case .systemOptimizer:  systemoptimizerview()
+                    case .statusMonitor:    statusmonitorview()
+                    case .moleInsights:     moleinsightsview()
                     }
                 } else {
                     VStack {
@@ -104,6 +94,8 @@ struct mainsidebarview: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.systemTweaks"))) { _ in selectedItem = .systemTweaks }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.diskExplorer"))) { _ in selectedItem = .diskExplorer }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.systemOptimizer"))) { _ in selectedItem = .systemOptimizer }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.statusMonitor"))) { _ in selectedItem = .statusMonitor }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.moleInsights"))) { _ in selectedItem = .moleInsights }
         
         // Help & Guide triggers
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.action.showGuide"))) { _ in
@@ -128,22 +120,18 @@ struct mainsidebarview: View {
         .padding(.vertical, 4)
     }
     
-    // MARK: - Interactive Help User Guide Modal
+    // MARK: - Help User Guide
     @ViewBuilder
     private func userGuideSheet() -> some View {
         VStack(spacing: 0) {
             HStack {
                 Image(systemName: "questionmark.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.accentColor)
+                    .font(.title2).foregroundColor(.accentColor)
                 Text("Juicer Help Manual & User Guide")
-                    .font(.title3)
-                    .bold()
+                    .font(.title3).bold()
                 Spacer()
-                Button("Done") {
-                    isShowingGuide = false
-                }
-                .buttonStyle(.borderedProminent)
+                Button("Done") { isShowingGuide = false }
+                    .buttonStyle(.borderedProminent)
             }
             .padding()
             .background(Color(NSColor.windowBackgroundColor))
@@ -154,90 +142,65 @@ struct mainsidebarview: View {
                 VStack(alignment: .leading, spacing: 20) {
                     Group {
                         Text("Welcome to Juicer")
-                            .font(.title2)
-                            .bold()
-                            .foregroundColor(.accentColor)
-                        Text("Juicer is an open-source utility designed specifically for macOS developers to keep their systems clean, optimize cache files, inspect listening network ports, and manage environments.")
+                            .font(.title2).bold().foregroundColor(.accentColor)
+                        Text("Juicer is an open-source macOS developer utility inspired by Mole. It combines disk analysis, live system monitoring, developer cache management, app uninstalling, and system optimization — all in one native app.")
                             .foregroundColor(.secondary)
                     }
                     
                     Divider()
                     
                     Group {
-                        Text("Core Modules Guide")
+                        Text("Core Modules")
                             .font(.headline)
                         
-                        guideItem(
-                            title: "App Uninstaller & Orphan Finder",
-                            icon: "trash.fill",
-                            color: .red,
-                            desc: "Drag and drop any application or click 'Select App Manually' to scan for leftovers. Orphan Finder sweeps away remnants from previously deleted applications."
-                        )
+                        guideItem(title: "Live Status Monitor", icon: "waveform.path.ecg", color: .green,
+                            desc: "Real-time CPU gauges, memory pressure bars, network speed, health score, and a full process list with kill support — mirrors Mole's 'mo status'.")
                         
-                        guideItem(
-                            title: "Disk Explorer",
-                            icon: "internaldrive.fill",
-                            color: .blue,
-                            desc: "Visualize disk usage across your volumes with a Mole-inspired bar map. Drill down into folders, identify space hogs, and reveal items in Finder."
-                        )
+                        guideItem(title: "Mole Insights & Project Cleaner", icon: "sparkles", color: .orange,
+                            desc: "27 categorized cleanable space items (iOS Backups, Xcode Simulators, Docker, Spotify, JetBrains, etc.) plus a project scanner that finds node_modules, .build, target/, venv/ and more — mirrors Mole's 'mo clean' and 'mo analyze'.")
                         
-                        guideItem(
-                            title: "System Optimizer",
-                            icon: "bolt.fill",
-                            color: .orange,
-                            desc: "Run 15+ targeted optimization tasks: flush DNS cache, purge memory, rebuild Launch Services, clear QuickLook caches, update Homebrew, and more. Inspired by Mole's 'mo optimize' command."
-                        )
+                        guideItem(title: "Disk Explorer", icon: "internaldrive.fill", color: .blue,
+                            desc: "Visualize disk usage with Mole-inspired proportional bar maps. Drill into any folder, find space hogs, and reveal items in Finder.")
                         
-                        guideItem(
-                            title: "Developer Caches",
-                            icon: "hammer.fill",
-                            color: .indigo,
-                            desc: "Quickly reclaim gigabytes of disk space by purging DerivedData, Node packages caches, Cargo/Rust target folders, and dangling Docker images."
-                        )
+                        guideItem(title: "System Optimizer", icon: "bolt.fill", color: .yellow,
+                            desc: "15 targeted optimization tasks: flush DNS, purge memory, rebuild LaunchServices DB, clear QuickLook caches — mirrors Mole's 'mo optimize'.")
                         
-                        guideItem(
-                            title: "SDK & Runtime Switcher",
-                            icon: "square.stack.3d.up.fill",
-                            color: .purple,
-                            desc: "Seamlessly swap between active versions of Node.js (nvm/fnm), Python (pyenv), Ruby (rbenv/rvm), and Rust (rustup). Changes require double confirmation dialog checks for safety."
-                        )
+                        guideItem(title: "Developer Caches", icon: "hammer.fill", color: .indigo,
+                            desc: "50+ cache targets covering Xcode, Node, Python, Ruby, Rust, Go, Java, Docker, VS Code, JetBrains, Terraform, and more.")
                         
-                        guideItem(
-                            title: "Port Listener & Process Killer",
-                            icon: "network.badge.shield.half.filled",
-                            color: .orange,
-                            desc: "Inspect open network ports using List View or the Process Relationship Graph. Terminate hanging servers with single-click options. Configure force-killing options using Settings."
-                        )
+                        guideItem(title: "App Uninstaller & Orphan Finder", icon: "trash.fill", color: .red,
+                            desc: "Detect and remove leftover files from previously uninstalled apps — mirrors Mole's 'mo uninstall'.")
                         
-                        guideItem(
-                            title: "Homebrew Explorer",
-                            icon: "shippingbox.fill",
-                            color: .cyan,
-                            desc: "Manage formula and casks lists, run system diagnostics using 'brew doctor', or clear downloads archives using 'brew cleanup'."
-                        )
+                        guideItem(title: "SDK & Runtime Switcher", icon: "square.stack.3d.up.fill", color: .purple,
+                            desc: "Switch between Node.js, Python, Ruby, and Rust versions using nvm, pyenv, rbenv, and rustup.")
+                        
+                        guideItem(title: "Port Listener", icon: "network.badge.shield.half.filled", color: .teal,
+                            desc: "Inspect open network ports and kill hanging server processes.")
+                        
+                        guideItem(title: "Homebrew Explorer", icon: "shippingbox.fill", color: .cyan,
+                            desc: "Manage Homebrew formulae, casks, run brew doctor, and cleanup downloads.")
                     }
                     
                     Divider()
                     
                     Group {
-                        Text("Keyboard Shortcuts Reference")
-                            .font(.headline)
-                        
+                        Text("Keyboard Shortcuts").font(.headline)
                         VStack(alignment: .leading, spacing: 8) {
-                            shortcutRow(keys: "Cmd + 1", desc: "Go to Dashboard")
-                            shortcutRow(keys: "Cmd + 2", desc: "Go to App Uninstaller")
-                            shortcutRow(keys: "Cmd + 3", desc: "Go to Orphan Finder")
-                            shortcutRow(keys: "Cmd + 4", desc: "Go to Developer Caches")
-                            shortcutRow(keys: "Cmd + 5", desc: "Go to Large & Old Files")
-                            shortcutRow(keys: "Cmd + 6", desc: "Go to Hidden File Explorer")
-                            shortcutRow(keys: "Cmd + 7", desc: "Go to Homebrew Explorer")
-                            shortcutRow(keys: "Cmd + 8", desc: "Go to Service Manager")
-                            shortcutRow(keys: "Cmd + 9", desc: "Go to System Tweaks")
-                            shortcutRow(keys: "Cmd + Shift + D", desc: "Go to Disk Explorer")
-                            shortcutRow(keys: "Cmd + Shift + O", desc: "Go to System Optimizer")
-                            shortcutRow(keys: "Cmd + Shift + B", desc: "Add Custom Bookmark Link")
-                            shortcutRow(keys: "Cmd + ,", desc: "Open Preferences / Settings")
-                            shortcutRow(keys: "Cmd + ?", desc: "Open this Help Guide Manual")
+                            shortcutRow(keys: "Cmd + 1", desc: "Dashboard")
+                            shortcutRow(keys: "Cmd + 2", desc: "App Uninstaller")
+                            shortcutRow(keys: "Cmd + 3", desc: "Orphan Finder")
+                            shortcutRow(keys: "Cmd + 4", desc: "Developer Caches")
+                            shortcutRow(keys: "Cmd + 5", desc: "Large & Old Files")
+                            shortcutRow(keys: "Cmd + 6", desc: "Hidden File Explorer")
+                            shortcutRow(keys: "Cmd + 7", desc: "Homebrew Explorer")
+                            shortcutRow(keys: "Cmd + 8", desc: "Service Manager")
+                            shortcutRow(keys: "Cmd + 9", desc: "System Tweaks")
+                            shortcutRow(keys: "Cmd + Shift + S", desc: "Live Status Monitor")
+                            shortcutRow(keys: "Cmd + Shift + M", desc: "Mole Insights")
+                            shortcutRow(keys: "Cmd + Shift + D", desc: "Disk Explorer")
+                            shortcutRow(keys: "Cmd + Shift + O", desc: "System Optimizer")
+                            shortcutRow(keys: "Cmd + ,", desc: "Preferences / Settings")
+                            shortcutRow(keys: "Cmd + ?", desc: "This Help Guide")
                         }
                         .padding()
                         .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
@@ -247,7 +210,7 @@ struct mainsidebarview: View {
                 .padding()
             }
         }
-        .frame(width: 600, height: 540)
+        .frame(width: 620, height: 560)
     }
     
     @ViewBuilder
@@ -255,16 +218,12 @@ struct mainsidebarview: View {
         HStack(alignment: .top, spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(color.opacity(0.15))
-                    .frame(width: 32, height: 32)
-                Image(systemName: icon)
-                    .foregroundColor(color)
+                    .fill(color.opacity(0.15)).frame(width: 32, height: 32)
+                Image(systemName: icon).foregroundColor(color)
             }
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).bold()
-                Text(desc)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                Text(desc).font(.subheadline).foregroundColor(.secondary)
             }
         }
         .padding(.vertical, 4)
@@ -273,13 +232,9 @@ struct mainsidebarview: View {
     @ViewBuilder
     private func shortcutRow(keys: String, desc: String) -> some View {
         HStack {
-            Text(keys)
-                .font(.system(.body, design: .monospaced))
-                .bold()
-                .foregroundColor(.accentColor)
-                .frame(width: 180, alignment: .leading)
-            Text(desc)
-                .foregroundColor(.secondary)
+            Text(keys).font(.system(.body, design: .monospaced)).bold()
+                .foregroundColor(.accentColor).frame(width: 190, alignment: .leading)
+            Text(desc).foregroundColor(.secondary)
             Spacer()
         }
     }
