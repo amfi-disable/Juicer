@@ -30,6 +30,7 @@ struct mainsidebarview: View {
                         sidebarLink(for: .quarantineStripper)
                         sidebarLink(for: .dnsEditor)
                         sidebarLink(for: .launchServices)
+                        sidebarLink(for: .sdkSwitcher)
                     }
                 }
                 .listStyle(.sidebar)
@@ -63,6 +64,8 @@ struct mainsidebarview: View {
                         largefilesview()
                     case .brewExplorer:
                         brewmanagerview()
+                    case .sdkSwitcher:
+                        sdkmanagerview()
                     default:
                         placeholderView(for: item)
                     }
