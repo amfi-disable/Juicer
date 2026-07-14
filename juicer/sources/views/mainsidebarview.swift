@@ -33,6 +33,10 @@ struct mainsidebarview: View {
                         launchdmanagerview()
                     case .devCaches:
                         cacheprunerview()
+                    case .systemTweaks:
+                        systemtweakerview()
+                    case .quarantineStripper:
+                        quarantinestripperview()
                     default:
                         placeholderView(for: item)
                     }
