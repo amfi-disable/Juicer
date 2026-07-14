@@ -2,6 +2,8 @@ import SwiftUI
 
 @main
 struct juicerapp: App {
+    @State private var hasAccess: Bool = onboardingview.checkFullDiskAccess()
+
     init() {
         // Request notifications permission on app launch
         NotificationManager.shared.requestAuthorization()
@@ -9,8 +11,13 @@ struct juicerapp: App {
     
     var body: some Scene {
         WindowGroup {
-            mainsidebarview()
-                .frame(minWidth: 950, minHeight: 650)
+            if hasAccess {
+                mainsidebarview()
+                    .frame(minWidth: 950, minHeight: 650)
+            } else {
+                onboardingview(isAccessGranted: $hasAccess)
+                    .frame(width: 800, height: 600)
+            }
         }
         .windowStyle(.hiddenTitleBar)
         .commands {

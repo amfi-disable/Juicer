@@ -287,6 +287,88 @@ class UninstallerManager: ObservableObject {
         }
     }
     
+    func resetAppPreferences(completion: @escaping (Bool) -> Void) {
+        guard let app = appInfo else {
+            completion(false)
+            return
+        }
+        AppLogger.shared.log("Resetting preference plist settings for \(app.appName)...")
+        let prefs = leftovers.filter { $0.category.lowercased().contains("pref") || $0.name.hasSuffix(".plist") }
+        
+        Task.detached(priority: .userInitiated) {
+            var success = true
+            for item in prefs {
+                do {
+                    if FileManager.default.fileExists(atPath: item.path) {
+                        try FileManager.default.trashItem(at: item.url, resultingItemURL: nil)
+                    }
+                } catch {
+                    AppLogger.shared.log("Failed to trash preference file \(item.name): \(error.localizedDescription)")
+                    success = false
+                }
+            }
+            await MainActor.run {
+                self.scan(for: app)
+                completion(success)
+            }
+        }
+    }
+
+    func clearAppCachesOnly(completion: @escaping (Bool) -> Void) {
+        guard let app = appInfo else {
+            completion(false)
+            return
+        }
+        AppLogger.shared.log("Clearing cache directories for \(app.appName)...")
+        let caches = leftovers.filter { $0.category.lowercased().contains("cache") }
+        
+        Task.detached(priority: .userInitiated) {
+            var success = true
+            for item in caches {
+                do {
+                    if FileManager.default.fileExists(atPath: item.path) {
+                        try FileManager.default.trashItem(at: item.url, resultingItemURL: nil)
+                    }
+                } catch {
+                    AppLogger.shared.log("Failed to clear cache path \(item.name): \(error.localizedDescription)")
+                    success = false
+                }
+            }
+            await MainActor.run {
+                self.scan(for: app)
+                completion(success)
+            }
+        }
+    }
+
+    func stripQuarantineTag(completion: @escaping (Bool) -> Void) {
+        guard let app = appInfo else {
+            completion(false)
+            return
+        }
+        AppLogger.shared.log("Stripping quarantine Gatekeeper blocks from \(app.path.path)...")
+        
+        Task.detached(priority: .userInitiated) {
+            let proc = Process()
+            proc.executableURL = URL(fileURLWithPath: "/usr/bin/xattr")
+            proc.arguments = ["-cr", app.path.path]
+            
+            do {
+                try proc.run()
+                proc.waitUntilExit()
+                let status = proc.terminationStatus
+                await MainActor.run {
+                    completion(status == 0)
+                }
+            } catch {
+                AppLogger.shared.log("xattr execution error: \(error.localizedDescription)")
+                await MainActor.run {
+                    completion(false)
+                }
+            }
+        }
+    }
+
     private func getPathSize(_ url: URL) -> Int64 {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) else {

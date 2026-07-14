@@ -37,6 +37,7 @@ class QuickLinksManager: ObservableObject {
             UserDefaults.standard.set(data, forKey: storageKey)
         }
     }
+    
     func addLink(name: String, path: String) {
         let expanded = NSString(string: path).expandingTildeInPath
         var isDir: ObjCBool = false
@@ -61,140 +62,28 @@ struct dashboardview: View {
     @State private var macOSVersion: String = ProcessInfo.processInfo.operatingSystemVersionString
     
     @StateObject private var quickLinksManager = QuickLinksManager()
-    
-    // Add Link Sheet states
     @State private var isShowingAddLink = false
     @State private var newLinkName = ""
     @State private var newLinkPath = ""
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 30) {
-                // Welcome Banner
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("juicer")
-                        .font(.system(size: 40, weight: .black, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.orange, .red, .pink],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                    Text("The Ultimate Open-Source macOS Developer Utility")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.top, 20)
+            VStack(alignment: .leading, spacing: 24) {
+                // Editorial Main Card
+                editorialMainCard()
                 
-                Divider()
-                
-                // System Summary Card
-                VStack(alignment: .leading, spacing: 20) {
-                    Text("System Storage")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    
-                    HStack(spacing: 30) {
-                        // Circular Progress
-                        ZStack {
-                            Circle()
-                                .stroke(Color.secondary.opacity(0.15), lineWidth: 16)
-                                .frame(width: 120, height: 120)
-                            
-                            Circle()
-                                .trim(from: 0.0, to: CGFloat(usedDiskSpacePercentage))
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [.red, .orange],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    ),
-                                    style: StrokeStyle(lineWidth: 16, lineCap: .round)
-                                )
-                                .frame(width: 120, height: 120)
-                                .rotationEffect(Angle(degrees: -90))
-                            
-                            VStack(spacing: 4) {
-                                Text("\(Int(usedDiskSpacePercentage * 100))%")
-                                    .font(.title2)
-                                    .bold()
-                                Text("Used")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Circle().fill(Color.orange).frame(width: 10, height: 10)
-                                Text("Free Space: \(freeDiskSpace)")
-                                    .font(.body)
-                            }
-                            HStack {
-                                Circle().fill(Color.red).frame(width: 10, height: 10)
-                                Text("Total Capacity: \(totalDiskSpace)")
-                                    .font(.body)
-                            }
-                            HStack {
-                                Circle().fill(Color.blue).frame(width: 10, height: 10)
-                                Text("macOS Version: \(macOSVersion)")
-                                    .font(.body)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
-                    )
+                // System Vitals & Recommendations grid
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)], spacing: 20) {
+                    vitalsCard()
+                    curatedToolsCard()
                 }
-                
-                // Quick Bookmarks & Links Section
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack {
-                        Text("Bookmarks & Quick Links")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Button(action: { isShowingAddLink = true }) {
-                            Label("Add Bookmark", systemImage: "plus")
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                    }
-                    
-                    if quickLinksManager.links.isEmpty {
-                        Text("No quick links added yet. Use the '+' button to add custom folders or files.")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .background(Color(NSColor.controlBackgroundColor).opacity(0.2))
-                            .cornerRadius(8)
-                    } else {
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                            ForEach(quickLinksManager.links) { link in
-                                QuickLinkCard(link: link, onNavigate: {
-                                    let expanded = NSString(string: link.path).expandingTildeInPath
-                                    NSWorkspace.shared.selectFile(expanded, inFileViewerRootedAtPath: "")
-                                    AppLogger.shared.log("Opened shortcut location: \(expanded)")
-                                }, onDelete: {
-                                    quickLinksManager.removeLink(link)
-                                })
-                            }
-                        }
-                    }
-                }
+
+                // Bookmarks & Quick Links Section
+                bookmarksSection()
             }
-            .padding(.horizontal, 30)
-            .padding(.bottom, 30)
+            .padding(24)
         }
+        .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
             updateDiskMetrics()
         }
@@ -203,6 +92,196 @@ struct dashboardview: View {
         }
         .sheet(isPresented: $isShowingAddLink) {
             addLinkSheet()
+        }
+    }
+    
+    // MARK: - Editorial Main Card (App Store Featured style)
+    @ViewBuilder
+    private func editorialMainCard() -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("WELCOME COMPANION")
+                .font(.caption2).bold()
+                .foregroundStyle(.white.opacity(0.8))
+                .tracking(1.5)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Juicer is ready.")
+                    .font(.system(size: 32, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                Text("Your ultimate open-source macOS developer utility.")
+                    .font(.title3).medium()
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+            
+            Text("Clean junk, strip Gatekeeper blocks, manage active local ports, explore drive usages, and discover packages in the Software Center.")
+                .font(.body)
+                .foregroundStyle(.white.opacity(0.75))
+                .lineLimit(2)
+                .frame(maxWidth: 550)
+            
+            HStack(spacing: 12) {
+                Button(action: {
+                    NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.cacheCleaner"), object: nil)
+                }) {
+                    Text("Clean Caches")
+                        .font(.body).bold()
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 16).padding(.vertical, 8)
+                        .background(Color.white)
+                        .cornerRadius(20)
+                }
+                .buttonStyle(.plain)
+                
+                Button(action: {
+                    NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.appStore"), object: nil)
+                }) {
+                    Text("Browse Software Center")
+                        .font(.body).bold()
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16).padding(.vertical, 8)
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(20)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.top, 8)
+        }
+        .padding(30)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            LinearGradient(
+                colors: [Color.orange, Color.red, Color.pink],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .cornerRadius(18)
+        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+    }
+
+    // MARK: - Vitals Card
+    @ViewBuilder
+    private func vitalsCard() -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("System Vitals").font(.headline).foregroundStyle(.primary)
+            
+            HStack(spacing: 20) {
+                ZStack {
+                    Circle()
+                        .stroke(Color.secondary.opacity(0.12), lineWidth: 10)
+                        .frame(width: 80, height: 80)
+                    
+                    Circle()
+                        .trim(from: 0.0, to: CGFloat(usedDiskSpacePercentage))
+                        .stroke(
+                            LinearGradient(colors: [.orange, .red], startPoint: .top, endPoint: .bottom),
+                            style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                        )
+                        .frame(width: 80, height: 80)
+                        .rotationEffect(Angle(degrees: -90))
+                    
+                    Text("\(Int(usedDiskSpacePercentage * 100))%")
+                        .font(.headline).bold()
+                }
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Disk Storage").bold()
+                    Text("Free: \(freeDiskSpace)").font(.subheadline).foregroundStyle(.secondary)
+                    Text("Total: \(totalDiskSpace)").font(.caption).foregroundStyle(.tertiary)
+                    Text("OS: \(macOSVersion)").font(.caption).foregroundStyle(.tertiary).lineLimit(1)
+                }
+                Spacer()
+            }
+            .padding()
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+            .cornerRadius(12)
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.2))
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.secondary.opacity(0.1), lineWidth: 1))
+    }
+
+    // MARK: - Curated Tools
+    @ViewBuilder
+    private func curatedToolsCard() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Discover Essential Tools").font(.headline).foregroundStyle(.primary)
+            
+            VStack(spacing: 8) {
+                curatedToolRow(title: "App Uninstaller", desc: "Drag & drop cleaner companion", icon: "trash.fill", color: .red, dest: "juicer.nav.uninstaller")
+                curatedToolRow(title: "Software Center", desc: "Browse Casks & Formulae", icon: "square.grid.3x3.fill", color: .purple, dest: "juicer.nav.appStore")
+                curatedToolRow(title: "System Optimizer", desc: "Refresh cache databases & flush DNS", icon: "bolt.fill", color: .yellow, dest: "juicer.nav.systemOptimizer")
+            }
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.2))
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.secondary.opacity(0.1), lineWidth: 1))
+    }
+
+    @ViewBuilder
+    private func curatedToolRow(title: String, desc: String, icon: String, color: Color, dest: String) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(color.opacity(0.15)).frame(width: 32, height: 32)
+                Image(systemName: icon).foregroundColor(color).font(.body)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.subheadline).bold()
+                Text(desc).font(.caption).foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+            
+            Button("OPEN") {
+                NotificationCenter.default.post(name: NSNotification.Name(dest), object: nil)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+        .padding(.vertical, 4)
+    }
+
+    // MARK: - Bookmarks Section
+    @ViewBuilder
+    private func bookmarksSection() -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Companion Shortcuts & Bookmarks")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Spacer()
+                Button(action: { isShowingAddLink = true }) {
+                    Label("Add Shortcut", systemImage: "plus")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+            
+            if quickLinksManager.links.isEmpty {
+                Text("No bookmarks added yet. Drop folders or files here to bookmark them.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .background(Color(NSColor.controlBackgroundColor).opacity(0.2))
+                    .cornerRadius(8)
+            } else {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                    ForEach(quickLinksManager.links) { link in
+                        QuickLinkCard(link: link, onNavigate: {
+                            let expanded = NSString(string: link.path).expandingTildeInPath
+                            NSWorkspace.shared.selectFile(expanded, inFileViewerRootedAtPath: "")
+                            AppLogger.shared.log("Opened shortcut location: \(expanded)")
+                        }, onDelete: {
+                            quickLinksManager.removeLink(link)
+                        })
+                    }
+                }
+            }
         }
     }
     
@@ -342,42 +421,8 @@ struct QuickLinkCard: View {
     }
 }
 
-struct FeatureCard: View {
-    let title: String
-    let description: String
-    let icon: String
-    let color: Color
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(color.opacity(0.15))
-                    .frame(width: 44, height: 44)
-                
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundStyle(color)
-            }
-            
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(3)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer()
-        }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
-        )
+extension Text {
+    func medium() -> Text {
+        self.fontWeight(.medium)
     }
 }
