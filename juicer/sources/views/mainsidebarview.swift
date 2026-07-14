@@ -37,6 +37,10 @@ struct mainsidebarview: View {
                         systemtweakerview()
                     case .quarantineStripper:
                         quarantinestripperview()
+                    case .dnsEditor:
+                        dnseditorview()
+                    case .launchServices:
+                        launchservicesview()
                     default:
                         placeholderView(for: item)
                     }
