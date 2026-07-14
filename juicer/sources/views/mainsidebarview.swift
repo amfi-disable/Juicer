@@ -6,17 +6,30 @@ struct mainsidebarview: View {
     var body: some View {
         VStack(spacing: 0) {
             NavigationSplitView {
-                List(NavigationItem.allCases, selection: $selectedItem) { item in
-                    NavigationLink(value: item) {
-                        HStack(spacing: 10) {
-                            Image(systemName: item.iconName)
-                                .font(.body)
-                                .frame(width: 18, alignment: .center)
-                            Text(item.title)
-                                .font(.body)
-                        }
+                List(selection: $selectedItem) {
+                    Section("General") {
+                        sidebarLink(for: .dashboard)
                     }
-                    .padding(.vertical, 4)
+                    
+                    Section("Applications") {
+                        sidebarLink(for: .appUninstaller)
+                        sidebarLink(for: .orphanScanner)
+                        sidebarLink(for: .appLipo)
+                    }
+                    
+                    Section("Storage Clean") {
+                        sidebarLink(for: .devCaches)
+                        sidebarLink(for: .largeFiles)
+                        sidebarLink(for: .hiddenFiles)
+                    }
+                    
+                    Section("System & Advanced") {
+                        sidebarLink(for: .serviceManager)
+                        sidebarLink(for: .systemTweaks)
+                        sidebarLink(for: .quarantineStripper)
+                        sidebarLink(for: .dnsEditor)
+                        sidebarLink(for: .launchServices)
+                    }
                 }
                 .listStyle(.sidebar)
                 .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
@@ -94,5 +107,19 @@ struct mainsidebarview: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
+    }
+    
+    @ViewBuilder
+    private func sidebarLink(for item: NavigationItem) -> some View {
+        NavigationLink(value: item) {
+            HStack(spacing: 10) {
+                Image(systemName: item.iconName)
+                    .font(.body)
+                    .frame(width: 18, alignment: .center)
+                Text(item.title)
+                    .font(.body)
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
