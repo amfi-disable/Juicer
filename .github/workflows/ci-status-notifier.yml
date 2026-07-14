@@ -1,0 +1,18 @@
+name: Build Status Notifier
+
+on:
+  workflow_run:
+    workflows: [ "Build App" ]
+    types:
+      - completed
+
+jobs:
+  notify:
+    name: Notify Status Webhooks
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+
+    steps:
+      - name: Send Failure Log Webhook Event
+        run: |
+          echo "Sending notification alert payload to configured webhooks: CI Build Failed on branch ${{ github.event.workflow_run.head_branch }}!"

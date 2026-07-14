@@ -1,0 +1,24 @@
+name: License Compliance Audit
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  audit:
+    name: Audit Repository License Types
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Scan Permissible License Guidelines
+        run: |
+          if [ -f "LICENSE" ] || [ -f "LICENSE.md" ]; then
+            echo "License file detected!"
+            exit 0
+          else
+            echo "Error: LICENSE file not found in root. Every open-source module must publish license compliance rules."
+            exit 1
+          fi

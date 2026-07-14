@@ -1,0 +1,49 @@
+name: Issue Triage Labeler
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  triage:
+    name: Auto Triage Issue Keywords
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Scan Keywords and Apply Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const body = (issue.body || "").toLowerCase();
+            const title = issue.title.toLowerCase();
+            const labels = [];
+
+            if (body.includes("crash") || title.includes("crash") || body.includes("freeze")) {
+              labels.push("bug/critical");
+            } else if (body.includes("bug") || title.includes("bug") || body.includes("error")) {
+              labels.push("bug");
+            }
+
+            if (body.includes("feature") || title.includes("feature") || body.includes("request")) {
+              labels.push("enhancement");
+            }
+
+            if (body.includes("cleaning") || body.includes("pruner") || body.includes("cache")) {
+              labels.push("module/cleaner");
+            }
+
+            if (body.includes("network") || body.includes("port") || body.includes("dns")) {
+              labels.push("module/network");
+            }
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labels
+              });
+            }

@@ -1,0 +1,33 @@
+name: CodeQL Static Security Scan
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0' # Sunday weekly
+
+jobs:
+  analyze:
+    name: CodeQL Security Vulnerability Scan
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: swift
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build Code For Compilation Target Scan
+        run: xcodebuild build -project juicer.xcodeproj -scheme juicer -sdk macosx
+
+      - name: Perform CodeQL Analysis Diagnostics
+        uses: github/codeql-action/analyze@v3

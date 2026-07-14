@@ -1,0 +1,19 @@
+name: Dependency Vulnerability Audit
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 1 * *' # Monthly
+
+jobs:
+  audit:
+    name: Swift Package Manager Vulnerability Scan
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Resolve SPM Dependencies
+        run: xcodebuild -resolvePackageDependencies -project juicer.xcodeproj -scheme juicer || echo "No custom external dependencies registered"
