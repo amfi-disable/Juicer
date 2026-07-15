@@ -7,8 +7,10 @@ struct storeview: View {
     @State private var selectedTab: StoreTab = .casks
 
     enum StoreTab: String, CaseIterable, Identifiable {
-        case casks = "Applications"
-        case formulae = "Command Line"
+        case casks = "Brew - Casks"
+        case formulae = "Brew - Formulae"
+        case installed = "Installed via Brew"
+        case external = "Outside Homebrew"
         case updates = "Updates"
         
         var id: String { rawValue }
@@ -89,13 +91,15 @@ struct storeview: View {
             Spacer()
 
             Picker("", selection: $selectedTab) {
-                Text("Applications (Casks)").tag(StoreTab.casks)
-                Text("Command Line (Formulae)").tag(StoreTab.formulae)
+                Text("Brew - Casks").tag(StoreTab.casks)
+                Text("Brew - Formulae").tag(StoreTab.formulae)
+                Text("Installed via Brew").tag(StoreTab.installed)
+                Text("Outside Homebrew").tag(StoreTab.external)
                 let updatesText = manager.outdatedApps.isEmpty ? "Updates" : "Updates (\(manager.outdatedApps.count))"
                 Text(updatesText).tag(StoreTab.updates)
             }
             .pickerStyle(.segmented)
-            .frame(width: 440)
+            .frame(width: 680)
             .disabled(manager.isLoading)
 
             Button(action: { manager.loadStore(forceRefresh: true) }) {
@@ -162,8 +166,18 @@ struct storeview: View {
             let sourceApps = selectedTab == .updates ? manager.outdatedApps : manager.apps
             let filtered = sourceApps.filter { app in
                 // Tab filter
-                if selectedTab == .casks && !app.isCask { return false }
-                if selectedTab == .formulae && app.isCask { return false }
+                switch selectedTab {
+                case .casks:
+                    if !app.isCask { return false }
+                case .formulae:
+                    if app.isCask { return false }
+                case .installed:
+                    if app.status != .installedViaHomebrew { return false }
+                case .external:
+                    if app.status != .installedExternally { return false }
+                case .updates:
+                    break // Sourced from outdatedApps
+                }
 
                 // Search query
                 if !searchText.isEmpty {
@@ -376,6 +390,46 @@ struct storeview: View {
                     }
                 }
                 .padding(.top, 10)
+
+                // Companion Insights: files affected blueprint
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "info.circle.fill")
+                            .foregroundColor(.accentColor)
+                        Text(app.status == .notInstalled ? "Installation Blueprint" : "Uninstallation Blueprint")
+                            .font(.headline)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        if app.status == .notInstalled {
+                            Text("The following paths will be created/downloaded:").font(.caption).bold().foregroundStyle(.secondary)
+                            if app.isCask {
+                                bulletPoint("/Applications/\(app.name).app")
+                                bulletPoint("~/Library/Application Support/\(app.id)")
+                                bulletPoint("~/Library/Caches/\(app.id)")
+                            } else {
+                                bulletPoint("/opt/homebrew/Cellar/\(app.id) (Binaries)")
+                                bulletPoint("/opt/homebrew/bin/\(app.id) (Symlink)")
+                            }
+                        } else {
+                            Text("The following files and directories will be deleted:").font(.caption).bold().foregroundColor(.red)
+                            if app.isCask {
+                                bulletPoint("/Applications/\(app.name).app")
+                                bulletPoint("~/Library/Application Support/\(app.id)")
+                                bulletPoint("~/Library/Caches/\(app.id)")
+                                bulletPoint("~/Library/Preferences/com.even.\(app.id).plist")
+                            } else {
+                                bulletPoint("/opt/homebrew/Cellar/\(app.id)")
+                                bulletPoint("/opt/homebrew/bin/\(app.id)")
+                                bulletPoint("/opt/homebrew/etc/\(app.id)")
+                            }
+                        }
+                    }
+                    .padding(10)
+                    .background(Color.secondary.opacity(0.05))
+                    .cornerRadius(6)
+                }
+                .padding(.top, 10)
             }
             .padding()
         }
@@ -510,6 +564,17 @@ struct storeview: View {
             Text(label).font(.caption).bold().foregroundStyle(.secondary).frame(width: 90, alignment: .leading)
             Text(value).font(.caption).foregroundStyle(.primary)
             Spacer()
+        }
+    }
+
+    @ViewBuilder
+    private func bulletPoint(_ path: String) -> some View {
+        HStack(spacing: 5) {
+            Text("•").foregroundStyle(.secondary)
+            Text(path)
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundColor(.secondary)
+                .lineLimit(1)
         }
     }
 }
