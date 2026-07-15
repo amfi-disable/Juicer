@@ -24,7 +24,9 @@ jobs:
         run: arch -arm64 brew install xcodegen
 
       - name: Generate Xcode Project
-        run: xcodegen generate
+        run: |
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          xcodegen generate
 
       - name: Build macOS Target (skip signing)
         run: |

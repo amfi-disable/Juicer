@@ -21,7 +21,9 @@ jobs:
         run: arch -arm64 brew install xcodegen
 
       - name: Regenerate Project
-        run: xcodegen generate
+        run: |
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          xcodegen generate
 
       - name: Check Git Diff Cleanliness
         run: |
