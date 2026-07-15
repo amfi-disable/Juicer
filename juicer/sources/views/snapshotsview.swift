@@ -79,35 +79,52 @@ struct snapshotsview: View {
     
     @ViewBuilder
     private func snapshotRow(snap: DiagnosticSnapshot) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(formatDate(snap.timestamp)).font(.headline)
-                Text("\(snap.installedCasks.count) Casks | \(snap.launchDaemons.count) Daemons | \(snap.hostsLines.count) Hosts Rules")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            
-            Spacer()
-            
-            // Buttons to select for comparison
-            HStack(spacing: 6) {
-                Button("1st") {
-                    firstSelected = snap
-                    calculateDiff()
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(formatDate(snap.timestamp))
+                        .font(.headline)
+                    Text("\(snap.installedCasks.count) Casks | \(snap.launchDaemons.count) Daemons | \(snap.hostsLines.count) Hosts")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-                .buttonStyle(.bordered)
-                .tint(firstSelected?.id == snap.id ? .blue : nil)
-                .help("Select as current state for comparison")
-                
-                Button("2nd") {
-                    secondSelected = snap
-                    calculateDiff()
-                }
-                .buttonStyle(.bordered)
-                .tint(secondSelected?.id == snap.id ? .orange : nil)
-                .help("Select as base/older state for comparison")
+                Spacer()
                 
                 Button(action: { deleteSnapshot(snap) }) {
                     Image(systemName: "trash").foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
+            }
+            
+            HStack(spacing: 8) {
+                Button(action: {
+                    firstSelected = snap
+                    calculateDiff()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: firstSelected?.id == snap.id ? "checkmark.circle.fill" : "circle")
+                        Text("Compare Current (1st)")
+                    }
+                    .font(.caption2).bold()
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .background(firstSelected?.id == snap.id ? Color.blue.opacity(0.15) : Color.secondary.opacity(0.1))
+                    .foregroundColor(firstSelected?.id == snap.id ? .blue : .primary)
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                
+                Button(action: {
+                    secondSelected = snap
+                    calculateDiff()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: secondSelected?.id == snap.id ? "checkmark.circle.fill" : "circle")
+                        Text("Compare Base (2nd)")
+                    }
+                    .font(.caption2).bold()
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .background(secondSelected?.id == snap.id ? Color.orange.opacity(0.15) : Color.secondary.opacity(0.1))
+                    .foregroundColor(secondSelected?.id == snap.id ? .orange : .primary)
+                    .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
             }
