@@ -15,6 +15,14 @@ struct StoreApp: Identifiable, Codable, Hashable {
     var pricing: PricingTag
     var status: InstallationStatus
 
+    var isFeatured: Bool {
+        if isCask {
+            return StoreManager.featuredCasks.contains(id)
+        } else {
+            return StoreManager.featuredFormulae.contains(id)
+        }
+    }
+
     enum PricingTag: String, Codable, CaseIterable {
         case free = "Free"
         case freemium = "Freemium"
@@ -72,6 +80,14 @@ class StoreManager: ObservableObject {
         "spotify", "slack", "zoom", "dropbox", "alfred", "figma", "postman", "docker", "notion",
         "todoist", "evernote", "trello", "skype", "warp", "gitkraken", "sourcetree", "lens",
         "teamviewer", "anydesk", "skitch", "canva", "lucidchart", "lark", "discord"
+    ]
+
+    static let featuredCasks: Set<String> = [
+        "visual-studio-code", "docker", "alt-tab", "iterm2", "obsidian", "spotify", "google-chrome", "warp", "figma", "cursor", "sublime-text", "vlc", "raycast", "slack", "1password"
+    ]
+
+    static let featuredFormulae: Set<String> = [
+        "git", "node", "python@3.12", "gh", "htop", "ripgrep", "fd", "bat", "neovim", "wget", "jq", "tmux", "fzf", "tldr"
     ]
 
     // MARK: - Fetch & Parse (Async + Cache)

@@ -19,9 +19,10 @@ struct storeview: View {
     // Sidebar Filters
     @State private var selectedStatus: StatusFilter = .all
     @State private var selectedPricing: PricingFilter = .all
+    @State private var selectedRecommendation: RecommendationFilter = .all
 
     enum StatusFilter: String, CaseIterable, Identifiable {
-        case all = "All Packages"
+        case all = "All Statuses"
         case installed = "Installed"
         case notInstalled = "Not Installed"
         case external = "Installed outside Homebrew"
@@ -34,6 +35,13 @@ struct storeview: View {
         case free = "Free"
         case freemium = "Freemium"
         case paid = "Paid"
+
+        var id: String { rawValue }
+    }
+
+    enum RecommendationFilter: String, CaseIterable, Identifiable {
+        case all = "All Collections"
+        case featured = "★ Featured / Recommended"
 
         var id: String { rawValue }
     }
@@ -146,6 +154,12 @@ struct storeview: View {
                 }
                 .pickerStyle(.menu)
                 .frame(maxWidth: .infinity)
+
+                Picker("Collection", selection: $selectedRecommendation) {
+                    ForEach(RecommendationFilter.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: .infinity)
             }
         }
         .padding()
@@ -209,6 +223,13 @@ struct storeview: View {
                     if app.pricing != .paid { return false }
                 }
 
+                // Collection filter
+                switch selectedRecommendation {
+                case .all: break
+                case .featured:
+                    if !app.isFeatured { return false }
+                }
+
                 return true
             }
 
@@ -253,6 +274,9 @@ struct storeview: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
+                    if app.isFeatured {
+                        featuredBadge()
+                    }
                     Text(app.name).font(.headline).lineLimit(1)
                     pricingBadge(app.pricing)
                     if app.status == .installedViaHomebrew || app.status == .installedExternally {
@@ -284,6 +308,9 @@ struct storeview: View {
                         Text(app.name).font(.title3).bold()
                         Text(app.id).font(.subheadline).foregroundStyle(.secondary)
                         HStack(spacing: 6) {
+                            if app.isFeatured {
+                                featuredBadge()
+                            }
                             pricingBadge(app.pricing)
                             statusBadge(app.status)
                         }
@@ -523,6 +550,19 @@ struct storeview: View {
         case .freemium: return .orange
         case .paid: return .blue
         }
+    }
+
+    @ViewBuilder
+    private func featuredBadge() -> some View {
+        HStack(spacing: 3) {
+            Image(systemName: "star.fill").font(.system(size: 8))
+            Text("Featured")
+        }
+        .font(.caption2).bold()
+        .padding(.horizontal, 6).padding(.vertical, 2)
+        .background(Color.yellow.opacity(0.18))
+        .foregroundStyle(Color.orange)
+        .cornerRadius(4)
     }
 
     @ViewBuilder
