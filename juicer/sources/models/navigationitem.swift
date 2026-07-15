@@ -1,4 +1,24 @@
-import Foundation
+enum JuicerWorkspace: String, CaseIterable, Identifiable {
+    case hub = "Juicer Hub"
+    case store = "Juicer Store"
+    case system = "Juicer System"
+    case disk = "Juicer Disk"
+    case configs = "Juicer Configs"
+    
+    var id: String { rawValue }
+    
+    var title: String { rawValue }
+    
+    var description: String {
+        switch self {
+        case .hub: return "The home launcher dashboard."
+        case .store: return "Browse Homebrew casks and formulae repositories, install applications, and trigger software updates."
+        case .system: return "Inspect system metrics, manage active processes, trace DNS configs, and run shell automations."
+        case .disk: return "Drill down drive directories, clean developer/app caches, and manage rollback history."
+        case .configs: return "Uninstall applications, find orphaned folders, edit launch agents, and toggle hidden macOS settings."
+        }
+    }
+}
 
 enum NavigationItem: String, CaseIterable, Identifiable {
     case dashboard
@@ -25,6 +45,19 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case scriptConsole
     
     var id: NavigationItem { self }
+    
+    var workspace: JuicerWorkspace {
+        switch self {
+        case .appStore, .brewExplorer:
+            return .store
+        case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots:
+            return .system
+        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles:
+            return .disk
+        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer:
+            return .configs
+        }
+    }
     
     var title: String {
         switch self {

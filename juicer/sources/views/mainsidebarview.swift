@@ -1,113 +1,158 @@
 import SwiftUI
 
 struct mainsidebarview: View {
-    @State private var selectedItem: NavigationItem? = .dashboard
+    @State private var currentWorkspace: JuicerWorkspace = .hub
+    @State private var selectedItem: NavigationItem? = nil
     @State private var isShowingGuide = false
     
     var body: some View {
         VStack(spacing: 0) {
-            NavigationSplitView {
-                List(selection: $selectedItem) {
-                    Section("General") {
-                        sidebarLink(for: .dashboard)
+            if currentWorkspace == .hub {
+                hubLaunchpadView()
+            } else {
+                NavigationSplitView {
+                    List(selection: $selectedItem) {
+                        // Return to App Hub button
+                        Button(action: {
+                            withAnimation {
+                                currentWorkspace = .hub
+                                selectedItem = nil
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.left.circle.fill")
+                                    .font(.title3)
+                                Text("Back to App Hub")
+                                    .font(.headline)
+                            }
+                            .foregroundColor(.accentColor)
+                            .padding(.vertical, 4)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Divider().padding(.vertical, 4)
+                        
+                        // Dynamically filtered workspace sections
+                        let items = NavigationItem.allCases.filter { $0.workspace == currentWorkspace }
+                        Section(currentWorkspace.title) {
+                            ForEach(items) { item in
+                                sidebarLink(for: item)
+                            }
+                        }
                     }
-                    
-                    Section("Monitor") {
-                        sidebarLink(for: .statusMonitor)
-                        sidebarLink(for: .portListener)
-                    }
-                    
-                    Section("Applications") {
-                        sidebarLink(for: .appStore)
-                        sidebarLink(for: .appUninstaller)
-                        sidebarLink(for: .orphanScanner)
-                        sidebarLink(for: .appLipo)
-                        sidebarLink(for: .brewExplorer)
-                    }
-                    
-                    Section("Storage & Disk") {
-                        sidebarLink(for: .diskExplorer)
-                        sidebarLink(for: .cacheCleaner)
-                        sidebarLink(for: .devCaches)
-                        sidebarLink(for: .largeFiles)
-                        sidebarLink(for: .hiddenFiles)
-                    }
-                    
-                    Section("System & Advanced") {
-                        sidebarLink(for: .systemOptimizer)
-                        sidebarLink(for: .serviceManager)
-                        sidebarLink(for: .systemTweaks)
-                        sidebarLink(for: .quarantineStripper)
-                        sidebarLink(for: .dnsEditor)
-                        sidebarLink(for: .launchServices)
-                        sidebarLink(for: .sdkSwitcher)
-                        sidebarLink(for: .snapshots)
-                        sidebarLink(for: .scriptConsole)
-                    }
-                }
-                .listStyle(.sidebar)
-                .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
-            } detail: {
-                if let item = selectedItem {
-                    switch item {
-                    case .dashboard:        dashboardview()
-                    case .appUninstaller:   appuninstallerview()
-                    case .orphanScanner:    orphanscannerview()
-                    case .serviceManager:   launchdmanagerview()
-                    case .devCaches:        cacheprunerview()
-                    case .systemTweaks:     systemtweakerview()
-                    case .quarantineStripper: quarantinestripperview()
-                    case .dnsEditor:        dnseditorview()
-                    case .launchServices:   launchservicesview()
-                    case .hiddenFiles:      hiddenfileview()
-                    case .appLipo:          applipoview()
-                    case .largeFiles:       largefilesview()
-                    case .brewExplorer:     brewmanagerview()
-                    case .sdkSwitcher:      sdkmanagerview()
-                    case .portListener:     portlistenerview()
-                    case .diskExplorer:     diskexplorerview()
-                    case .systemOptimizer:  systemoptimizerview()
-                    case .statusMonitor:    statusmonitorview()
-                    case .cacheCleaner:     cachecleanerview()
-                    case .appStore:         storeview()
-                    case .snapshots:        snapshotsview()
-                    case .scriptConsole:    scriptconsoleview()
-                    }
-                } else {
-                    VStack {
-                        Image(systemName: "square.dashed")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
-                            .padding(.bottom, 8)
-                        Text("No Tool Selected")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
+                    .listStyle(.sidebar)
+                    .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
+                } detail: {
+                    if let item = selectedItem {
+                        switch item {
+                        case .dashboard:        dashboardview()
+                        case .appUninstaller:   appuninstallerview()
+                        case .orphanScanner:    orphanscannerview()
+                        case .serviceManager:   launchdmanagerview()
+                        case .devCaches:        cacheprunerview()
+                        case .systemTweaks:     systemtweakerview()
+                        case .quarantineStripper: quarantinestripperview()
+                        case .dnsEditor:        dnseditorview()
+                        case .launchServices:   launchservicesview()
+                        case .hiddenFiles:      hiddenfileview()
+                        case .appLipo:          applipoview()
+                        case .largeFiles:       largefilesview()
+                        case .brewExplorer:     brewmanagerview()
+                        case .sdkSwitcher:      sdkmanagerview()
+                        case .portListener:     portlistenerview()
+                        case .diskExplorer:     diskexplorerview()
+                        case .systemOptimizer:  systemoptimizerview()
+                        case .statusMonitor:    statusmonitorview()
+                        case .cacheCleaner:     cachecleanerview()
+                        case .appStore:         storeview()
+                        case .snapshots:        snapshotsview()
+                        case .scriptConsole:    scriptconsoleview()
+                        }
+                    } else {
+                        VStack {
+                            Image(systemName: "square.dashed")
+                                .font(.system(size: 48))
+                                .foregroundStyle(.secondary)
+                                .padding(.bottom, 8)
+                            Text("No Tool Selected")
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
             
             statusbarview()
         }
-        // Menu navigation event listeners
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.dashboard"))) { _ in selectedItem = .dashboard }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.uninstaller"))) { _ in selectedItem = .appUninstaller }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.orphans"))) { _ in selectedItem = .orphanScanner }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.caches"))) { _ in selectedItem = .devCaches }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.largeFiles"))) { _ in selectedItem = .largeFiles }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.hiddenFiles"))) { _ in selectedItem = .hiddenFiles }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.brewExplorer"))) { _ in selectedItem = .brewExplorer }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.serviceManager"))) { _ in selectedItem = .serviceManager }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.systemTweaks"))) { _ in selectedItem = .systemTweaks }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.diskExplorer"))) { _ in selectedItem = .diskExplorer }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.systemOptimizer"))) { _ in selectedItem = .systemOptimizer }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.statusMonitor"))) { _ in selectedItem = .statusMonitor }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.cacheCleaner"))) { _ in selectedItem = .cacheCleaner }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.appStore"))) { _ in selectedItem = .appStore }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.snapshots"))) { _ in selectedItem = .snapshots }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.scriptConsole"))) { _ in selectedItem = .scriptConsole }
+        // Menu navigation event listeners (switching workspace automatically)
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.dashboard"))) { _ in
+            currentWorkspace = .system
+            selectedItem = .dashboard
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.uninstaller"))) { _ in
+            currentWorkspace = .configs
+            selectedItem = .appUninstaller
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.orphans"))) { _ in
+            currentWorkspace = .configs
+            selectedItem = .orphanScanner
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.caches"))) { _ in
+            currentWorkspace = .disk
+            selectedItem = .devCaches
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.largeFiles"))) { _ in
+            currentWorkspace = .disk
+            selectedItem = .largeFiles
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.hiddenFiles"))) { _ in
+            currentWorkspace = .disk
+            selectedItem = .hiddenFiles
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.brewExplorer"))) { _ in
+            currentWorkspace = .store
+            selectedItem = .brewExplorer
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.serviceManager"))) { _ in
+            currentWorkspace = .configs
+            selectedItem = .serviceManager
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.systemTweaks"))) { _ in
+            currentWorkspace = .configs
+            selectedItem = .systemTweaks
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.diskExplorer"))) { _ in
+            currentWorkspace = .disk
+            selectedItem = .diskExplorer
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.systemOptimizer"))) { _ in
+            currentWorkspace = .configs
+            selectedItem = .systemOptimizer
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.statusMonitor"))) { _ in
+            currentWorkspace = .system
+            selectedItem = .statusMonitor
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.cacheCleaner"))) { _ in
+            currentWorkspace = .disk
+            selectedItem = .cacheCleaner
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.appStore"))) { _ in
+            currentWorkspace = .store
+            selectedItem = .appStore
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.snapshots"))) { _ in
+            currentWorkspace = .system
+            selectedItem = .snapshots
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.scriptConsole"))) { _ in
+            currentWorkspace = .system
+            selectedItem = .scriptConsole
+        }
         
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.uninstaller.scan"))) { notification in
             if let appURL = notification.object as? URL {
+                currentWorkspace = .configs
                 selectedItem = .appUninstaller
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                     NotificationCenter.default.post(name: NSNotification.Name("juicer.action.triggerScan"), object: appURL)
@@ -126,6 +171,80 @@ struct mainsidebarview: View {
         .sheet(isPresented: $isShowingGuide) {
             userGuideSheet()
         }
+    }
+    
+    // MARK: - Startup Hub Launchpad View
+    @ViewBuilder
+    private func hubLaunchpadView() -> some View {
+        VStack(spacing: 30) {
+            Spacer()
+            
+            // App Hub Header
+            VStack(spacing: 10) {
+                Text("Juicer App Hub")
+                    .font(.system(size: 38, weight: .black, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.orange, .red, .pink],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                Text("Select a specialized bundled workspace companion below to begin.")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.bottom, 20)
+            
+            // Startup App Grid (No Icons)
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)], spacing: 20) {
+                hubAppCard(workspace: .store, defaultItem: .appStore)
+                hubAppCard(workspace: .system, defaultItem: .dashboard)
+                hubAppCard(workspace: .disk, defaultItem: .diskExplorer)
+                hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
+            }
+            .frame(maxWidth: 720)
+            
+            Spacer()
+        }
+        .padding(40)
+        .background(Color(NSColor.windowBackgroundColor))
+    }
+    
+    @ViewBuilder
+    private func hubAppCard(workspace: JuicerWorkspace, defaultItem: NavigationItem) -> some View {
+        Button(action: {
+            withAnimation {
+                currentWorkspace = workspace
+                selectedItem = defaultItem
+            }
+        }) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(workspace.title)
+                    .font(.title3).bold()
+                    .foregroundColor(.primary)
+                Text(workspace.description)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                HStack {
+                    Spacer()
+                    Text("Launch Workspace →")
+                        .font(.caption2).bold()
+                        .foregroundColor(.accentColor)
+                }
+            }
+            .padding(24)
+            .frame(height: 150)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+            .cornerRadius(16)
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
     }
     
     @ViewBuilder
