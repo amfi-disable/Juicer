@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+      - 'V*'
 
 jobs:
   release:
@@ -38,11 +39,32 @@ jobs:
           cp -r build/juicer.xcarchive/Products/Applications/juicer.app build/Payload/
           cd build
           zip -r juicer-mac.zip Payload/juicer.app
+          cd ..
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create DMG Package
+        run: |
+          mkdir -p build/dmg-src
+          cp -r build/juicer.xcarchive/Products/Applications/juicer.app build/dmg-src/
+          create-dmg \
+            --volname "Juicer" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "juicer.app" 175 120 \
+            --hide-extension "juicer.app" \
+            --app-drop-link 425 120 \
+            "build/Juicer.dmg" \
+            "build/dmg-src/"
 
       - name: Create Release Draft
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          files: build/juicer-mac.zip
+          files: |
+            build/juicer-mac.zip
+            build/Juicer.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
