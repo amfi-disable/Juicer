@@ -21,7 +21,9 @@ jobs:
           languages: swift
 
       - name: Install XcodeGen
-        run: brew install xcodegen
+        env:
+          HOMEBREW_NO_REQUIRE_TAP_TRUST: 1
+        run: arch -arm64 brew install xcodegen
 
       - name: Generate Xcode Project
         run: xcodegen generate
