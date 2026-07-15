@@ -1,12 +1,19 @@
 # juicer
 
-[![GitHub Release](https://img.shields.io/github/v/release/amfi-disable/Juicer?style=flat-square&color=blue)](https://github.com/amfi-disable/Juicer/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/amfi-disable/Juicer/build.yml?branch=main&style=flat-square)](https://github.com/amfi-disable/Juicer/actions)
-[![License](https://img.shields.io/github/license/amfi-disable/Juicer?style=flat-square&color=green)](license)
-[![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-lightgray?style=flat-square)](https://developer.apple.com/macos)
-[![Swift Version](https://img.shields.io/badge/swift-6.0-orange?style=flat-square&logo=swift)](https://swift.org)
-[![SwiftLint Check](https://img.shields.io/github/actions/workflow/status/amfi-disable/Juicer/lint.yml?label=swiftlint&branch=main&style=flat-square)](https://github.com/amfi-disable/Juicer/actions)
+<p align="center">
+  <img src="juicer/sources/resources/assets.xcassets/AppIcon.appiconset/icon_128x128.png" width="128" height="128" alt="Juicer App Icon" />
+</p>
 
+<p align="center">
+  <b>The ultimate all-in-one companion utility for macOS!</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/amfi-disable/Juicer/releases"><img src="https://img.shields.io/badge/version-1.0.0--alpha-blue" alt="Version" /></a>
+  <a href="license"><img src="https://img.shields.io/badge/license-MIT-green" alt="License" /></a>
+  <a href="https://developer.apple.com/macos"><img src="https://img.shields.io/badge/platform-macOS%2014.0%2B-lightgrey?logo=apple" alt="Platform" /></a>
+  <a href="https://swift.org"><img src="https://img.shields.io/badge/swift-6.0-orange?logo=swift" alt="Swift" /></a>
+</p>
 
 Juicer is the ultimate all-in-one app for **macOS developers and power users**. It is a 100% free, open-source, local-first utility that consolidates app uninstallers, orphan file cleaners, launchd/service editors, developer cache pruners, hidden system tweakers, Gatekeeper tools, DNS editor, LaunchServices overrides, and a Software Center into a unified, high-performance native SwiftUI desktop system app.
 
