@@ -19,12 +19,14 @@ jobs:
         env:
           HOMEBREW_NO_REQUIRE_TAP_TRUST: 1
         run: |
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           if ! command -v swiftlint &> /dev/null; then
             arch -arm64 brew install swiftlint
           fi
 
       - name: Run SwiftLint Audit
         run: |
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           swiftlint lint \
             --path juicer/sources \
             --reporter github-actions-logging \
