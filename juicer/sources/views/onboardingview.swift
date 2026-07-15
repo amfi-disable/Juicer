@@ -112,12 +112,25 @@ struct onboardingview: View {
 
     // Helper checking access by attempting to read folder that requires Full Disk Access
     static func checkFullDiskAccess() -> Bool {
-        let path = NSHomeDirectory() + "/Library/Safari"
-        do {
-            _ = try FileManager.default.contentsOfDirectory(atPath: path)
-            return true
-        } catch {
-            return false
+        let paths = [
+            NSHomeDirectory() + "/Library/Safari",
+            "/Library/Application Support/com.apple.TCC"
+        ]
+        
+        for path in paths {
+            do {
+                _ = try FileManager.default.contentsOfDirectory(atPath: path)
+                return true
+            } catch {
+                let nsError = error as NSError
+                // Cocoa error 257 = File read no permission
+                // POSIX error 13 = Permission denied (EACCES)
+                // POSIX error 1 = Operation not permitted (EPERM)
+                if nsError.code == 257 || (nsError.domain == NSPOSIXErrorDomain && (nsError.code == 13 || nsError.code == 1)) {
+                    return false
+                }
+            }
         }
+        return true
     }
 }
