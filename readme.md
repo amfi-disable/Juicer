@@ -33,3 +33,8 @@ This project uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to define th
    xcodegen generate
    ```
 3. Open `juicer.xcodeproj` and build!
+
+## License & Code of Conduct
+
+This project is licensed under the [MIT License](license).
+All contributors are expected to adhere to the [Code of Conduct](code_of_conduct.md).
