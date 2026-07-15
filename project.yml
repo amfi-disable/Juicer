@@ -1,6 +1,10 @@
 name: juicer
 options:
   bundleIdPrefix: com.even.juicer
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
 targets:
   juicer:
     type: application
@@ -8,6 +12,8 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - path: juicer/sources
+    dependencies:
+      - package: Sparkle
     settings:
       CODE_SIGN_ENTITLEMENTS: juicer/sources/resources/juicer.entitlements
       INFOPLIST_FILE: juicer/sources/resources/info.plist

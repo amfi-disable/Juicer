@@ -21,6 +21,12 @@ struct juicerapp: App {
         }
         .windowStyle(.hiddenTitleBar)
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates...") {
+                    UpdateManager.shared.checkForUpdates()
+                }
+            }
+
             // Sidebar toggle command (native macOS sidebar control)
             SidebarCommands()
             

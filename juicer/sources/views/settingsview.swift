@@ -177,8 +177,23 @@ struct settingsview: View {
                     .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
                     .cornerRadius(8)
                     
+                    Text("Updates")
+                        .font(.headline)
+                        .bold()
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Button(action: { UpdateManager.shared.checkForUpdates() }) {
+                            Label("Check for App Updates...", systemImage: "arrow.down.asymmetric.and.arrow.up.asymmetric")
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+                    .cornerRadius(8)
+
                     Spacer(minLength: 20)
-                    
+
                     Button(role: .destructive) {
                         showingResetAlert1 = true
                     } label: {

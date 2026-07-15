@@ -22,5 +22,9 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/amfi-disable/Juicer/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>w4hP3XF7C+oZgD6a/L24qY21Jp/x6WjCskfNf/10+4k=</string>
 </dict>
 </plist>
