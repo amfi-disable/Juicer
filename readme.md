@@ -1,5 +1,13 @@
 # juicer
 
+[![GitHub Release](https://img.shields.io/github/v/release/amfi-disable/Juicer?style=flat-square&color=blue)](https://github.com/amfi-disable/Juicer/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/amfi-disable/Juicer/build.yml?branch=main&style=flat-square)](https://github.com/amfi-disable/Juicer/actions)
+[![License](https://img.shields.io/github/license/amfi-disable/Juicer?style=flat-square&color=green)](license)
+[![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-lightgray?style=flat-square)](https://developer.apple.com/macos)
+[![Swift Version](https://img.shields.io/badge/swift-6.0-orange?style=flat-square&logo=swift)](https://swift.org)
+[![SwiftLint Check](https://img.shields.io/github/actions/workflow/status/amfi-disable/Juicer/lint.yml?label=swiftlint&branch=main&style=flat-square)](https://github.com/amfi-disable/Juicer/actions)
+
+
 Juicer is the ultimate all-in-one app for **macOS developers and power users**. It is a 100% free, open-source, local-first utility that consolidates app uninstallers, orphan file cleaners, launchd/service editors, developer cache pruners, hidden system tweakers, Gatekeeper tools, DNS editor, LaunchServices overrides, and a Software Center into a unified, high-performance native SwiftUI desktop system app.
 
 ## features
