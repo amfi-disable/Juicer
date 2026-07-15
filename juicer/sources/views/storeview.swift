@@ -206,13 +206,26 @@ struct storeview: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                List(selection: $selectedApp) {
-                    ForEach(filtered) { app in
-                        appRow(app: app)
-                            .tag(app)
+                VStack(spacing: 0) {
+                    List(selection: $selectedApp) {
+                        ForEach(filtered.prefix(150)) { app in
+                            appRow(app: app)
+                                .tag(app)
+                        }
+                    }
+                    .listStyle(.inset)
+                    
+                    if filtered.count > 150 {
+                        HStack {
+                            Spacer()
+                            Text("Showing first 150 of \(filtered.count) items. Refine search to narrow down results.")
+                                .font(.caption2).foregroundStyle(.secondary)
+                            Spacer()
+                        }
+                        .padding(.vertical, 6)
+                        .background(Color(NSColor.windowBackgroundColor))
                     }
                 }
-                .listStyle(.inset)
             }
         }
     }

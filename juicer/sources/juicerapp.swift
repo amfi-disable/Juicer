@@ -103,6 +103,11 @@ struct juicerapp: App {
                         NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.scriptConsole"), object: nil)
                     }
                     .keyboardShortcut("c", modifiers: [.command, .shift])
+                    
+                    Button("Go to Utilities Settings") {
+                        NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.utilities"), object: nil)
+                    }
+                    .keyboardShortcut("u", modifiers: [.command, .shift])
                 }
             }
             

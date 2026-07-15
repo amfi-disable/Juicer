@@ -4,6 +4,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
     case system = "Juicer System"
     case disk = "Juicer Disk"
     case configs = "Juicer Configs"
+    case utilities = "Juicer Utilities"
     
     var id: String { rawValue }
     
@@ -16,6 +17,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
         case .system: return "Inspect system metrics, manage active processes, trace DNS configs, and run shell automations."
         case .disk: return "Drill down drive directories, clean developer/app caches, and manage rollback history."
         case .configs: return "Uninstall applications, find orphaned folders, edit launch agents, and toggle hidden macOS settings."
+        case .utilities: return "Enable active window switchers, clipboard tracking lists, window snaps, color loupes, and note pads."
         }
     }
 }
@@ -43,6 +45,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case appStore
     case snapshots
     case scriptConsole
+    case utilitiesView
     
     var id: NavigationItem { self }
     
@@ -56,6 +59,8 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return .disk
         case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer:
             return .configs
+        case .utilitiesView:
+            return .utilities
         }
     }
     
@@ -83,6 +88,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .appStore: return "Software Center"
         case .snapshots: return "Diagnostic Snapshots"
         case .scriptConsole: return "Script Console"
+        case .utilitiesView: return "Utilities Settings"
         }
     }
     
@@ -110,6 +116,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .appStore: return "square.grid.3x3.fill"
         case .snapshots: return "camera.viewfinder"
         case .scriptConsole: return "terminal.fill"
+        case .utilitiesView: return "wrench.and.screwdriver.fill"
         }
     }
 }

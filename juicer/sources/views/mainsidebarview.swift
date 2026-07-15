@@ -67,6 +67,7 @@ struct mainsidebarview: View {
                         case .appStore:         storeview()
                         case .snapshots:        snapshotsview()
                         case .scriptConsole:    scriptconsoleview()
+                        case .utilitiesView:    utilitiesview()
                         }
                     } else {
                         VStack {
@@ -149,6 +150,10 @@ struct mainsidebarview: View {
             currentWorkspace = .system
             selectedItem = .scriptConsole
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.utilities"))) { _ in
+            currentWorkspace = .utilities
+            selectedItem = .utilitiesView
+        }
         
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.uninstaller.scan"))) { notification in
             if let appURL = notification.object as? URL {
@@ -197,13 +202,14 @@ struct mainsidebarview: View {
             .padding(.bottom, 20)
             
             // Startup App Grid (No Icons)
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)], spacing: 20) {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)], spacing: 20) {
                 hubAppCard(workspace: .store, defaultItem: .appStore)
                 hubAppCard(workspace: .system, defaultItem: .dashboard)
                 hubAppCard(workspace: .disk, defaultItem: .diskExplorer)
                 hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
+                hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
             }
-            .frame(maxWidth: 720)
+            .frame(maxWidth: 880)
             
             Spacer()
         }
