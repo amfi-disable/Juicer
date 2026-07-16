@@ -11,6 +11,7 @@ struct appuninstallerview: View {
     // Status notifications for app care actions
     @State private var careMessage: String? = nil
     @State private var isCareSuccess = true
+    @State private var showMoreInfo = false
 
     var filteredApps: [AppInfo] {
         if searchText.isEmpty {
@@ -254,14 +255,23 @@ struct appuninstallerview: View {
                 // File Breakdown Drawer (What will be deleted)
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("Leftovers to Delete (What will be deleted)")
+                        Text("Leftovers to Delete")
                             .font(.headline)
                         Spacer()
-                        Button(action: toggleAllSelection) {
-                            Text(manager.leftovers.allSatisfy { $0.isSelected } ? "Deselect All" : "Select All")
-                                .font(.caption).bold()
+                        Button(showMoreInfo ? "Hide Detailed File List" : "Show More Information") {
+                            withAnimation {
+                                showMoreInfo.toggle()
+                            }
                         }
-                        .buttonStyle(.link)
+                        .buttonStyle(.bordered)
+                        
+                        if showMoreInfo {
+                            Button(action: toggleAllSelection) {
+                                Text(manager.leftovers.allSatisfy { $0.isSelected } ? "Deselect All" : "Select All")
+                                    .font(.caption).bold()
+                            }
+                            .buttonStyle(.link)
+                        }
                     }
 
                     if manager.isScanning {
@@ -270,7 +280,7 @@ struct appuninstallerview: View {
                             Text("Mapping files...").font(.caption).foregroundStyle(.secondary)
                         }
                         .frame(maxWidth: .infinity, alignment: .center).padding()
-                    } else {
+                    } else if showMoreInfo {
                         VStack(spacing: 0) {
                             ForEach(manager.leftovers) { item in
                                 fileBreakdownRow(item: item)
@@ -278,6 +288,19 @@ struct appuninstallerview: View {
                             }
                         }
                         .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+                        .cornerRadius(8)
+                    } else {
+                        // Summary placeholder when collapsed
+                        let selectedCount = manager.leftovers.filter { $0.isSelected }.count
+                        HStack {
+                            Image(systemName: "info.circle.fill").foregroundColor(.secondary)
+                            Text("Found \(manager.leftovers.count) related paths (\(selectedCount) selected). Click 'Show More Information' to inspect the files.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color(NSColor.controlBackgroundColor).opacity(0.2))
                         .cornerRadius(8)
                     }
                 }

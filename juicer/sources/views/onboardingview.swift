@@ -39,7 +39,7 @@ struct onboardingview: View {
             VStack(alignment: .leading, spacing: 14) {
                 stepRow(num: "1", text: "Click the button below to open the macOS Privacy settings.")
                 stepRow(num: "2", text: "Locate 'Full Disk Access' in the list.")
-                stepRow(num: "3", text: "Find 'juicer' (or click '+' and select it) and toggle it ON.")
+                stepRow(num: "3", text: "Find 'Juicer' (or click '+' and select it) and toggle it ON.")
                 stepRow(num: "4", text: "Once enabled, click the 'Verify & Continue' button below.")
             }
             .padding()
