@@ -9,42 +9,176 @@ struct dnseditorview: View {
     @State private var showValidationError = false
     @State private var validationErrorMessage = ""
     
+    // Create Profile sheets
+    @State private var showCreateProfile = false
+    @State private var newProfileName = ""
+    @State private var newProfileDesc = ""
+    @State private var newProfileSubURL = ""
+    
     var body: some View {
-        VStack(spacing: 0) {
-            headerSection()
+        HStack(spacing: 0) {
+            // LEFT SIDEBAR: DNS Profiles List
+            profilesSidebar()
+                .frame(width: 240)
+                .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
             
-            // Add entry form
-            addEntryForm()
-                .padding()
+            Divider()
             
-            // Host records list
-            if manager.isLoading {
-                loadingPlaceholder()
-            } else if manager.records.isEmpty {
-                emptyStatePlaceholder()
-            } else {
-                recordsList()
+            // RIGHT DETAIL: Records and Actions list
+            VStack(spacing: 0) {
+                headerSection()
+                Divider()
+                
+                if let activeId = manager.activeProfileId,
+                   let profile = manager.profiles.first(where: { $0.id == activeId }) {
+                    
+                    // Show subscription alert banner if it's a remote subscription
+                    if let subURL = profile.subscriptionURL, !subURL.isEmpty {
+                        subscriptionBanner(profile: profile, url: subURL)
+                    } else {
+                        addEntryForm()
+                            .padding()
+                    }
+                    
+                    // Records details
+                    if manager.isLoading || manager.isDownloading {
+                        loadingPlaceholder()
+                    } else if manager.records.isEmpty {
+                        emptyStatePlaceholder()
+                    } else {
+                        recordsList()
+                    }
+                } else {
+                    noProfileSelectedPlaceholder()
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
-        .onAppear {
-            manager.loadHosts()
+        .sheet(isPresented: $showCreateProfile) {
+            createProfileSheet()
         }
+    }
+    
+    // MARK: - Sidebar UI
+    @ViewBuilder
+    private func profilesSidebar() -> some View {
+        VStack(spacing: 0) {
+            // Sidebar Header
+            HStack {
+                Text("DNS Profiles")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Button(action: { showCreateProfile = true }) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(.accentColor)
+                        .font(.title3)
+                }
+                .buttonStyle(.plain)
+                .help("Create New Profile")
+            }
+            .padding()
+            
+            Divider()
+            
+            // Profiles List
+            List(manager.profiles) { profile in
+                Button(action: { manager.selectProfile(profileId: profile.id) }) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(profile.name)
+                                .font(.body)
+                                .bold(manager.activeProfileId == profile.id)
+                                .foregroundColor(manager.activeProfileId == profile.id ? .accentColor : .primary)
+                            Spacer()
+                            if profile.subscriptionURL != nil {
+                                Image(systemName: "icloud.and.arrow.down.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        Text(profile.description)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                    }
+                    .padding(.vertical, 4)
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(manager.activeProfileId == profile.id ? Color.accentColor.opacity(0.12) : Color.clear)
+                .cornerRadius(8)
+                // Add Delete Profile swipe/context actions
+                .contextMenu {
+                    if profile.name != "System Default" && profile.name != "Ad Blocker (StevenBlack)" && profile.name != "Developer Workspace" {
+                        Button("Delete Profile", role: .destructive) {
+                            manager.deleteProfile(profileId: profile.id)
+                        }
+                    }
+                }
+            }
+            .listStyle(.sidebar)
+            
+            Spacer()
+        }
+    }
+    
+    // MARK: - Subscription Banner UI
+    @ViewBuilder
+    private func subscriptionBanner(profile: DNSProfile, url: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Hosts Subscription Active")
+                        .font(.subheadline).bold()
+                    Text("Domain listings are fetched from remote subscription lists.")
+                        .font(.caption).foregroundColor(.secondary)
+                }
+                Spacer()
+                Button(action: { manager.downloadSubscription(profile: profile) }) {
+                    HStack {
+                        Image(systemName: "arrow.clockwise.icloud.fill")
+                        Text("Update List")
+                    }
+                }
+                .buttonStyle(.bordered)
+                .disabled(manager.isDownloading)
+            }
+            Text("URL: \(url)")
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+        .padding()
+        .background(Color.blue.opacity(0.08))
+        .cornerRadius(8)
+        .padding()
     }
     
     // MARK: - Header UI
     @ViewBuilder
     private func headerSection() -> some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("DNS & /etc/hosts Editor")
+            if let activeId = manager.activeProfileId,
+               let profile = manager.profiles.first(where: { $0.id == activeId }) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(profile.name)
+                        .font(.title2)
+                        .bold()
+                    Text(profile.description)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text("DNS Editor")
                     .font(.title2)
                     .bold()
-                Text("Manage local DNS mappings securely. Saving changes requires admin authentication.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
             }
+            
             Spacer()
             
             Button(action: { manager.loadHosts() }) {
@@ -52,11 +186,9 @@ struct dnseditorview: View {
                     Image(systemName: "arrow.clockwise")
                     Text("Reload")
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
             }
             .buttonStyle(.bordered)
-            .disabled(manager.isLoading || manager.isSaving)
+            .disabled(manager.isLoading || manager.isSaving || manager.isDownloading)
         }
         .padding()
         .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
@@ -105,14 +237,14 @@ struct dnseditorview: View {
         VStack(spacing: 16) {
             ProgressView()
                 .progressViewStyle(.circular)
-            Text("Reading hosts configuration...")
+            Text(manager.isDownloading ? "Downloading remote lists..." : "Reading hosts configuration...")
                 .font(.headline)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    // MARK: - Empty State UI
+    // MARK: - Placeholders
     @ViewBuilder
     private func emptyStatePlaceholder() -> some View {
         VStack {
@@ -123,7 +255,25 @@ struct dnseditorview: View {
             Text("No Host Records Found")
                 .font(.headline)
                 .padding(.top, 8)
-            Text("We couldn't parse any local records. Add some to get started!")
+            Text("This profile is empty. Add a mapping above to get started!")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    @ViewBuilder
+    private func noProfileSelectedPlaceholder() -> some View {
+        VStack {
+            Spacer()
+            Image(systemName: "network.badge.shield.half.filled")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary.opacity(0.6))
+            Text("No Active DNS Profile")
+                .font(.headline)
+                .padding(.top, 8)
+            Text("Select or create a DNS profile in the sidebar to start.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             Spacer()
@@ -146,7 +296,7 @@ struct dnseditorview: View {
             
             // Bottom Operations Bar
             HStack {
-                Text("System mappings are protected and cannot be disabled.")
+                Text("System mappings are protected and cannot be disabled. Click Apply to overwrite /etc/hosts.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 
@@ -158,7 +308,7 @@ struct dnseditorview: View {
                             .progressViewStyle(.circular)
                             .scaleEffect(0.5)
                     } else {
-                        Text("Save & Sync DNS")
+                        Text("Apply & Save DNS Profiles")
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -229,11 +379,57 @@ struct dnseditorview: View {
         .padding(.vertical, 2)
     }
     
+    // MARK: - Create Profile Sheet
+    @ViewBuilder
+    private func createProfileSheet() -> some View {
+        VStack(spacing: 16) {
+            Text("Create DNS Profile")
+                .font(.headline)
+            
+            Form {
+                TextField("Profile Name", text: $newProfileName)
+                TextField("Description", text: $newProfileDesc)
+                TextField("Subscription URL (Optional)", text: $newProfileSubURL)
+            }
+            .textFieldStyle(.roundedBorder)
+            
+            HStack {
+                Button("Cancel") {
+                    showCreateProfile = false
+                    clearProfileSheetFields()
+                }
+                .buttonStyle(.bordered)
+                
+                Spacer()
+                
+                Button("Create") {
+                    let subURL = newProfileSubURL.trimmingCharacters(in: .whitespacesAndNewlines)
+                    manager.createProfile(
+                        name: newProfileName,
+                        description: newProfileDesc,
+                        subscriptionURL: subURL.isEmpty ? nil : subURL
+                    )
+                    showCreateProfile = false
+                    clearProfileSheetFields()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(newProfileName.isEmpty)
+            }
+        }
+        .padding()
+        .frame(width: 400, height: 220)
+    }
+    
+    private func clearProfileSheetFields() {
+        newProfileName = ""
+        newProfileDesc = ""
+        newProfileSubURL = ""
+    }
+    
     // MARK: - Actions
     private func addRecord() {
         showValidationError = false
         
-        // Simple validations
         if newIP.split(separator: ".").count != 4 && !newIP.contains(":") {
             validationErrorMessage = "Invalid IP Address format."
             showValidationError = true

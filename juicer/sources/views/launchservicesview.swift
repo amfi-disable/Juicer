@@ -173,11 +173,23 @@ struct launchservicesview: View {
             Spacer()
             
             // Reassign action
-            Button("Reassign...") {
-                selectAppForReassignment(for: item)
+            let compatibleApps = manager.getCompatibleApps(for: item.uti)
+            Menu {
+                if !compatibleApps.isEmpty {
+                    ForEach(compatibleApps, id: \.bundleIdentifier) { app in
+                        Button(app.appName) {
+                            _ = manager.setGlobalDefaultHandler(for: item, toApp: app.bundleIdentifier)
+                        }
+                    }
+                    Divider()
+                }
+                Button("Choose other app…") {
+                    selectAppForReassignment(for: item)
+                }
+            } label: {
+                Text("Reassign")
             }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
+            .menuStyle(.borderlessButton)
             .frame(width: 120, alignment: .trailing)
         }
         .padding(.vertical, 4)
