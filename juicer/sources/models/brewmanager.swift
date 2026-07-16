@@ -38,27 +38,92 @@ class BrewManager: ObservableObject {
         Task.detached(priority: .userInitiated) {
             var loadedPackages: [BrewPackage] = []
             
-            // 1. Get Formulae list
-            if let formulaOutput = try? Self.runCommand(brew, arguments: ["list", "--formula", "--versions"]) {
-                let lines = formulaOutput.components(separatedBy: "\n")
-                for line in lines {
-                    let parts = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
-                    guard parts.count >= 2 else { continue }
-                    let name = parts[0]
-                    let version = parts[1]
-                    loadedPackages.append(BrewPackage(name: name, version: version, type: .formula, isOutdated: false, latestVersion: nil))
+            // 1. Get Leaf packages from brew leaves
+            var leafNames = Set<String>()
+            if let leavesOutput = try? Self.runCommand(brew, arguments: ["leaves"]) {
+                leafNames = Set(leavesOutput.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty })
+            }
+            
+            // 2. Query detailed installed packages in JSON
+            if let infoJSON = try? Self.runCommand(brew, arguments: ["info", "--json=v2", "--installed"]) {
+                if let data = infoJSON.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    
+                    // Parse Formulae
+                    if let formulaeList = json["formulae"] as? [[String: Any]] {
+                        for item in formulaeList {
+                            let name = (item["name"] as? String) ?? ""
+                            var version = "unknown"
+                            if let installed = item["installed"] as? [[String: Any]],
+                               let first = installed.first,
+                               let ver = first["version"] as? String {
+                                version = ver
+                            }
+                            let pinned = (item["pinned"] as? Bool) ?? false
+                            let linked = (item["linked_keg"] != nil)
+                            let isLeaf = leafNames.contains(name)
+                            
+                            var deps: [String] = []
+                            if let buildDependencies = item["dependencies"] as? [String] {
+                                deps = buildDependencies
+                            }
+                            
+                            loadedPackages.append(BrewPackage(
+                                name: name,
+                                version: version,
+                                type: .formula,
+                                isOutdated: false,
+                                latestVersion: nil,
+                                isPinned: pinned,
+                                isLinked: linked,
+                                isLeaf: isLeaf,
+                                dependencies: deps
+                            ))
+                        }
+                    }
+                    
+                    // Parse Casks
+                    if let casksList = json["casks"] as? [[String: Any]] {
+                        for item in casksList {
+                            let name = (item["token"] as? String) ?? ""
+                            let version = (item["version"] as? String) ?? "unknown"
+                            loadedPackages.append(BrewPackage(
+                                name: name,
+                                version: version,
+                                type: .cask,
+                                isOutdated: false,
+                                latestVersion: nil,
+                                isPinned: false,
+                                isLinked: true,
+                                isLeaf: true,
+                                dependencies: []
+                            ))
+                        }
+                    }
                 }
             }
             
-            // 2. Get Casks list
-            if let caskOutput = try? Self.runCommand(brew, arguments: ["list", "--cask", "--versions"]) {
-                let lines = caskOutput.components(separatedBy: "\n")
-                for line in lines {
-                    let parts = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
-                    guard parts.count >= 2 else { continue }
-                    let name = parts[0]
-                    let version = parts[1]
-                    loadedPackages.append(BrewPackage(name: name, version: version, type: .cask, isOutdated: false, latestVersion: nil))
+            // Fallback to simple listing if JSON parsed nothing
+            if loadedPackages.isEmpty {
+                if let formulaOutput = try? Self.runCommand(brew, arguments: ["list", "--formula", "--versions"]) {
+                    let lines = formulaOutput.components(separatedBy: "\n")
+                    for line in lines {
+                        let parts = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+                        guard parts.count >= 2 else { continue }
+                        let name = parts[0]
+                        let version = parts[1]
+                        loadedPackages.append(BrewPackage(name: name, version: version, type: .formula, isOutdated: false, latestVersion: nil))
+                    }
+                }
+                if let caskOutput = try? Self.runCommand(brew, arguments: ["list", "--cask", "--versions"]) {
+                    let lines = caskOutput.components(separatedBy: "\n")
+                    for line in lines {
+                        let parts = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+                        guard parts.count >= 2 else { continue }
+                        let name = parts[0]
+                        let version = parts[1]
+                        loadedPackages.append(BrewPackage(name: name, version: version, type: .cask, isOutdated: false, latestVersion: nil))
+                    }
                 }
             }
             
@@ -67,7 +132,6 @@ class BrewManager: ObservableObject {
                 if let data = outdatedJSON.data(using: .utf8),
                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     
-                    // Parse formulae
                     if let formulaeList = json["formulae"] as? [[String: Any]] {
                         for item in formulaeList {
                             if let name = item["name"] as? String,
@@ -80,7 +144,6 @@ class BrewManager: ObservableObject {
                         }
                     }
                     
-                    // Parse casks
                     if let casksList = json["casks"] as? [[String: Any]] {
                         for item in casksList {
                             if let name = item["name"] as? String,
@@ -142,6 +205,130 @@ class BrewManager: ObservableObject {
                 AppLogger.shared.log("Failed to uninstall \(package.name): \(error.localizedDescription)")
                 await MainActor.run {
                     completion(false)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Advanced package actions
+    
+    func pinPackage(_ package: BrewPackage, completion: @escaping (Bool) -> Void) {
+        guard let brew = Self.brewPath else { return }
+        AppLogger.shared.log("Pinning Homebrew package \(package.name)...")
+        Task.detached(priority: .userInitiated) {
+            do {
+                _ = try Self.runCommand(brew, arguments: ["pin", package.name])
+                await MainActor.run {
+                    self.loadPackages()
+                    completion(true)
+                }
+            } catch {
+                AppLogger.shared.log("Failed to pin \(package.name): \(error.localizedDescription)")
+                await MainActor.run { completion(false) }
+            }
+        }
+    }
+    
+    func unpinPackage(_ package: BrewPackage, completion: @escaping (Bool) -> Void) {
+        guard let brew = Self.brewPath else { return }
+        AppLogger.shared.log("Unpinning Homebrew package \(package.name)...")
+        Task.detached(priority: .userInitiated) {
+            do {
+                _ = try Self.runCommand(brew, arguments: ["unpin", package.name])
+                await MainActor.run {
+                    self.loadPackages()
+                    completion(true)
+                }
+            } catch {
+                AppLogger.shared.log("Failed to unpin \(package.name): \(error.localizedDescription)")
+                await MainActor.run { completion(false) }
+            }
+        }
+    }
+    
+    func linkPackage(_ package: BrewPackage, completion: @escaping (Bool) -> Void) {
+        guard let brew = Self.brewPath else { return }
+        AppLogger.shared.log("Linking Homebrew package \(package.name)...")
+        Task.detached(priority: .userInitiated) {
+            do {
+                _ = try Self.runCommand(brew, arguments: ["link", "--overwrite", package.name])
+                await MainActor.run {
+                    self.loadPackages()
+                    completion(true)
+                }
+            } catch {
+                AppLogger.shared.log("Failed to link \(package.name): \(error.localizedDescription)")
+                await MainActor.run { completion(false) }
+            }
+        }
+    }
+    
+    func unlinkPackage(_ package: BrewPackage, completion: @escaping (Bool) -> Void) {
+        guard let brew = Self.brewPath else { return }
+        AppLogger.shared.log("Unlinking Homebrew package \(package.name)...")
+        Task.detached(priority: .userInitiated) {
+            do {
+                _ = try Self.runCommand(brew, arguments: ["unlink", package.name])
+                await MainActor.run {
+                    self.loadPackages()
+                    completion(true)
+                }
+            } catch {
+                AppLogger.shared.log("Failed to unlink \(package.name): \(error.localizedDescription)")
+                await MainActor.run { completion(false) }
+            }
+        }
+    }
+    
+    // MARK: - Autoremove and Brewfile backup operations
+    
+    func runAutoremove(completion: @escaping (Bool, String) -> Void) {
+        guard let brew = Self.brewPath else { return }
+        AppLogger.shared.log("Running brew autoremove...")
+        Task.detached(priority: .userInitiated) {
+            do {
+                let log = try Self.runCommand(brew, arguments: ["autoremove"])
+                await MainActor.run {
+                    self.loadPackages()
+                    completion(true, log.isEmpty ? "No orphaned packages found to remove." : log)
+                }
+            } catch {
+                await MainActor.run {
+                    completion(false, error.localizedDescription)
+                }
+            }
+        }
+    }
+    
+    func exportBrewfile(to url: URL, completion: @escaping (Bool) -> Void) {
+        guard let brew = Self.brewPath else { return }
+        AppLogger.shared.log("Exporting Brewfile to \(url.path)...")
+        Task.detached(priority: .userInitiated) {
+            do {
+                _ = try Self.runCommand(brew, arguments: ["bundle", "dump", "--force", "--file=\(url.path)"])
+                await MainActor.run {
+                    completion(true)
+                }
+            } catch {
+                AppLogger.shared.log("Failed to export Brewfile: \(error.localizedDescription)")
+                await MainActor.run { completion(false) }
+            }
+        }
+    }
+    
+    func importBrewfile(from url: URL, completion: @escaping (Bool, String) -> Void) {
+        guard let brew = Self.brewPath else { return }
+        AppLogger.shared.log("Importing Brewfile from \(url.path)...")
+        Task.detached(priority: .userInitiated) {
+            do {
+                let log = try Self.runCommand(brew, arguments: ["bundle", "--file=\(url.path)"])
+                await MainActor.run {
+                    self.loadPackages()
+                    completion(true, log.isEmpty ? "All packages from Brewfile installed." : log)
+                }
+            } catch {
+                await MainActor.run {
+                    completion(false, error.localizedDescription)
                 }
             }
         }
