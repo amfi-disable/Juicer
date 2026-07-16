@@ -25,6 +25,22 @@ class LaunchServicesManager: ObservableObject {
     @Published var globalAssociations: [GlobalAssociationItem] = []
     @Published var isUpdating = false
     
+    func getCompatibleApps(for uti: String) -> [AppInfo] {
+        guard let handlers = LSCopyAllRoleHandlersForContentType(uti as CFString, .all)?.takeRetainedValue() as? [String] else {
+            return []
+        }
+        var apps: [AppInfo] = []
+        for bundleId in handlers {
+            if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) {
+                let info = AppInfo(path: appURL)
+                if !info.appName.isEmpty && !apps.contains(where: { $0.bundleIdentifier == bundleId }) {
+                    apps.append(info)
+                }
+            }
+        }
+        return apps
+    }
+    
     // Preset developer extensions to query globally
     private let commonExtensions = [
         "txt", "rtf", "html", "css", "js", "ts", "json", "py", "rs", "go",

@@ -160,7 +160,9 @@ class UninstallerManager: ObservableObject {
                     ("Application Scripts", "\(home)/Library/Application Scripts"),
                     ("HTTPStorages", "\(home)/Library/HTTPStorages"),
                     ("Logs", "\(home)/Library/Logs"),
+                    ("DiagnosticReports", "\(home)/Library/Logs/DiagnosticReports"),
                     ("Preferences", "\(home)/Library/Preferences"),
+                    ("ByHost Preferences", "\(home)/Library/Preferences/ByHost"),
                     ("Saved Application State", "\(home)/Library/Saved Application State"),
                     ("Global Application Support", "/Library/Application Support"),
                     ("Global Caches", "/Library/Caches")
@@ -175,6 +177,7 @@ class UninstallerManager: ObservableObject {
                     ("Global LaunchDaemons", "/Library/LaunchDaemons"),
                     ("Global Preferences", "/Library/Preferences"),
                     ("Global Logs", "/Library/Logs"),
+                    ("PrivilegedHelperTools", "/Library/PrivilegedHelperTools"),
                     ("Package Receipts", "/private/var/db/receipts")
                 ])
             }
