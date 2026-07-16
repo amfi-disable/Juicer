@@ -3,8 +3,11 @@ import SwiftUI
 struct brewmanagerview: View {
     @StateObject private var manager = BrewManager.shared
     @State private var searchText = ""
-    @State private var selectedTab = 0 
-    // 0: Packages, 1: Services, 2: Taps, 3: Diagnostics/Maintenance, 4: Brewfile Sync
+    @State private var selectedTab: Int
+    
+    init(selectedTab: Int = 0) {
+        _selectedTab = State(initialValue: selectedTab)
+    }
     
     @State private var typeFilter = 0 // 0: All, 1: Formulae, 2: Casks
     @State private var stateFilter = 0 // 0: All, 1: Pinned, 2: Linked, 3: Unlinked, 4: Outdated, 5: Leaf/Intentional

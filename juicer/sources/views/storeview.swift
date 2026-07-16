@@ -1,707 +1,571 @@
 import SwiftUI
 
+enum StoreFilterType: String, CaseIterable, Identifiable {
+    case all = "All Apps"
+    case installed = "Installed"
+    case updates = "Updates"
+    
+    var id: String { rawValue }
+}
+
 struct storeview: View {
+    let isCask: Bool
+    let filterType: StoreFilterType
+    
+    init(isCask: Bool = true, filterType: StoreFilterType = .all) {
+        self.isCask = isCask
+        self.filterType = filterType
+    }
+    
     @StateObject private var manager = StoreManager()
-    @State private var searchText: String = ""
-    @State private var selectedApp: StoreApp? = nil
-    @State private var selectedTab: StoreTab = .casks
+    @State private var searchText = ""
+    @State private var selectedCategory: AppCategory? = nil
+    @State private var selectedPricing: StoreApp.PricingTag? = nil
+    
+    // Pagination
     @State private var currentPage = 1
-
-    enum StoreTab: String, CaseIterable, Identifiable {
-        case casks = "Brew - Casks"
-        case formulae = "Brew - Formulae"
-        case installed = "Installed via Brew"
-        case external = "Outside Homebrew"
-        case updates = "Updates"
-        
-        var id: String { rawValue }
-    }
-
-    // Sidebar Filters
-    @State private var selectedStatus: StatusFilter = .all
-    @State private var selectedPricing: PricingFilter = .all
-    @State private var selectedRecommendation: RecommendationFilter = .all
-
-    enum StatusFilter: String, CaseIterable, Identifiable {
-        case all = "All Statuses"
-        case installed = "Installed"
-        case notInstalled = "Not Installed"
-        case external = "Installed outside Homebrew"
-
-        var id: String { rawValue }
-    }
-
-    enum PricingFilter: String, CaseIterable, Identifiable {
-        case all = "All Pricing"
-        case free = "Free"
-        case freemium = "Freemium"
-        case paid = "Paid"
-
-        var id: String { rawValue }
-    }
-
-    enum RecommendationFilter: String, CaseIterable, Identifiable {
-        case all = "All Collections"
-        case featured = "★ Featured / Recommended"
-
-        var id: String { rawValue }
-    }
-
+    private let itemsPerPage = 30
+    
+    // Selection for Detail Sheet
+    @State private var selectedApp: StoreApp? = nil
+    @State private var showLogs = false
+    
     var body: some View {
         VStack(spacing: 0) {
-            headerSection()
-            Divider()
-
-            HSplitView {
-                // Left side: Filters + Search + List
-                VStack(spacing: 0) {
-                    filterBar()
-                    Divider()
-                    appListView()
-                }
-                .frame(minWidth: 400, idealWidth: 450)
-
-                // Right side: Detail Inspector panel
-                VStack(spacing: 0) {
-                    if let app = selectedApp {
-                        detailPanel(app: app)
-                    } else {
-                        emptyDetailPlaceholder()
+            // Top Controls: Search and Filters
+            filterHeader()
+            
+            if manager.isLoading {
+                loadingPlaceholder()
+            } else if filteredApps.isEmpty {
+                emptyStatePlaceholder()
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // 1. Featured Section (Only for "All" view on Page 1)
+                        if filterType == .all && searchText.isEmpty && selectedCategory == nil && selectedPricing == nil && currentPage == 1 {
+                            featuredHeroSection()
+                                .padding(.horizontal)
+                                .padding(.top)
+                        }
+                        
+                        // 2. Apps List / Grid
+                        appsGridView()
+                            .padding(.horizontal)
+                        
+                        // 3. Pagination Controls
+                        paginationControls()
+                            .padding()
                     }
                 }
-                .frame(minWidth: 300, maxWidth: .infinity)
-                .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
-            }
-
-            // Bottom terminal output drawer if active
-            if manager.isRunningAction || !manager.progressLog.isEmpty {
-                terminalDrawer()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
+        .sheet(item: $selectedApp) { app in
+            appDetailSheet(app: app)
+        }
         .onAppear {
-            if manager.apps.isEmpty {
-                manager.loadStore()
-            }
+            manager.loadStore()
         }
-        .onChange(of: searchText) { _ in currentPage = 1 }
-        .onChange(of: selectedTab) { _ in currentPage = 1 }
-        .onChange(of: selectedStatus) { _ in currentPage = 1 }
-        .onChange(of: selectedPricing) { _ in currentPage = 1 }
-        .onChange(of: selectedRecommendation) { _ in currentPage = 1 }
     }
-
-    // MARK: - Header
+    
+    // MARK: - Filtering Logic
+    private var filteredApps: [StoreApp] {
+        var list: [StoreApp] = []
+        
+        switch filterType {
+        case .all:
+            list = manager.apps.filter { $0.isCask == isCask }
+        case .installed:
+            list = manager.apps.filter { $0.isCask == isCask && $0.status != .notInstalled }
+        case .updates:
+            list = manager.outdatedApps.filter { $0.isCask == isCask }
+        }
+        
+        // Search filter
+        if !searchText.isEmpty {
+            let q = searchText.lowercased()
+            list = list.filter { $0.name.lowercased().contains(q) || $0.id.lowercased().contains(q) || $0.desc.lowercased().contains(q) }
+        }
+        
+        // Category filter
+        if let category = selectedCategory {
+            list = list.filter { $0.category == category }
+        }
+        
+        // Pricing filter
+        if let pricing = selectedPricing {
+            list = list.filter { $0.pricing == pricing }
+        }
+        
+        return list
+    }
+    
+    private var paginatedApps: [StoreApp] {
+        let allFiltered = filteredApps
+        let startIndex = (currentPage - 1) * itemsPerPage
+        guard startIndex < allFiltered.count else { return [] }
+        let endIndex = min(startIndex + itemsPerPage, allFiltered.count)
+        return Array(allFiltered[startIndex..<endIndex])
+    }
+    
+    private var totalPages: Int {
+        let count = filteredApps.count
+        if count == 0 { return 1 }
+        return Int(ceil(Double(count) / Double(itemsPerPage)))
+    }
+    
+    // MARK: - Filters Header
     @ViewBuilder
-    private func headerSection() -> some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Software Center")
+    private func filterHeader() -> some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 16) {
+                // Search Field
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    TextField("Search by name, description, or id...", text: $searchText)
+                        .textFieldStyle(.plain)
+                        .onChange(of: searchText) { _ in
+                            currentPage = 1
+                        }
+                    if !searchText.isEmpty {
+                        Button(action: { searchText = "" }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(8)
+                .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                .cornerRadius(8)
+                .frame(maxWidth: 320)
+                
+                // Pricing Tags Filter
+                Picker("Pricing:", selection: Binding(
+                    get: { selectedPricing },
+                    set: { val in
+                        selectedPricing = val
+                        currentPage = 1
+                    }
+                )) {
+                    Text("All pricing").tag(StoreApp.PricingTag?.none)
+                    ForEach(StoreApp.PricingTag.allCases, id: \.self) { pricing in
+                        Text(pricing.rawValue).tag(StoreApp.PricingTag?.some(pricing))
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 280)
+                
+                Spacer()
+                
+                // Reload Button
+                Button(action: { manager.loadStore(forceRefresh: true) }) {
+                    Label("Sync Database", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.bordered)
+            }
+            .padding([.horizontal, .top])
+            
+            // Categories Selector Row
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    categoryTabButton(title: "All Categories", category: nil)
+                    
+                    ForEach(AppCategory.allCases) { cat in
+                        categoryTabButton(title: cat.rawValue, category: cat)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 8)
+            }
+            
+            Divider()
+        }
+        .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
+    }
+    
+    @ViewBuilder
+    private func categoryTabButton(title: String, category: AppCategory?) -> some View {
+        Button(action: {
+            selectedCategory = category
+            currentPage = 1
+        }) {
+            Text(title)
+                .font(.subheadline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(selectedCategory == category ? Color.accentColor : Color(NSColor.controlBackgroundColor).opacity(0.4))
+                .foregroundColor(selectedCategory == category ? .white : .primary)
+                .cornerRadius(12)
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Featured App Hero Banner
+    @ViewBuilder
+    private func featuredHeroSection() -> some View {
+        let featured = filteredApps.filter { $0.isFeatured }
+        if !featured.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Featured Applications")
                     .font(.title2).bold()
-                Text("Discover, install, and manage applications and tools powered by Homebrew.")
-                    .font(.subheadline).foregroundStyle(.secondary)
-            }
-            Spacer()
-
-            Picker("", selection: $selectedTab) {
-                Text("Brew - Casks").tag(StoreTab.casks)
-                Text("Brew - Formulae").tag(StoreTab.formulae)
-                Text("Installed via Brew").tag(StoreTab.installed)
-                Text("Outside Homebrew").tag(StoreTab.external)
-                let updatesText = manager.outdatedApps.isEmpty ? "Updates" : "Updates (\(manager.outdatedApps.count))"
-                Text(updatesText).tag(StoreTab.updates)
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 680)
-            .disabled(manager.isLoading)
-
-            Button(action: { manager.loadStore(forceRefresh: true) }) {
-                Image(systemName: "arrow.clockwise")
-            }
-            .buttonStyle(.bordered)
-            .disabled(manager.isLoading)
-            .help("Force refresh package list")
-        }
-        .padding()
-        .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
-    }
-
-    // MARK: - Filters
-    @ViewBuilder
-    private func filterBar() -> some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField("Search packages…", text: $searchText)
-                    .textFieldStyle(.plain)
-                    .font(.body)
-
-                if !searchText.isEmpty {
-                    Button(action: { searchText = "" }) {
-                        Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(6)
-            .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(6)
-
-            HStack(spacing: 8) {
-                Picker("Status", selection: $selectedStatus) {
-                    ForEach(StatusFilter.allCases) { Text($0.rawValue).tag($0) }
-                }
-                .pickerStyle(.menu)
-                .frame(maxWidth: .infinity)
-
-                Picker("Pricing", selection: $selectedPricing) {
-                    ForEach(PricingFilter.allCases) { Text($0.rawValue).tag($0) }
-                }
-                .pickerStyle(.menu)
-                .frame(maxWidth: .infinity)
-
-                Picker("Collection", selection: $selectedRecommendation) {
-                    ForEach(RecommendationFilter.allCases) { Text($0.rawValue).tag($0) }
-                }
-                .pickerStyle(.menu)
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.15))
-    }
-
-    // MARK: - App List
-    @ViewBuilder
-    private func appListView() -> some View {
-        if manager.isLoading {
-            VStack(spacing: 12) {
-                ProgressView().controlSize(.large)
-                Text("Fetching package repository from Homebrew…")
-                    .font(.subheadline).foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-            let sourceApps = selectedTab == .updates ? manager.outdatedApps : manager.apps
-            let filtered = sourceApps.filter { app in
-                // Tab filter
-                switch selectedTab {
-                case .casks:
-                    if !app.isCask { return false }
-                case .formulae:
-                    if app.isCask { return false }
-                case .installed:
-                    if app.status != .installedViaHomebrew { return false }
-                case .external:
-                    if app.status != .installedExternally { return false }
-                case .updates:
-                    break // Sourced from outdatedApps
-                }
-
-                // Search query
-                if !searchText.isEmpty {
-                    let term = searchText.lowercased()
-                    if !app.id.lowercased().contains(term) && !app.name.lowercased().contains(term) && !app.desc.lowercased().contains(term) {
-                        return false
-                    }
-                }
-
-                // Status filter
-                switch selectedStatus {
-                case .all: break
-                case .installed:
-                    if app.status != .installedViaHomebrew && app.status != .installedExternally { return false }
-                case .notInstalled:
-                    if app.status != .notInstalled { return false }
-                case .external:
-                    if app.status != .installedExternally { return false }
-                }
-
-                // Pricing filter
-                switch selectedPricing {
-                case .all: break
-                case .free:
-                    if app.pricing != .free { return false }
-                case .freemium:
-                    if app.pricing != .freemium { return false }
-                case .paid:
-                    if app.pricing != .paid { return false }
-                }
-
-                // Collection filter
-                switch selectedRecommendation {
-                case .all: break
-                case .featured:
-                    if !app.isFeatured { return false }
-                }
-
-                return true
-            }
-
-            if filtered.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "square.grid.3x3.fill").font(.system(size: 36)).foregroundStyle(.secondary)
-                    Text("No matching packages found")
-                        .font(.headline).foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                VStack(spacing: 0) {
-                    let itemsPerPage = 50
-                    let totalPages = max(1, Int(ceil(Double(filtered.count) / Double(itemsPerPage))))
-                    let safePage = min(max(1, currentPage), totalPages)
-                    
-                    let startIndex = (safePage - 1) * itemsPerPage
-                    let endIndex = min(startIndex + itemsPerPage, filtered.count)
-                    let pageItems = Array(filtered[startIndex..<endIndex])
-                    
-                    List(selection: $selectedApp) {
-                        ForEach(pageItems) { app in
-                            appRow(app: app)
-                                .tag(app)
+                    .foregroundColor(.primary)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(featured.prefix(4)) { app in
+                            featuredCard(app: app)
                         }
                     }
-                    .listStyle(.inset)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func featuredCard(app: StoreApp) -> some View {
+        Button(action: { selectedApp = app }) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: app.category.iconName)
+                        .font(.title)
+                        .foregroundColor(.accentColor)
+                        .frame(width: 48, height: 48)
+                        .background(Color.accentColor.opacity(0.12))
+                        .cornerRadius(10)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(app.name)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .foregroundColor(.primary)
+                        Text(app.category.rawValue)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    // Pricing Badge
+                    Text(app.pricing.rawValue)
+                        .font(.caption2).bold()
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(app.pricing == .free ? Color.green.opacity(0.15) : (app.pricing == .freemium ? Color.orange.opacity(0.15) : Color.blue.opacity(0.15)))
+                        .foregroundColor(app.pricing == .free ? .green : (app.pricing == .freemium ? .orange : .blue))
+                        .cornerRadius(6)
+                }
+                
+                Text(app.desc)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .frame(height: 36, alignment: .topLeading)
+                
+                HStack {
+                    Text("Version \(app.version)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text(app.status == .notInstalled ? "Get" : "Installed")
+                        .font(.caption2).bold()
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(app.status == .notInstalled ? Color.accentColor : Color.secondary.opacity(0.2))
+                        .foregroundColor(app.status == .notInstalled ? .white : .primary)
+                        .cornerRadius(10)
+                }
+            }
+            .padding(16)
+            .frame(width: 280)
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+            .cornerRadius(14)
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Apps Grid View
+    @ViewBuilder
+    private func appsGridView() -> some View {
+        let columns = [
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16)
+        ]
+        
+        LazyVGrid(columns: columns, spacing: 16) {
+            ForEach(paginatedApps) { app in
+                appRowCard(app: app)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func appRowCard(app: StoreApp) -> some View {
+        Button(action: { selectedApp = app }) {
+            HStack(spacing: 12) {
+                Image(systemName: app.category.iconName)
+                    .font(.title2)
+                    .foregroundColor(.accentColor)
+                    .frame(width: 42, height: 42)
+                    .background(Color.accentColor.opacity(0.1))
+                    .cornerRadius(8)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(app.name)
+                            .font(.body).bold()
+                            .lineLimit(1)
+                            .foregroundColor(.primary)
+                        
+                        if app.isFeatured {
+                            Image(systemName: "star.fill")
+                                .font(.caption2)
+                                .foregroundColor(.yellow)
+                        }
+                    }
+                    
+                    Text(app.desc)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(app.pricing.rawValue)
+                        .font(.system(size: 9)).bold()
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(app.pricing == .free ? Color.green.opacity(0.12) : (app.pricing == .freemium ? Color.orange.opacity(0.12) : Color.blue.opacity(0.12)))
+                        .foregroundColor(app.pricing == .free ? .green : (app.pricing == .freemium ? .orange : .blue))
+                        .cornerRadius(4)
+                    
+                    Text(app.status == .notInstalled ? "Get" : (app.status == .installedViaHomebrew ? "Installed" : "External"))
+                        .font(.system(size: 9)).bold()
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(app.status == .notInstalled ? Color.accentColor : Color.secondary.opacity(0.2))
+                        .foregroundColor(app.status == .notInstalled ? .white : .primary)
+                        .cornerRadius(4)
+                }
+            }
+            .padding(12)
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
+            .cornerRadius(10)
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.08), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Pagination Footer
+    @ViewBuilder
+    private func paginationControls() -> some View {
+        HStack {
+            Text("Showing \((currentPage - 1) * itemsPerPage + 1) - \(min(currentPage * itemsPerPage, filteredApps.count)) of \(filteredApps.count) apps")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            HStack(spacing: 12) {
+                Button(action: {
+                    if currentPage > 1 { currentPage -= 1 }
+                }) {
+                    Image(systemName: "chevron.left")
+                }
+                .disabled(currentPage == 1)
+                
+                Text("Page \(currentPage) of \(totalPages)")
+                    .font(.subheadline)
+                
+                Button(action: {
+                    if currentPage < totalPages { currentPage += 1 }
+                }) {
+                    Image(systemName: "chevron.right")
+                }
+                .disabled(currentPage == totalPages)
+            }
+        }
+    }
+    
+    // MARK: - Loading / Empty Views
+    @ViewBuilder
+    private func loadingPlaceholder() -> some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .progressViewStyle(.circular)
+            Text("Updating package definitions catalog...")
+                .font(.headline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    @ViewBuilder
+    private func emptyStatePlaceholder() -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "square.grid.3x3.square.badge.slash")
+                .font(.system(size: 48))
+                .foregroundColor(.secondary.opacity(0.5))
+            Text("No Matching Apps Found")
+                .font(.headline)
+            Text("Try tweaking your filters or search keywords.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - App Detail Sheet
+    @ViewBuilder
+    private func appDetailSheet(app: StoreApp) -> some View {
+        VStack(spacing: 0) {
+            // Sheet Header
+            HStack {
+                Image(systemName: app.category.iconName)
+                    .font(.largeTitle)
+                    .foregroundColor(.accentColor)
+                    .frame(width: 60, height: 60)
+                    .background(Color.accentColor.opacity(0.12))
+                    .cornerRadius(12)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(app.name)
+                        .font(.title2).bold()
+                    Text("Token Identifier: \(app.id)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Button("Close") {
+                    selectedApp = nil
+                }
+                .buttonStyle(.bordered)
+            }
+            .padding()
+            
+            Divider()
+            
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Metadata tags
+                    HStack(spacing: 16) {
+                        detailTag(title: "Category", value: app.category.rawValue, icon: app.category.iconName)
+                        detailTag(title: "Pricing", value: app.pricing.rawValue, icon: "dollarsign.circle")
+                        detailTag(title: "Status", value: app.status.rawValue, icon: "checkmark.circle")
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Description")
+                            .font(.headline)
+                        Text(app.desc.isEmpty ? "No description provided." : app.desc)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if !app.homepage.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Links")
+                                .font(.headline)
+                            let targetURL = URL(string: app.homepage) ?? URL(string: "https://formulae.brew.sh")!
+                            Link(destination: targetURL) {
+                                HStack {
+                                    Image(systemName: "link")
+                                    Text("Visit Official Homepage")
+                                }
+                            }
+                        }
+                    }
                     
                     Divider()
                     
-                    // Pagination controls footer
-                    HStack(spacing: 15) {
-                        Button(action: {
-                            if safePage > 1 {
-                                currentPage = safePage - 1
-                            }
-                        }) {
-                            Image(systemName: "chevron.left")
-                        }
-                        .disabled(safePage == 1)
-                        .buttonStyle(.bordered)
-                        
-                        Text("Page \(safePage) of \(totalPages) (Total: \(filtered.count))")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Button(action: {
-                            if safePage < totalPages {
-                                currentPage = safePage + 1
-                            }
-                        }) {
-                            Image(systemName: "chevron.right")
-                        }
-                        .disabled(safePage == totalPages)
-                        .buttonStyle(.bordered)
-                    }
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity)
-                    .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func appRow(app: StoreApp) -> some View {
-        HStack(spacing: 12) {
-            faviconImage(homepage: app.homepage, isCask: app.isCask)
-                .frame(width: 32, height: 32)
-                .cornerRadius(6)
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
-                    if app.isFeatured {
-                        featuredBadge()
-                    }
-                    Text(app.name).font(.headline).lineLimit(1)
-                    pricingBadge(app.pricing)
-                    if app.status == .installedViaHomebrew || app.status == .installedExternally {
-                        statusBadge(app.status)
-                    }
-                }
-                Text(app.desc.isEmpty ? "No description available" : app.desc)
-                    .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
-                Text(app.id)
-                    .font(.caption2).foregroundStyle(.tertiary)
-            }
-            Spacer()
-        }
-        .padding(.vertical, 4)
-    }
-
-    // MARK: - Detail Panel
-    @ViewBuilder
-    private func detailPanel(app: StoreApp) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Header
-                HStack(spacing: 16) {
-                    faviconImage(homepage: app.homepage, isCask: app.isCask, size: 64)
-                        .frame(width: 64, height: 64)
-                        .cornerRadius(12)
-
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(app.name).font(.title3).bold()
-                        Text(app.id).font(.subheadline).foregroundStyle(.secondary)
-                        HStack(spacing: 6) {
-                            if app.isFeatured {
-                                featuredBadge()
-                            }
-                            pricingBadge(app.pricing)
-                            statusBadge(app.status)
-                        }
-                    }
-                    Spacer()
-                }
-
-                Divider()
-
-                // Description
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Description").font(.headline)
-                    Text(app.desc.isEmpty ? "No description available." : app.desc)
-                        .font(.body).foregroundStyle(.secondary)
-                }
-
-                // Metadata rows
-                VStack(alignment: .leading, spacing: 10) {
-                    metadataRow(label: "Version", value: app.version.isEmpty ? "unknown" : app.version)
-                    metadataRow(label: "Type", value: app.isCask ? "Application (.app)" : "CLI command / library")
-                    if !app.homepage.isEmpty {
-                        HStack {
-                            Text("Website").font(.caption).bold().foregroundStyle(.secondary).frame(width: 90, alignment: .leading)
-                            Link(app.homepage, destination: URL(string: app.homepage) ?? URL(string: "https://brew.sh")!)
-                                .font(.caption).lineLimit(1)
-                        }
-                    }
-                    if app.isCask && !app.appNames.isEmpty {
-                        metadataRow(label: "App Names", value: app.appNames.joined(separator: ", "))
-                    }
-                }
-                .padding()
-                .background(Color.secondary.opacity(0.08))
-                .cornerRadius(8)
-
-                // Actions warning if externally installed
-                if app.status == .installedExternally {
-                    HStack(alignment: .top, spacing: 10) {
-                        Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Installed Outside Homebrew").bold().font(.subheadline)
-                            Text("This application was installed manually or through another installer. Homebrew cannot directly manage or update it unless you override it.")
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding()
-                    .background(Color.orange.opacity(0.12))
-                    .cornerRadius(8)
-                }
-
-                // Resolve local .app bundle path for installed casks (used for Deep Clean integration)
-                let possibleAppPaths: [String] = {
-                    var paths: [String] = []
-                    for appName in app.appNames {
-                        paths.append("/Applications/\(appName)")
-                        paths.append("\(FileManager.default.homeDirectoryForCurrentUser.path)/Applications/\(appName)")
-                    }
-                    paths.append("/Applications/\(app.name).app")
-                    paths.append("/Applications/\(app.id).app")
-                    return paths
-                }()
-                let localAppURL: URL? = possibleAppPaths.compactMap { path -> URL? in
-                    let url = URL(fileURLWithPath: path)
-                    return FileManager.default.fileExists(atPath: url.path) ? url : nil
-                }.first
-
-                // Action buttons
-                VStack(spacing: 10) {
-                    if app.status == .notInstalled {
-                        Button(action: { manager.runAction(action: "install", app: app) }) {
-                            HStack {
-                                Image(systemName: "arrow.down.to.line.compact")
-                                Text("Install Package")
-                            }
-                            .frame(maxWidth: .infinity).padding(.vertical, 6)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(manager.isRunningAction)
-                    } else if app.status == .installedViaHomebrew {
-                        if selectedTab == .updates {
-                            Button(action: { manager.runAction(action: "upgrade", app: app) }) {
-                                HStack {
-                                    Image(systemName: "arrow.up.circle.fill")
-                                    Text("Upgrade Package")
-                                }
-                                .frame(maxWidth: .infinity).padding(.vertical, 6)
+                    // Action triggers
+                    HStack(spacing: 12) {
+                        if app.status == .notInstalled {
+                            Button(action: {
+                                manager.runAction(action: "install", app: app)
+                                showLogs = true
+                            }) {
+                                Label("Install Application", systemImage: "square.and.arrow.down")
                             }
                             .buttonStyle(.borderedProminent)
                             .disabled(manager.isRunningAction)
                         } else {
-                            Button(action: { manager.runAction(action: "uninstall", app: app) }) {
-                                HStack {
-                                    Image(systemName: "trash.fill")
-                                    Text("Uninstall Package")
-                                }
-                                .frame(maxWidth: .infinity).padding(.vertical, 6)
+                            Button(action: {
+                                manager.runAction(action: "uninstall", app: app)
+                                showLogs = true
+                            }) {
+                                Label("Uninstall Application", systemImage: "trash")
                             }
-                            .buttonStyle(.borderedProminent).tint(.red)
+                            .buttonStyle(.bordered)
+                            .tint(.red)
                             .disabled(manager.isRunningAction)
                         }
-
-                        // Deep Clean Leftovers cross-link (cask only)
-                        if app.isCask, let url = localAppURL {
+                        
+                        // Updates tab upgrade
+                        if filterType == .updates {
                             Button(action: {
-                                NotificationCenter.default.post(
-                                    name: NSNotification.Name("juicer.nav.uninstaller.scan"),
-                                    object: url
-                                )
+                                manager.runAction(action: "upgrade", app: app)
+                                showLogs = true
                             }) {
-                                HStack {
-                                    Image(systemName: "trash.slash.fill")
-                                    Text("Deep Clean Leftovers...")
-                                }
-                                .frame(maxWidth: .infinity).padding(.vertical, 6)
+                                Label("Upgrade to Latest", systemImage: "arrow.up.circle")
                             }
-                            .buttonStyle(.bordered)
-                            .tint(.orange)
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                            .disabled(manager.isRunningAction)
                         }
-
-                    } else if app.status == .installedExternally {
-                        Button(action: { manager.runAction(action: "install", app: app) }) {
-                            HStack {
-                                Image(systemName: "arrow.down.to.line.compact")
-                                Text("Override & Install via Brew")
-                            }
-                            .frame(maxWidth: .infinity).padding(.vertical, 6)
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(manager.isRunningAction)
-
-                        // Deep Clean cross-link for externally installed casks too
-                        if app.isCask, let url = localAppURL {
-                            Button(action: {
-                                NotificationCenter.default.post(
-                                    name: NSNotification.Name("juicer.nav.uninstaller.scan"),
-                                    object: url
-                                )
-                            }) {
-                                HStack {
-                                    Image(systemName: "trash.slash.fill")
-                                    Text("Deep Clean Leftovers...")
-                                }
-                                .frame(maxWidth: .infinity).padding(.vertical, 6)
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(.orange)
-                        } else {
-                            Text("Or clean leftover configuration files using standard uninstallation:")
-                                .font(.caption2).foregroundStyle(.tertiary).multilineTextAlignment(.center)
-
-                            Button("Open App Uninstaller") {
-                                NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.uninstaller"), object: nil)
-                            }
-                            .buttonStyle(.link)
-                        }
-                    }
-                }
-                .padding(.top, 10)
-
-                // Companion Insights: files affected blueprint
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(.accentColor)
-                        Text(app.status == .notInstalled ? "Installation Blueprint" : "Uninstallation Blueprint")
-                            .font(.headline)
                     }
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        if app.status == .notInstalled {
-                            Text("The following paths will be created/downloaded:").font(.caption).bold().foregroundStyle(.secondary)
-                            if app.isCask {
-                                bulletPoint("/Applications/\(app.name).app")
-                                bulletPoint("~/Library/Application Support/\(app.id)")
-                                bulletPoint("~/Library/Caches/\(app.id)")
-                            } else {
-                                bulletPoint("/opt/homebrew/Cellar/\(app.id) (Binaries)")
-                                bulletPoint("/opt/homebrew/bin/\(app.id) (Symlink)")
+                    // Console logs output
+                    if showLogs || manager.isRunningAction {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Homebrew Operations Console")
+                                .font(.headline)
+                            
+                            ScrollView {
+                                Text(manager.progressLog)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .foregroundColor(.green)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(8)
                             }
-                        } else {
-                            Text("The following files and directories will be deleted:").font(.caption).bold().foregroundColor(.red)
-                            if app.isCask {
-                                bulletPoint("/Applications/\(app.name).app")
-                                bulletPoint("~/Library/Application Support/\(app.id)")
-                                bulletPoint("~/Library/Caches/\(app.id)")
-                                bulletPoint("~/Library/Preferences/com.even.\(app.id).plist")
-                            } else {
-                                bulletPoint("/opt/homebrew/Cellar/\(app.id)")
-                                bulletPoint("/opt/homebrew/bin/\(app.id)")
-                                bulletPoint("/opt/homebrew/etc/\(app.id)")
-                            }
+                            .frame(height: 150)
+                            .background(Color.black)
+                            .cornerRadius(8)
                         }
                     }
-                    .padding(10)
-                    .background(Color.secondary.opacity(0.05))
-                    .cornerRadius(6)
                 }
-                .padding(.top, 10)
-            }
-            .padding()
-        }
-    }
-
-    @ViewBuilder
-    private func emptyDetailPlaceholder() -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "square.grid.3x3.fill")
-                .font(.system(size: 48)).foregroundStyle(.secondary)
-            Text("No Package Selected")
-                .font(.headline).foregroundStyle(.secondary)
-            Text("Select an application or CLI package to inspect detail properties and trigger installation actions.")
-                .font(.subheadline).foregroundStyle(.secondary)
-                .multilineTextAlignment(.center).padding(.horizontal, 40)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    // MARK: - Terminal Progress Log Drawer
-    @ViewBuilder
-    private func terminalDrawer() -> some View {
-        VStack(spacing: 0) {
-            Divider()
-            HStack {
-                Text("Homebrew Action Console Output")
-                    .font(.caption).bold().foregroundStyle(.secondary)
-                Spacer()
-                if manager.isRunningAction {
-                    ProgressView().controlSize(.small).scaleEffect(0.8)
-                    Button("Cancel") { manager.cancelAction() }
-                        .buttonStyle(.bordered).controlSize(.small)
-                } else {
-                    Button("Clear Console") { manager.progressLog = "" }
-                        .buttonStyle(.bordered).controlSize(.small)
-                }
-            }
-            .padding(.horizontal).padding(.vertical, 6)
-            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-
-            Divider()
-
-            ScrollViewReader { proxy in
-                ScrollView {
-                    Text(manager.progressLog)
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                        .id("bottom")
-                }
-                .frame(height: 140)
-                .background(Color(NSColor.controlBackgroundColor))
-                .onChange(of: manager.progressLog) { _ in
-                    proxy.scrollTo("bottom", anchor: .bottom)
-                }
+                .padding()
             }
         }
+        .frame(width: 550, height: 480)
     }
-
-    // MARK: - Helpers
-
+    
     @ViewBuilder
-    private func faviconImage(homepage: String, isCask: Bool, size: CGFloat = 32) -> some View {
-        if let host = homepageHost(homepage), !host.isEmpty {
-            AsyncImage(url: URL(string: "https://www.google.com/s2/favicons?sz=64&domain=\(host)")) { phase in
-                switch phase {
-                case .success(let image):
-                    image.resizable()
-                default:
-                    Image(systemName: isCask ? "macwindow" : "terminal.fill")
-                        .font(.system(size: size * 0.5))
-                        .foregroundColor(.secondary)
-                }
+    private func detailTag(title: String, value: String, icon: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .foregroundColor(.accentColor)
+            VStack(alignment: .leading) {
+                Text(title)
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+                Text(value)
+                    .font(.caption).bold()
             }
-        } else {
-            Image(systemName: isCask ? "macwindow" : "terminal.fill")
-                .font(.system(size: size * 0.5))
-                .foregroundColor(.secondary)
         }
-    }
-
-    private func homepageHost(_ urlStr: String) -> String? {
-        guard let url = URL(string: urlStr) else { return nil }
-        return url.host
-    }
-
-    private func pricingColor(_ pricing: StoreApp.PricingTag) -> Color {
-        switch pricing {
-        case .free: return .green
-        case .freemium: return .orange
-        case .paid: return .blue
-        }
-    }
-
-    @ViewBuilder
-    private func featuredBadge() -> some View {
-        HStack(spacing: 3) {
-            Image(systemName: "star.fill").font(.system(size: 8))
-            Text("Featured")
-        }
-        .font(.caption2).bold()
-        .padding(.horizontal, 6).padding(.vertical, 2)
-        .background(Color.yellow.opacity(0.18))
-        .foregroundStyle(Color.orange)
-        .cornerRadius(4)
-    }
-
-    @ViewBuilder
-    private func pricingBadge(_ pricing: StoreApp.PricingTag) -> some View {
-        let color = pricingColor(pricing)
-        Text(pricing.rawValue)
-            .font(.caption2).bold()
-            .padding(.horizontal, 6).padding(.vertical, 2)
-            .background(color.opacity(0.12))
-            .foregroundStyle(color)
-            .cornerRadius(4)
-    }
-
-    @ViewBuilder
-    private func statusBadge(_ status: StoreApp.InstallationStatus) -> some View {
-        switch status {
-        case .installedViaHomebrew:
-            Text("Brew Installed")
-                .font(.caption2).bold()
-                .padding(.horizontal, 6).padding(.vertical, 2)
-                .background(Color.green.opacity(0.12))
-                .foregroundStyle(Color.green)
-                .cornerRadius(4)
-        case .installedExternally:
-            Text("Installed Outside Homebrew")
-                .font(.caption2).bold()
-                .padding(.horizontal, 6).padding(.vertical, 2)
-                .background(Color.orange.opacity(0.12))
-                .foregroundStyle(Color.orange)
-                .cornerRadius(4)
-        case .notInstalled:
-            EmptyView()
-        }
-    }
-
-    @ViewBuilder
-    private func metadataRow(label: String, value: String) -> some View {
-        HStack(alignment: .top) {
-            Text(label).font(.caption).bold().foregroundStyle(.secondary).frame(width: 90, alignment: .leading)
-            Text(value).font(.caption).foregroundStyle(.primary)
-            Spacer()
-        }
-    }
-
-    @ViewBuilder
-    private func bulletPoint(_ path: String) -> some View {
-        HStack(spacing: 5) {
-            Text("•").foregroundStyle(.secondary)
-            Text(path)
-                .font(.system(.caption2, design: .monospaced))
-                .foregroundColor(.secondary)
-                .lineLimit(1)
-        }
+        .padding(8)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
+        .cornerRadius(6)
     }
 }

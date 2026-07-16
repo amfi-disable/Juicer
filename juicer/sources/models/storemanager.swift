@@ -2,6 +2,30 @@ import Foundation
 import AppKit
 import Combine
 
+enum AppCategory: String, Codable, CaseIterable, Identifiable {
+    case productivity = "Productivity"
+    case utilities = "Utilities"
+    case development = "Development"
+    case design = "Design & Creative"
+    case entertainment = "Entertainment"
+    case system = "System"
+    case other = "Other"
+    
+    var id: String { rawValue }
+    
+    var iconName: String {
+        switch self {
+        case .productivity: return "briefcase.fill"
+        case .utilities: return "wrench.and.screwdriver.fill"
+        case .development: return "hammer.fill"
+        case .design: return "paintpalette.fill"
+        case .entertainment: return "play.circle.fill"
+        case .system: return "cpu.fill"
+        case .other: return "square.grid.2x2.fill"
+        }
+    }
+}
+
 // MARK: - Models
 
 struct StoreApp: Identifiable, Codable, Hashable {
@@ -14,6 +38,7 @@ struct StoreApp: Identifiable, Codable, Hashable {
     let appNames: [String]   // Extracted from Cask artifacts (e.g. ["Visual Studio Code.app"])
     var pricing: PricingTag
     var status: InstallationStatus
+    var category: AppCategory
 
     var isFeatured: Bool {
         if isCask {
@@ -163,7 +188,7 @@ class StoreManager: ObservableObject {
                             outdatedList.append(StoreApp(
                                 id: cask.name, name: cask.name, desc: "Outdated graphical application.",
                                 homepage: "", version: cask.current_version, isCask: true,
-                                appNames: [], pricing: .free, status: .installedViaHomebrew
+                                appNames: [], pricing: .free, status: .installedViaHomebrew, category: .utilities
                             ))
                         }
                     }
@@ -179,7 +204,7 @@ class StoreManager: ObservableObject {
                             outdatedList.append(StoreApp(
                                 id: formula.name, name: formula.name, desc: "Outdated command-line tool.",
                                 homepage: "", version: formula.current_version, isCask: false,
-                                appNames: [], pricing: .free, status: .installedViaHomebrew
+                                appNames: [], pricing: .free, status: .installedViaHomebrew, category: .development
                             ))
                         }
                     }
@@ -244,6 +269,7 @@ class StoreManager: ObservableObject {
             }
 
             let pricing = self.classifyPricing(token: token, desc: desc, homepage: homepage)
+            let category = self.classifyCategory(token: token, desc: desc, homepage: homepage)
 
             parsed.append(StoreApp(
                 id: token,
@@ -254,7 +280,8 @@ class StoreManager: ObservableObject {
                 isCask: true,
                 appNames: apps,
                 pricing: pricing,
-                status: .notInstalled
+                status: .notInstalled,
+                category: category
             ))
         }
 
@@ -312,6 +339,8 @@ class StoreManager: ObservableObject {
                 pricing = .free
             }
 
+            let category = self.classifyCategory(token: name, desc: desc, homepage: homepage)
+
             parsed.append(StoreApp(
                 id: name,
                 name: name,
@@ -321,7 +350,8 @@ class StoreManager: ObservableObject {
                 isCask: false,
                 appNames: [],
                 pricing: pricing,
-                status: .notInstalled
+                status: .notInstalled,
+                category: category
             ))
         }
 
@@ -355,6 +385,42 @@ class StoreManager: ObservableObject {
         }
 
         return .free
+    }
+
+    private func classifyCategory(token: String, desc: String, homepage: String) -> AppCategory {
+        let text = "\(token) \(desc) \(homepage)".lowercased()
+        
+        let devKeywords = ["git", "develop", "code", "compiler", "editor", "ide", "programming", "rust", "go", "python", "node", "swift", "java", "sdk", "api", "database", "sql", "docker", "iterm", "terminal", "warp", "postman", "json", "xml", "yaml", "neovim", "emacs", "visual-studio", "sublime"]
+        for kw in devKeywords {
+            if text.contains(kw) { return .development }
+        }
+        
+        let designKeywords = ["paint", "draw", "sketch", "figma", "photoshop", "illustrator", "premiere", "design", "creative", "canvas", "lucid", "cad", "color", "image", "photo", "render", "3d", "vector", "art"]
+        for kw in designKeywords {
+            if text.contains(kw) { return .design }
+        }
+        
+        let prodKeywords = ["1password", "password", "obsidian", "notion", "todoist", "trello", "slack", "zoom", "office", "word", "excel", "powerpoint", "notes", "calendar", "task", "project", "writing", "pdf", "markdown", "document"]
+        for kw in prodKeywords {
+            if text.contains(kw) { return .productivity }
+        }
+        
+        let systemKeywords = ["hosts", "dns", "network", "monitor", "cpu", "gpu", "kernel", "cleanup", "trash", "uninstaller", "cache", "driver", "firewall", "vpn", "tweak", "macbook", "battery", "menubar", "bar", "disk", "visualizer", "explorer"]
+        for kw in systemKeywords {
+            if text.contains(kw) { return .system }
+        }
+        
+        let entertainmentKeywords = ["music", "audio", "video", "player", "movie", "game", "steam", "spotify", "vlc", "discord", "youtube", "media", "mp3", "mp4", "stream"]
+        for kw in entertainmentKeywords {
+            if text.contains(kw) { return .entertainment }
+        }
+        
+        let utilityKeywords = ["alt-tab", "raycast", "alfred", "utility", "tool", "converter", "calculator", "helper", "sync", "backup", "archiver", "zip", "unzip", "unarchiver", "finder", "quicklook"]
+        for kw in utilityKeywords {
+            if text.contains(kw) { return .utilities }
+        }
+        
+        return .other
     }
 
     // MARK: - Scan File System Installation Status
