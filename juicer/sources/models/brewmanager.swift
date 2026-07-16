@@ -37,135 +37,126 @@ class BrewManager: ObservableObject {
         self.isLoading = true
         self.packages = []
         
-        Task.detached(priority: .userInitiated) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let self = self else { return }
             var loadedPackages: [BrewPackage] = []
             
-            // 1. Get Leaf packages from brew leaves
+            // 1. Run lightweight list --versions for fast initial rendering (takes ~0.2s)
+            var formulaVersions: [String: String] = [:]
+            if let formulaOutput = try? Self.runCommand(brew, arguments: ["list", "--formula", "--versions"]) {
+                let lines = formulaOutput.components(separatedBy: "\n")
+                for line in lines {
+                    let parts = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+                    guard parts.count >= 2 else { continue }
+                    formulaVersions[parts[0]] = parts[1]
+                    loadedPackages.append(BrewPackage(name: parts[0], version: parts[1], type: .formula, isOutdated: false, latestVersion: nil))
+                }
+            }
+            
+            var caskVersions: [String: String] = [:]
+            if let caskOutput = try? Self.runCommand(brew, arguments: ["list", "--cask", "--versions"]) {
+                let lines = caskOutput.components(separatedBy: "\n")
+                for line in lines {
+                    let parts = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+                    guard parts.count >= 2 else { continue }
+                    caskVersions[parts[0]] = parts[1]
+                    loadedPackages.append(BrewPackage(name: parts[0], version: parts[1], type: .cask, isOutdated: false, latestVersion: nil))
+                }
+            }
+            
+            let initialSorted = loadedPackages.sorted(by: { $0.name.lowercased() < $1.name.lowercased() })
+            
+            // Update UI instantly with fast list!
+            await MainActor.run {
+                self.packages = initialSorted
+                self.isLoading = false
+                AppLogger.shared.log("Fast loaded \(self.packages.count) Homebrew packages. Fetching metadata in the background...")
+            }
+            
+            // 2. Asynchronously enrich leaf/outdated status in background (does not block UI loading)
             var leafNames = Set<String>()
             if let leavesOutput = try? Self.runCommand(brew, arguments: ["leaves"]) {
                 leafNames = Set(leavesOutput.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty })
             }
             
-            // 2. Query detailed installed packages in JSON
+            // Query detailed info and outdated status
             if let infoJSON = try? Self.runCommand(brew, arguments: ["info", "--json=v2", "--installed"]) {
                 if let data = infoJSON.data(using: .utf8),
                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     
-                    // Parse Formulae
+                    var enrichedMap: [String: BrewPackage] = [:]
+                    for pkg in loadedPackages {
+                        enrichedMap[pkg.name + "_" + pkg.type.rawValue] = pkg
+                    }
+                    
                     if let formulaeList = json["formulae"] as? [[String: Any]] {
                         for item in formulaeList {
                             let name = (item["name"] as? String) ?? ""
-                            var version = "unknown"
-                            if let installed = item["installed"] as? [[String: Any]],
-                               let first = installed.first,
-                               let ver = first["version"] as? String {
-                                version = ver
-                            }
-                            let pinned = (item["pinned"] as? Bool) ?? false
-                            let linked = (item["linked_keg"] != nil)
-                            let isLeaf = leafNames.contains(name)
-                            
-                            var deps: [String] = []
-                            if let buildDependencies = item["dependencies"] as? [String] {
-                                deps = buildDependencies
-                            }
-                            
-                            loadedPackages.append(BrewPackage(
-                                name: name,
-                                version: version,
-                                type: .formula,
-                                isOutdated: false,
-                                latestVersion: nil,
-                                isPinned: pinned,
-                                isLinked: linked,
-                                isLeaf: isLeaf,
-                                dependencies: deps
-                            ))
-                        }
-                    }
-                    
-                    // Parse Casks
-                    if let casksList = json["casks"] as? [[String: Any]] {
-                        for item in casksList {
-                            let name = (item["token"] as? String) ?? ""
-                            let version = (item["version"] as? String) ?? "unknown"
-                            loadedPackages.append(BrewPackage(
-                                name: name,
-                                version: version,
-                                type: .cask,
-                                isOutdated: false,
-                                latestVersion: nil,
-                                isPinned: false,
-                                isLinked: true,
-                                isLeaf: true,
-                                dependencies: []
-                            ))
-                        }
-                    }
-                }
-            }
-            
-            // Fallback to simple listing if JSON parsed nothing
-            if loadedPackages.isEmpty {
-                if let formulaOutput = try? Self.runCommand(brew, arguments: ["list", "--formula", "--versions"]) {
-                    let lines = formulaOutput.components(separatedBy: "\n")
-                    for line in lines {
-                        let parts = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
-                        guard parts.count >= 2 else { continue }
-                        let name = parts[0]
-                        let version = parts[1]
-                        loadedPackages.append(BrewPackage(name: name, version: version, type: .formula, isOutdated: false, latestVersion: nil))
-                    }
-                }
-                if let caskOutput = try? Self.runCommand(brew, arguments: ["list", "--cask", "--versions"]) {
-                    let lines = caskOutput.components(separatedBy: "\n")
-                    for line in lines {
-                        let parts = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
-                        guard parts.count >= 2 else { continue }
-                        let name = parts[0]
-                        let version = parts[1]
-                        loadedPackages.append(BrewPackage(name: name, version: version, type: .cask, isOutdated: false, latestVersion: nil))
-                    }
-                }
-            }
-            
-            // 3. Mark outdated packages
-            if let outdatedJSON = try? Self.runCommand(brew, arguments: ["outdated", "--json"]) {
-                if let data = outdatedJSON.data(using: .utf8),
-                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                    
-                    if let formulaeList = json["formulae"] as? [[String: Any]] {
-                        for item in formulaeList {
-                            if let name = item["name"] as? String,
-                               let latest = item["current_version"] as? String {
-                                if let idx = loadedPackages.firstIndex(where: { $0.name == name && $0.type == .formula }) {
-                                    loadedPackages[idx].isOutdated = true
-                                    loadedPackages[idx].latestVersion = latest
+                            let key = name + "_formula"
+                            if var pkg = enrichedMap[key] {
+                                pkg.isPinned = (item["pinned"] as? Bool) ?? false
+                                pkg.isLinked = (item["linked_keg"] != nil)
+                                pkg.isLeaf = leafNames.contains(name)
+                                if let buildDependencies = item["dependencies"] as? [String] {
+                                    pkg.dependencies = buildDependencies
                                 }
+                                enrichedMap[key] = pkg
                             }
                         }
                     }
                     
                     if let casksList = json["casks"] as? [[String: Any]] {
                         for item in casksList {
-                            if let name = item["name"] as? String,
-                               let latest = item["current_version"] as? String {
-                                if let idx = loadedPackages.firstIndex(where: { $0.name == name && $0.type == .cask }) {
-                                    loadedPackages[idx].isOutdated = true
-                                    loadedPackages[idx].latestVersion = latest
+                            let name = (item["token"] as? String) ?? ""
+                            let key = name + "_cask"
+                            if var pkg = enrichedMap[key] {
+                                pkg.isLeaf = true
+                                enrichedMap[key] = pkg
+                            }
+                        }
+                    }
+                    
+                    // Mark outdated in background
+                    if let outdatedJSON = try? Self.runCommand(brew, arguments: ["outdated", "--json"]) {
+                        if let oData = outdatedJSON.data(using: .utf8),
+                           let oJson = try? JSONSerialization.jsonObject(with: oData) as? [String: Any] {
+                            
+                            if let formulaeList = oJson["formulae"] as? [[String: Any]] {
+                                for item in formulaeList {
+                                    if let name = item["name"] as? String,
+                                       let latest = item["current_version"] as? String {
+                                        let key = name + "_formula"
+                                        if var pkg = enrichedMap[key] {
+                                            pkg.isOutdated = true
+                                            pkg.latestVersion = latest
+                                            enrichedMap[key] = pkg
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if let casksList = oJson["casks"] as? [[String: Any]] {
+                                for item in casksList {
+                                    if let name = item["name"] as? String,
+                                       let latest = item["current_version"] as? String {
+                                        let key = name + "_cask"
+                                        if var pkg = enrichedMap[key] {
+                                            pkg.isOutdated = true
+                                            pkg.latestVersion = latest
+                                            enrichedMap[key] = pkg
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                    
+                    let finalSorted = Array(enrichedMap.values).sorted(by: { $0.name.lowercased() < $1.name.lowercased() })
+                    await MainActor.run {
+                        self.packages = finalSorted
+                        AppLogger.shared.log("Enriched background metadata for \(self.packages.count) Homebrew packages.")
+                    }
                 }
-            }
-            
-            let sorted = loadedPackages.sorted(by: { $0.name.lowercased() < $1.name.lowercased() })
-            
-            await MainActor.run {
-                self.packages = sorted
-                self.isLoading = false
-                AppLogger.shared.log("Loaded \(self.packages.count) Homebrew packages.")
             }
         }
     }

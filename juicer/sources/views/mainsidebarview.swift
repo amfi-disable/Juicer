@@ -1,14 +1,115 @@
 import SwiftUI
 
+enum UnifiedStoreItem: String, CaseIterable, Identifiable {
+    case allCasks = "All Casks"
+    case installedCasks = "Installed Casks"
+    case updatesCasks = "Cask Updates"
+    
+    case allFormulae = "All Formulae"
+    case installedFormulae = "Installed Formulae"
+    case updatesFormulae = "Formula Updates"
+    
+    case services = "Background Services"
+    case taps = "Taps Repositories"
+    case brewfile = "Brewfile Sync"
+    case diagnostics = "Diagnostics & Maintenance"
+    
+    var id: String { rawValue }
+    
+    var iconName: String {
+        switch self {
+        case .allCasks: return "square.grid.3x3.fill"
+        case .installedCasks: return "app.badge.checkmark.fill"
+        case .updatesCasks: return "arrow.up.circle.fill"
+        case .allFormulae: return "terminal.fill"
+        case .installedFormulae: return "checkmark.seal.fill"
+        case .updatesFormulae: return "arrow.triangle.2.circlepath.circle.fill"
+        case .services: return "gearshape.2.fill"
+        case .taps: return "square.3.layers.3d.down.forward"
+        case .brewfile: return "doc.text.magnifyingglass"
+        case .diagnostics: return "waveform.path.ecg.rectangle.fill"
+        }
+    }
+}
+
 struct mainsidebarview: View {
     @State private var currentWorkspace: JuicerWorkspace = .hub
     @State private var selectedItem: NavigationItem? = nil
+    @State private var selectedStoreItem: UnifiedStoreItem = .allCasks
     @State private var isShowingGuide = false
     
     var body: some View {
         VStack(spacing: 0) {
             if currentWorkspace == .hub {
                 hubLaunchpadView()
+            } else if currentWorkspace == .store {
+                NavigationSplitView {
+                    List(selection: $selectedStoreItem) {
+                        // Return to App Hub button
+                        Button(action: {
+                            withAnimation {
+                                currentWorkspace = .hub
+                                selectedItem = nil
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.left.circle.fill")
+                                    .font(.title3)
+                                Text("Back to App Hub")
+                                    .font(.headline)
+                            }
+                            .foregroundColor(.accentColor)
+                            .padding(.vertical, 4)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Divider().padding(.vertical, 4)
+                        
+                        Section("Cask Store (Apps)") {
+                            sidebarStoreLink(for: .allCasks)
+                            sidebarStoreLink(for: .installedCasks)
+                            sidebarStoreLink(for: .updatesCasks)
+                        }
+                        
+                        Section("Brew Store (CLI)") {
+                            sidebarStoreLink(for: .allFormulae)
+                            sidebarStoreLink(for: .installedFormulae)
+                            sidebarStoreLink(for: .updatesFormulae)
+                        }
+                        
+                        Section("Homebrew Utilities") {
+                            sidebarStoreLink(for: .services)
+                            sidebarStoreLink(for: .taps)
+                            sidebarStoreLink(for: .brewfile)
+                            sidebarStoreLink(for: .diagnostics)
+                        }
+                    }
+                    .listStyle(.sidebar)
+                    .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
+                } detail: {
+                    switch selectedStoreItem {
+                    case .allCasks:
+                        storeview(isCask: true, filterType: .all)
+                    case .installedCasks:
+                        storeview(isCask: true, filterType: .installed)
+                    case .updatesCasks:
+                        storeview(isCask: true, filterType: .updates)
+                    case .allFormulae:
+                        storeview(isCask: false, filterType: .all)
+                    case .installedFormulae:
+                        storeview(isCask: false, filterType: .installed)
+                    case .updatesFormulae:
+                        storeview(isCask: false, filterType: .updates)
+                    case .services:
+                        brewservicesview()
+                    case .taps:
+                        brewtapsview()
+                    case .brewfile:
+                        brewfilesyncview()
+                    case .diagnostics:
+                        brewmanagerview(selectedTab: 3)
+                    }
+                }
             } else {
                 NavigationSplitView {
                     List(selection: $selectedItem) {
@@ -269,6 +370,30 @@ struct mainsidebarview: View {
             }
         }
         .padding(.vertical, 4)
+    }
+    
+    @ViewBuilder
+    private func sidebarStoreLink(for item: UnifiedStoreItem) -> some View {
+        Button(action: {
+            selectedStoreItem = item
+        }) {
+            HStack(spacing: 10) {
+                Image(systemName: item.iconName)
+                    .font(.body)
+                    .frame(width: 18, alignment: .center)
+                    .foregroundColor(selectedStoreItem == item ? .accentColor : .primary)
+                Text(item.rawValue)
+                    .font(.body)
+                    .foregroundColor(selectedStoreItem == item ? .accentColor : .primary)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.vertical, 4)
+        .padding(.horizontal, 8)
+        .background(selectedStoreItem == item ? Color.accentColor.opacity(0.12) : Color.clear)
+        .cornerRadius(6)
     }
     
     // MARK: - Help User Guide
