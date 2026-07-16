@@ -1,4 +1,4 @@
-name: Auto-update Homebrew Cask
+name: Auto-Update Homebrew Cask
 
 on:
   release:
