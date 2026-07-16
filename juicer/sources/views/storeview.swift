@@ -5,6 +5,7 @@ struct storeview: View {
     @State private var searchText: String = ""
     @State private var selectedApp: StoreApp? = nil
     @State private var selectedTab: StoreTab = .casks
+    @State private var currentPage = 1
 
     enum StoreTab: String, CaseIterable, Identifiable {
         case casks = "Brew - Casks"
@@ -84,6 +85,11 @@ struct storeview: View {
                 manager.loadStore()
             }
         }
+        .onChange(of: searchText) { _ in currentPage = 1 }
+        .onChange(of: selectedTab) { _ in currentPage = 1 }
+        .onChange(of: selectedStatus) { _ in currentPage = 1 }
+        .onChange(of: selectedPricing) { _ in currentPage = 1 }
+        .onChange(of: selectedRecommendation) { _ in currentPage = 1 }
     }
 
     // MARK: - Header
@@ -242,24 +248,53 @@ struct storeview: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 VStack(spacing: 0) {
+                    let itemsPerPage = 50
+                    let totalPages = max(1, Int(ceil(Double(filtered.count) / Double(itemsPerPage))))
+                    let safePage = min(max(1, currentPage), totalPages)
+                    
+                    let startIndex = (safePage - 1) * itemsPerPage
+                    let endIndex = min(startIndex + itemsPerPage, filtered.count)
+                    let pageItems = Array(filtered[startIndex..<endIndex])
+                    
                     List(selection: $selectedApp) {
-                        ForEach(filtered.prefix(150)) { app in
+                        ForEach(pageItems) { app in
                             appRow(app: app)
                                 .tag(app)
                         }
                     }
                     .listStyle(.inset)
                     
-                    if filtered.count > 150 {
-                        HStack {
-                            Spacer()
-                            Text("Showing first 150 of \(filtered.count) items. Refine search to narrow down results.")
-                                .font(.caption2).foregroundStyle(.secondary)
-                            Spacer()
+                    Divider()
+                    
+                    // Pagination controls footer
+                    HStack(spacing: 15) {
+                        Button(action: {
+                            if safePage > 1 {
+                                currentPage = safePage - 1
+                            }
+                        }) {
+                            Image(systemName: "chevron.left")
                         }
-                        .padding(.vertical, 6)
-                        .background(Color(NSColor.windowBackgroundColor))
+                        .disabled(safePage == 1)
+                        .buttonStyle(.bordered)
+                        
+                        Text("Page \(safePage) of \(totalPages) (Total: \(filtered.count))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Button(action: {
+                            if safePage < totalPages {
+                                currentPage = safePage + 1
+                            }
+                        }) {
+                            Image(systemName: "chevron.right")
+                        }
+                        .disabled(safePage == totalPages)
+                        .buttonStyle(.bordered)
                     }
+                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
                 }
             }
         }
@@ -361,6 +396,22 @@ struct storeview: View {
                     .cornerRadius(8)
                 }
 
+                // Resolve local .app bundle path for installed casks (used for Deep Clean integration)
+                let possibleAppPaths: [String] = {
+                    var paths: [String] = []
+                    for appName in app.appNames {
+                        paths.append("/Applications/\(appName)")
+                        paths.append("\(FileManager.default.homeDirectoryForCurrentUser.path)/Applications/\(appName)")
+                    }
+                    paths.append("/Applications/\(app.name).app")
+                    paths.append("/Applications/\(app.id).app")
+                    return paths
+                }()
+                let localAppURL: URL? = possibleAppPaths.compactMap { path -> URL? in
+                    let url = URL(fileURLWithPath: path)
+                    return FileManager.default.fileExists(atPath: url.path) ? url : nil
+                }.first
+
                 // Action buttons
                 VStack(spacing: 10) {
                     if app.status == .notInstalled {
@@ -395,6 +446,25 @@ struct storeview: View {
                             .buttonStyle(.borderedProminent).tint(.red)
                             .disabled(manager.isRunningAction)
                         }
+
+                        // Deep Clean Leftovers cross-link (cask only)
+                        if app.isCask, let url = localAppURL {
+                            Button(action: {
+                                NotificationCenter.default.post(
+                                    name: NSNotification.Name("juicer.nav.uninstaller.scan"),
+                                    object: url
+                                )
+                            }) {
+                                HStack {
+                                    Image(systemName: "trash.slash.fill")
+                                    Text("Deep Clean Leftovers...")
+                                }
+                                .frame(maxWidth: .infinity).padding(.vertical, 6)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.orange)
+                        }
+
                     } else if app.status == .installedExternally {
                         Button(action: { manager.runAction(action: "install", app: app) }) {
                             HStack {
@@ -406,14 +476,31 @@ struct storeview: View {
                         .buttonStyle(.bordered)
                         .disabled(manager.isRunningAction)
 
-                        Text("Or clean leftover configuration files using standard uninstallation:")
-                            .font(.caption2).foregroundStyle(.tertiary).multilineTextAlignment(.center)
+                        // Deep Clean cross-link for externally installed casks too
+                        if app.isCask, let url = localAppURL {
+                            Button(action: {
+                                NotificationCenter.default.post(
+                                    name: NSNotification.Name("juicer.nav.uninstaller.scan"),
+                                    object: url
+                                )
+                            }) {
+                                HStack {
+                                    Image(systemName: "trash.slash.fill")
+                                    Text("Deep Clean Leftovers...")
+                                }
+                                .frame(maxWidth: .infinity).padding(.vertical, 6)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.orange)
+                        } else {
+                            Text("Or clean leftover configuration files using standard uninstallation:")
+                                .font(.caption2).foregroundStyle(.tertiary).multilineTextAlignment(.center)
 
-                        Button("Open App Uninstaller") {
-                            // Send notification to switch to App Uninstaller view
-                            NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.uninstaller"), object: nil)
+                            Button("Open App Uninstaller") {
+                                NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.uninstaller"), object: nil)
+                            }
+                            .buttonStyle(.link)
                         }
-                        .buttonStyle(.link)
                     }
                 }
                 .padding(.top, 10)

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct brewmanagerview: View {
-    @StateObject private var manager = BrewManager()
+    @StateObject private var manager = BrewManager.shared
     @State private var searchText = ""
     @State private var selectedTab = 0 
     // 0: Packages, 1: Services, 2: Taps, 3: Diagnostics/Maintenance, 4: Brewfile Sync
@@ -307,11 +307,32 @@ struct brewmanagerview: View {
                                     
                                     if !package.dependencies.isEmpty {
                                         Button("View Dependency Tree...") {
-                                            selectedPackageForTree = package
+                                             selectedPackageForTree = package
                                         }
                                     }
                                 }
-                                
+
+                                if package.type == .cask {
+                                    let possiblePaths: [String] = [
+                                        "/Applications/\(package.name).app",
+                                        "/Applications/\(package.name.replacingOccurrences(of: "-", with: " ").capitalized).app"
+                                    ]
+                                    let resolvedURL: URL? = possiblePaths.compactMap { path -> URL? in
+                                        let url = URL(fileURLWithPath: path)
+                                        return FileManager.default.fileExists(atPath: url.path) ? url : nil
+                                    }.first
+
+                                    if let url = resolvedURL {
+                                        Divider()
+                                        Button("Deep Clean Leftovers...") {
+                                            NotificationCenter.default.post(
+                                                name: NSNotification.Name("juicer.nav.uninstaller.scan"),
+                                                object: url
+                                            )
+                                        }
+                                    }
+                                }
+
                                 Button("Uninstall Package", role: .destructive) {
                                     uninstallPackage(package)
                                 }

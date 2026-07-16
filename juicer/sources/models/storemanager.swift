@@ -363,9 +363,10 @@ class StoreManager: ObservableObject {
         var updated = list
         let homeDir = fm.homeDirectoryForCurrentUser.path
 
-        // Query once: Applications folders contents
+        // Query folders contents exactly once to avoid filesystem overhead
         let localAppsDir = "/Applications"
         let userAppsDir = "\(homeDir)/Applications"
+        
         let installedApps: Set<String> = {
             var set = Set<String>()
             if let local = try? fm.contentsOfDirectory(atPath: localAppsDir) { set.formUnion(local) }
@@ -373,16 +374,42 @@ class StoreManager: ObservableObject {
             return set
         }()
 
+        let caskroomInstalled: Set<String> = {
+            if let contents = try? fm.contentsOfDirectory(atPath: "/opt/homebrew/Caskroom") {
+                return Set(contents.map { $0.lowercased() })
+            }
+            return []
+        }()
+
+        let cellarInstalled: Set<String> = {
+            if let contents = try? fm.contentsOfDirectory(atPath: "/opt/homebrew/Cellar") {
+                return Set(contents.map { $0.lowercased() })
+            }
+            return []
+        }()
+
+        let optHomebrewBinInstalled: Set<String> = {
+            if let contents = try? fm.contentsOfDirectory(atPath: "/opt/homebrew/bin") {
+                return Set(contents.map { $0.lowercased() })
+            }
+            return []
+        }()
+
+        let usrLocalBinInstalled: Set<String> = {
+            if let contents = try? fm.contentsOfDirectory(atPath: "/usr/local/bin") {
+                return Set(contents.map { $0.lowercased() })
+            }
+            return []
+        }()
+
         for i in updated.indices {
             let app = updated[i]
+            let lowerId = app.id.lowercased()
 
             if app.isCask {
-                // Check Caskroom
-                let caskroomPath = "/opt/homebrew/Caskroom/\(app.id)"
-                if fm.fileExists(atPath: caskroomPath) {
+                if caskroomInstalled.contains(lowerId) {
                     updated[i].status = .installedViaHomebrew
                 } else {
-                    // Check if any of the app names are in /Applications
                     let existsInApps = app.appNames.contains { appName in
                         installedApps.contains(appName)
                     }
@@ -393,15 +420,13 @@ class StoreManager: ObservableObject {
                     }
                 }
             } else {
-                // Check Cellar
-                let cellarPath = "/opt/homebrew/Cellar/\(app.id)"
-                if fm.fileExists(atPath: cellarPath) {
+                if cellarInstalled.contains(lowerId) {
                     updated[i].status = .installedViaHomebrew
                 } else {
-                    // Check if on path but not in Homebrew
-                    let pathBinary = "/opt/homebrew/bin/\(app.id)"
-                    let usrLocalBinary = "/usr/local/bin/\(app.id)"
-                    if (fm.fileExists(atPath: pathBinary) && !fm.fileExists(atPath: cellarPath)) || fm.fileExists(atPath: usrLocalBinary) {
+                    let pathBinaryExists = optHomebrewBinInstalled.contains(lowerId)
+                    let usrLocalBinaryExists = usrLocalBinInstalled.contains(lowerId)
+                    
+                    if pathBinaryExists || usrLocalBinaryExists {
                         updated[i].status = .installedExternally
                     } else {
                         updated[i].status = .notInstalled
