@@ -1,6 +1,8 @@
 import Foundation
 
 class BrewManager: ObservableObject {
+    static let shared = BrewManager()
+
     @Published var packages: [BrewPackage] = []
     @Published var isLoading = false
     @Published var doctorOutput = ""

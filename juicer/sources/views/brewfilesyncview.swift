@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct brewfilesyncview: View {
-    @StateObject private var manager = BrewManager()
+    @StateObject private var manager = BrewManager.shared
     @State private var importConsoleLog = ""
     @State private var isProcessing = false
     @State private var statusMessage = ""
