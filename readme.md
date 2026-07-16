@@ -51,15 +51,11 @@ This project uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to define th
 
 ## Gatekeeper Verification (Unsigned App)
 
-Since Juicer is compiled without Apple Developer signing, macOS Gatekeeper may flag the downloaded `.dmg` or `.app` as "damaged" when you try to open it for the first time.
+Since Juicer is compiled without Apple Developer signing, macOS Gatekeeper may flag the extracted application bundle as "damaged" when you try to open it for the first time.
 
-To resolve this and run the app, open Terminal and run the following command to strip the download quarantine attribute:
+To resolve this and run the app, extract the `juicer-mac.zip` archive, drag `juicer.app` to your Applications folder, and run:
 
 ```bash
-# Strip quarantine from the DMG installer
-xattr -cr /path/to/Juicer.dmg
-
-# Or after dragging the app to your Applications folder
 xattr -cr /Applications/juicer.app
 ```
 
