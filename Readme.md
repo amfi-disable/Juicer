@@ -5,28 +5,61 @@
 </p>
 
 <p align="center">
-  <b>The ultimate all-in-one companion utility for macOS!</b>
+  <b>The ultimate all-in-one companion suite and developer utility for macOS!</b>
 </p>
 
 <p align="center">
-  <a href="https://github.com/amfi-disable/Juicer/releases"><img src="https://img.shields.io/badge/Version-1.0.0--alpha-blue" alt="Version" /></a>
+  <a href="https://github.com/amfi-disable/Juicer/releases"><img src="https://img.shields.io/badge/Version-V1.0.0-blue" alt="Version" /></a>
   <a href="license"><img src="https://img.shields.io/badge/License-MIT-green" alt="License" /></a>
   <a href="https://developer.apple.com/macos"><img src="https://img.shields.io/badge/Platform-macOS%2014.0%2B-lightgrey?logo=apple" alt="Platform" /></a>
   <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6.0-orange?logo=swift" alt="Swift" /></a>
 </p>
 
-Juicer is the ultimate all-in-one app for **macOS developers and power users**. It is a 100% free, open-source, local-first utility that consolidates app uninstallers, orphan file cleaners, launchd/service editors, developer cache pruners, hidden system tweakers, Gatekeeper tools, DNS editor, LaunchServices overrides, and a Software Center into a unified, high-performance native SwiftUI desktop system app.
+Juicer is the ultimate all-in-one companion utility for **macOS developers and power users**. It is a 100% free, open-source, local-first suite that consolidates package managers, disk analyzers, app uninstallers, launchd editors, developer cache pruners, hosts file editors, and hidden system tweaks into a high-performance native SwiftUI desktop app.
 
-## Features
+---
 
-- **App Uninstaller**: Drag and drop any `.app` to harvest and delete its hidden leftover files (caches, app support, plist, logs, containers).
+## Key Features
+
+- **App Store Software Center 🛍️**: Easily manage Homebrew Casks (GUI) and Formulae (CLI) in a modern App Store-like layout. Classifies packages by categories (*Productivity, Utilities, Development, Design, Entertainment, System*) and pricing models (*Free, Freemium, Paid*). Features high-speed, asynchronous list loading with background metadata resolution.
+- **Space Lens (Disk Visualizer) 🔍**: Visualize your storage layout using proportional squarified Treemaps or Canvas-drawn hierarchical Sunburst charts. Includes split details panels, path copying, Quick Look integrations, and a staged Discard Pile for batch deletions.
+- **App Uninstaller 🧹**: Drag and drop any `.app` to harvest and delete its hidden leftover files (caches, app support, plist, logs, containers, `ByHost Preferences`, and privileged helper tools).
 - **Orphan Finder**: Scan `~/Library` and sweep away directories left behind by long-deleted apps.
+- **DNS Profile Manager & Ad-Blocker 🛡️**: Save and switch between local DNS profiles. Instantly download, parse, and apply public ad-blocking/malware hosts filters (like StevenBlack's hosts filter) to your `/etc/hosts` file.
 - **Service Manager**: Load, unload, inspect, edit, and create user and system launch daemons/agents.
 - **Developer Cache Pruner**: Reclaim space by pruning DerivedData, simulator support, package manager caches (npm, yarn, bun, cargo, homebrew), and unused Docker assets.
 - **System Tweaks**: Configure hidden macOS settings for Dock, Finder, Keyboard speed, and screenshot options.
 - **Quarantine Stripper**: Strip Gatekeeper quarantine tags from downloaded files and apps recursively.
-- **Local DNS Editor**: Edit `/etc/hosts` in a structured table, sync new local mappings, and flush DNS.
 - **File Association Override**: Batch-assign file types to open with preferred editors or IDEs.
+
+---
+
+## Installation
+
+### Method A: Install via Homebrew Tap (Recommended) 🍺
+You can install Juicer instantly using our custom Homebrew Tap:
+
+```bash
+# Add our custom tap
+brew tap amfi-disable/juicer
+
+# Install Juicer Cask
+brew install --cask juicer
+```
+
+### Method B: Manual Download 📦
+Because Juicer is compiled locally and not signed with an Apple Developer ID, macOS Gatekeeper may show a *"damaged and can't be opened"* warning when downloaded manually.
+
+To open the app:
+1. Download `Juicer.zip` from our latest [GitHub Release](https://github.com/amfi-disable/Juicer/releases/tag/V1.0.0).
+2. Extract the archive and drag `Juicer.app` to your `/Applications` directory.
+3. Open Terminal and strip the quarantine flag:
+   ```bash
+   xattr -cr /Applications/Juicer.app
+   ```
+4. Open and launch the app!
+
+---
 
 ## Technical Architecture
 
@@ -34,6 +67,8 @@ Juicer is the ultimate all-in-one app for **macOS developers and power users**. 
 - **Language**: Swift 6.0 / SwiftUI
 - **Security**: Runs unsandboxed to perform low-level system directory scanning and service operations. Deletions are sent to the system Trash using the native `FileManager` API for safety.
 - **Dependencies**: None (100% native).
+
+---
 
 ## Development Setup
 
@@ -49,15 +84,7 @@ This project uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to define th
    ```
 3. Open `juicer.xcodeproj` and build!
 
-## Gatekeeper Verification (Unsigned App)
-
-Since Juicer is compiled without Apple Developer signing, macOS Gatekeeper may flag the extracted application bundle as "damaged" when you try to open it for the first time.
-
-To resolve this and run the app, extract the `juicer-mac.zip` archive, drag `juicer.app` to your Applications folder, and run:
-
-```bash
-xattr -cr /Applications/juicer.app
-```
+---
 
 ## License & Code of Conduct
 
