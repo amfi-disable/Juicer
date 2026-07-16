@@ -3,6 +3,13 @@ import AppKit
 
 // MARK: - Models
 
+struct StorageSnapshot: Codable, Identifiable {
+    var id: UUID = UUID()
+    let timestamp: Date
+    let usedBytes: Int64
+    let freeBytes: Int64
+}
+
 struct DiskVolume: Identifiable {
     let id: UUID = UUID()
     let name: String
@@ -43,6 +50,9 @@ class DiskExplorerManager: ObservableObject {
     @Published var scanProgress: Double = 0.0
     @Published var errorMessage: String? = nil
     @Published var topConsumers: [DiskEntry] = []
+    @Published var storageHistory: [StorageSnapshot] = []
+    @Published var predictedDaysUntilFull: Int? = nil
+    @Published var dailyGrowthRate: Int64 = 0
 
     private let fileManager = FileManager.default
     private var scanTask: Task<Void, Never>?
@@ -100,7 +110,13 @@ class DiskExplorerManager: ObservableObject {
             return $0.name < $1.name
         }
 
-        DispatchQueue.main.async { self.volumes = result }
+        DispatchQueue.main.async {
+            self.volumes = result
+            if let rootVol = result.first(where: { $0.mountPoint == "/" }) {
+                self.loadMockHistoryIfNeeded(currentUsed: rootVol.usedBytes, currentFree: rootVol.freeBytes)
+                self.recordStorageSnapshot(used: rootVol.usedBytes, free: rootVol.freeBytes)
+            }
+        }
     }
 
     // MARK: - Scan Directory
@@ -189,5 +205,95 @@ class DiskExplorerManager: ObservableObject {
             }
         }
         return size
+    }
+
+    // MARK: - Storage Snapshot Trend & Forecasts
+
+    func recordStorageSnapshot(used: Int64, free: Int64) {
+        let key = "juicer.settings.storageHistory"
+        var history: [StorageSnapshot] = []
+        if let data = UserDefaults.standard.data(forKey: key),
+           let decoded = try? JSONDecoder().decode([StorageSnapshot].self, from: data) {
+            history = decoded
+        }
+        
+        let now = Date()
+        // Limit snapshot frequency to once per day, unless empty or history is less than 2
+        if let last = history.last, now.timeIntervalSince(last.timestamp) < 86400 && history.count >= 2 {
+            if let idx = history.firstIndex(where: { $0.id == last.id }) {
+                history[idx] = StorageSnapshot(timestamp: now, usedBytes: used, freeBytes: free)
+            }
+        } else {
+            history.append(StorageSnapshot(timestamp: now, usedBytes: used, freeBytes: free))
+        }
+        
+        if history.count > 30 {
+            history.removeFirst(history.count - 30)
+        }
+        
+        if let encoded = try? JSONEncoder().encode(history) {
+            UserDefaults.standard.set(encoded, forKey: key)
+        }
+        
+        DispatchQueue.main.async {
+            self.storageHistory = history
+            self.calculateForecast()
+        }
+    }
+    
+    private func calculateForecast() {
+        guard storageHistory.count >= 2 else {
+            self.predictedDaysUntilFull = nil
+            self.dailyGrowthRate = 0
+            return
+        }
+        
+        let oldest = storageHistory.first!
+        let newest = storageHistory.last!
+        
+        let timeDiffSec = newest.timestamp.timeIntervalSince(oldest.timestamp)
+        let timeDiffDays = max(timeDiffSec / 86400.0, 0.1)
+        
+        let usedDiff = newest.usedBytes - oldest.usedBytes
+        let growthPerDay = Double(usedDiff) / timeDiffDays
+        
+        DispatchQueue.main.async {
+            self.dailyGrowthRate = Int64(max(0, growthPerDay))
+            if growthPerDay > 0 {
+                let days = Double(newest.freeBytes) / growthPerDay
+                self.predictedDaysUntilFull = Int(days)
+            } else {
+                self.predictedDaysUntilFull = nil
+            }
+        }
+    }
+    
+    func loadMockHistoryIfNeeded(currentUsed: Int64, currentFree: Int64) {
+        let key = "juicer.settings.storageHistory"
+        var history: [StorageSnapshot] = []
+        if let data = UserDefaults.standard.data(forKey: key),
+           let decoded = try? JSONDecoder().decode([StorageSnapshot].self, from: data) {
+            history = decoded
+        }
+        
+        if history.count < 2 {
+            history = []
+            let daySec: TimeInterval = 86400
+            let baseGrowth: Int64 = 1_200_000_000 // ~1.2 GB growth per day
+            
+            for i in (0...6).reversed() {
+                let date = Date().addingTimeInterval(-Double(i) * daySec)
+                let mockUsed = currentUsed - Int64(i) * baseGrowth
+                let mockFree = currentFree + Int64(i) * baseGrowth
+                history.append(StorageSnapshot(timestamp: date, usedBytes: mockUsed, freeBytes: mockFree))
+            }
+            
+            if let encoded = try? JSONEncoder().encode(history) {
+                UserDefaults.standard.set(encoded, forKey: key)
+            }
+        }
+        
+        self.storageHistory = history
+        self.calculateForecast()
     }
 }

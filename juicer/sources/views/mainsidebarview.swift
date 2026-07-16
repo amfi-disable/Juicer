@@ -68,6 +68,10 @@ struct mainsidebarview: View {
                         case .snapshots:        snapshotsview()
                         case .scriptConsole:    scriptconsoleview()
                         case .utilitiesView:    utilitiesview()
+                        case .diskVisualizer:   diskvisualizerview()
+                        case .undoHistory:      deletionhistoryview()
+                        case .appUpdates:       appupdaterview()
+                        case .tccViewer:        tccviewerview()
                         }
                     } else {
                         VStack {

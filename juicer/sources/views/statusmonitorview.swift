@@ -148,13 +148,19 @@ struct statusmonitorview: View {
                     memoryCard()
                 }
 
-                // Row 2: Network + Health Score
+                // Row 2: GPU + Bluetooth
+                HStack(spacing: 16) {
+                    gpuCard()
+                    bluetoothCard()
+                }
+
+                // Row 3: Network + Health Score
                 HStack(spacing: 16) {
                     networkCard()
                     healthScoreCard()
                 }
 
-                // Row 3: Top Processes
+                // Row 4: Top Processes
                 topProcessesCard()
             }
             .padding()
@@ -253,6 +259,89 @@ struct statusmonitorview: View {
                     statPill("Free", StatusMonitorManager.formatBytes(manager.memory.freeBytes))
                 }
                 .font(.caption)
+            }
+        }
+    }
+
+    // MARK: GPU Card
+    @ViewBuilder
+    private func gpuCard() -> some View {
+        metricCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "square.fill.on.square.fill").foregroundStyle(.orange)
+                    Text("GPU").font(.headline)
+                    Spacer()
+                    Text(String(format: "%.1f%%", manager.gpu.usagePercent))
+                        .font(.title3).bold()
+                        .foregroundStyle(.orange)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.secondary.opacity(0.15))
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.orange)
+                                .frame(width: geo.size.width * (manager.gpu.usagePercent / 100))
+                                .animation(.easeInOut(duration: 0.6), value: manager.gpu.usagePercent)
+                        }
+                    }
+                    .frame(height: 12)
+                    
+                    HStack {
+                        Text("VRAM: " + StatusMonitorManager.formatBytes(UInt64(manager.gpu.vramUsedBytes)))
+                            .font(.caption2).foregroundStyle(.secondary)
+                        Spacer()
+                        Text(StatusMonitorManager.formatBytes(UInt64(manager.gpu.vramTotalBytes)))
+                            .font(.caption2).foregroundStyle(.secondary)
+                    }
+                }
+
+                Divider()
+                Text(manager.gpu.modelName)
+                    .font(.caption).foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+    }
+
+    // MARK: Bluetooth Card
+    @ViewBuilder
+    private func bluetoothCard() -> some View {
+        metricCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "wave.3.left.fill").foregroundStyle(.blue)
+                    Text("Bluetooth").font(.headline)
+                    Spacer()
+                    Text(manager.bluetooth.isEnabled ? "ON" : "OFF")
+                        .font(.subheadline).bold()
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(manager.bluetooth.isEnabled ? Color.green.opacity(0.15) : Color.red.opacity(0.15))
+                        .foregroundStyle(manager.bluetooth.isEnabled ? Color.green : Color.red)
+                        .cornerRadius(4)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Connected Devices:")
+                        .font(.caption).bold().foregroundStyle(.secondary)
+                    
+                    if manager.bluetooth.connectedDevices.isEmpty {
+                        Text("No devices connected")
+                            .font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        ForEach(manager.bluetooth.connectedDevices, id: \.self) { device in
+                            HStack {
+                                Image(systemName: "link").font(.caption2).foregroundStyle(.secondary)
+                                Text(device).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+                
+                Spacer()
             }
         }
     }

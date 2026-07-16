@@ -40,9 +40,9 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO
           mkdir -p build/Payload
-          ditto build/juicer.xcarchive/Products/Applications/juicer.app build/Payload/juicer.app
+          ditto build/juicer.xcarchive/Products/Applications/Juicer.app build/Payload/Juicer.app
           cd build
-          zip -r juicer-mac.zip Payload/juicer.app
+          zip -r Juicer-mac.zip Payload/Juicer.app
           cd ..
 
       - name: Create Release
@@ -50,6 +50,6 @@ jobs:
         with:
           draft: false
           files: |
-            build/juicer-mac.zip
+            build/Juicer-mac.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
