@@ -125,7 +125,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .snapshots: return "camera.viewfinder"
         case .scriptConsole: return "terminal.fill"
         case .utilitiesView: return "wrench.and.screwdriver.fill"
-        case .diskVisualizer: return "square.split.3x3"
+        case .diskVisualizer: return "chart.pie.fill"
         case .undoHistory: return "clock.arrow.circlepath"
         case .appUpdates: return "arrow.triangle.2.circlepath.circle.fill"
         case .tccViewer: return "shield.fill"
