@@ -67,7 +67,7 @@ struct onboardingview: View {
                 }
                 .buttonStyle(.borderedProminent)
 
-                Button("Verify & Continue") {
+                Button("Continue to Juicer") {
                     verifyAccess()
                 }
                 .buttonStyle(.bordered)
@@ -100,13 +100,8 @@ struct onboardingview: View {
     }
 
     private func verifyAccess() {
-        let hasAccess = onboardingview.checkFullDiskAccess()
         withAnimation {
-            if hasAccess {
-                isAccessGranted = true
-            } else {
-                checkFailed = true
-            }
+            isAccessGranted = true
         }
     }
 
