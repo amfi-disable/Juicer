@@ -51,8 +51,12 @@ class TrashObserver: ObservableObject {
                     body: "Juicer found leftovers for \(appName.replacingOccurrences(of: ".app", with: "")). Click to scan and delete."
                 )
                 
-                // Post internal notification to navigate to app uninstaller with this path
+                // Activate application and pop up window
                 DispatchQueue.main.async {
+                    NSApp.activate(ignoringOtherApps: true)
+                    for window in NSApp.windows {
+                        window.makeKeyAndOrderFront(nil)
+                    }
                     NotificationCenter.default.post(
                         name: NSNotification.Name("juicer.nav.uninstaller.scan"),
                         object: appURL
