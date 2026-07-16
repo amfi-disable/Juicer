@@ -11,6 +11,7 @@ struct cachecleanerview: View {
     @State private var showProjectSecondAlert = false
     @State private var resultMessage: String = ""
     @State private var showResult = false
+    @State private var showConfetti = false
 
     enum InsightsTab: String, CaseIterable {
         case insights = "Space Insights"
@@ -33,6 +34,7 @@ struct cachecleanerview: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
+        .overlay(ConfettiView(isPresented: $showConfetti))
         .onAppear {
             manager.pruneOldBackups()
             manager.scanSizes()
@@ -46,6 +48,8 @@ struct cachecleanerview: View {
         .alert("Confirm Clean", isPresented: $showSecondAlert) {
             Button("Confirm & Trash", role: .destructive) {
                 manager.trashSelected { count, freed in
+                    NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .drawCompleted)
+                    showConfetti = true
                     resultMessage = "Trashed \(count) items, freed \(CacheCleanerManager.formatBytes(freed))."
                     showResult = true
                     manager.scanSizes()
@@ -180,13 +184,21 @@ struct cachecleanerview: View {
             .padding(.top, 1)
 
             VStack(alignment: .leading, spacing: 3) {
-                HStack {
+                HStack(spacing: 8) {
                     Text(item.name).font(.headline)
                     if !item.exists {
                         Text("Not Found")
                             .font(.caption2).padding(.horizontal, 5).padding(.vertical, 1)
                             .background(Color.secondary.opacity(0.15))
                             .foregroundStyle(.secondary).cornerRadius(3)
+                    } else {
+                        Text(item.riskLevel.rawValue.uppercased())
+                            .font(.system(size: 9, weight: .bold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 1.5)
+                            .background(riskColor(item.riskLevel).opacity(0.12))
+                            .foregroundStyle(riskColor(item.riskLevel))
+                            .cornerRadius(4)
                     }
                 }
                 Text(item.description)
@@ -474,6 +486,21 @@ struct cachecleanerview: View {
         case .developer: return .orange
         case .deps: return .teal
         case .ide: return .purple
+        case .ai: return .cyan
+        case .game: return .green
+        case .testing: return .indigo
+        case .cloud: return .blue
+        case .containers: return .red
+        case .versionManagers: return .yellow
+        case .ruby: return .pink
+        }
+    }
+
+    private func riskColor(_ level: InsightItem.RiskLevel) -> Color {
+        switch level {
+        case .safe: return .green
+        case .caution: return .orange
+        case .risky: return .red
         }
     }
 
@@ -558,5 +585,54 @@ struct cachecleanerview: View {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+}
+
+struct ConfettiView: View {
+    @Binding var isPresented: Bool
+    @State private var animate = false
+    
+    private let colors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .pink]
+    
+    var body: some View {
+        ZStack {
+            if isPresented {
+                ForEach(0..<60, id: \.self) { i in
+                    let size = CGFloat.random(in: 6...12)
+                    let color = colors.randomElement()!
+                    let xOffset = CGFloat.random(in: (-400)...400)
+                    let yOffsetStart = CGFloat.random(in: (-500)...(-300))
+                    let yOffsetEnd = CGFloat.random(in: 300...500)
+                    let rotation = Double.random(in: 0...360)
+                    let duration = Double.random(in: 1.5...2.5)
+                    
+                    Rectangle()
+                        .fill(color)
+                        .frame(width: size, height: size)
+                        .rotationEffect(.degrees(animate ? rotation + 360 : rotation))
+                        .offset(x: xOffset, y: animate ? yOffsetEnd : yOffsetStart)
+                        .opacity(animate ? 0.0 : 1.0)
+                        .animation(.easeOut(duration: duration).delay(Double.random(in: 0...0.3)), value: animate)
+                }
+            }
+        }
+        .onAppear {
+            if isPresented {
+                animate = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                    isPresented = false
+                    animate = false
+                }
+            }
+        }
+        .onChange(of: isPresented) { presented in
+            if presented {
+                animate = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                    isPresented = false
+                    animate = false
+                }
+            }
+        }
     }
 }

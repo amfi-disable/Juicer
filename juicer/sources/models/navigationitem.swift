@@ -46,18 +46,22 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case snapshots
     case scriptConsole
     case utilitiesView
+    case diskVisualizer
+    case undoHistory
+    case appUpdates
+    case tccViewer
     
     var id: NavigationItem { self }
     
     var workspace: JuicerWorkspace {
         switch self {
-        case .appStore, .brewExplorer:
+        case .appStore, .brewExplorer, .appUpdates:
             return .store
         case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots:
             return .system
-        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles:
+        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory:
             return .disk
-        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer:
+        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer:
             return .configs
         case .utilitiesView:
             return .utilities
@@ -89,6 +93,10 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .snapshots: return "Diagnostic Snapshots"
         case .scriptConsole: return "Script Console"
         case .utilitiesView: return "Utilities Settings"
+        case .diskVisualizer: return "Disk Visualizer"
+        case .undoHistory: return "Undo Deletion History"
+        case .appUpdates: return "Package Upgrades"
+        case .tccViewer: return "Privacy Cabinet"
         }
     }
     
@@ -117,6 +125,10 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .snapshots: return "camera.viewfinder"
         case .scriptConsole: return "terminal.fill"
         case .utilitiesView: return "wrench.and.screwdriver.fill"
+        case .diskVisualizer: return "square.split.3x3"
+        case .undoHistory: return "clock.arrow.circlepath"
+        case .appUpdates: return "arrow.triangle.2.circlepath.circle.fill"
+        case .tccViewer: return "shield.fill"
         }
     }
 }

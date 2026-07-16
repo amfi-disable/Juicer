@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 struct diskexplorerview: View {
     @StateObject private var manager = DiskExplorerManager()
@@ -18,6 +19,10 @@ struct diskexplorerview: View {
             Divider()
             volumeBar()
             Divider()
+            if manager.currentPath == "/" || manager.currentPath == FileManager.default.homeDirectoryForCurrentUser.path || manager.currentPath.isEmpty {
+                storageForecastSection()
+                Divider()
+            }
             navigationBar()
             Divider()
 
@@ -518,5 +523,73 @@ struct diskexplorerview: View {
 
     private func volumeUsageColor(_ pct: Double) -> Color {
         pct > 0.9 ? .red : pct > 0.75 ? .orange : .accentColor
+    }
+
+    // MARK: - Storage Depletion Prediction View
+    @ViewBuilder
+    private func storageForecastSection() -> some View {
+        VStack(spacing: 0) {
+            if let days = manager.predictedDaysUntilFull {
+                VStack(spacing: 8) {
+                    HStack(spacing: 8) {
+                        Image(systemName: days <= 30 ? "exclamationmark.triangle.fill" : "info.circle.fill")
+                            .foregroundColor(days <= 30 ? .red : .orange)
+                            .font(.headline)
+                        Text("Storage Exhaustion Forecast")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(days <= 7 ? "⚠️ Disk Full in ~\(days) Days!" : "Disk Full in ~\(days) Days")
+                                .font(.title3).bold()
+                                .foregroundColor(days <= 30 ? .red : .primary)
+                            Text("Based on your daily growth rate of \(formatBytes(manager.dailyGrowthRate)).")
+                                .font(.caption).foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    
+                    if manager.storageHistory.count >= 2 {
+                        Chart {
+                            ForEach(manager.storageHistory) { snap in
+                                LineMark(
+                                    x: .value("Date", snap.timestamp, unit: .day),
+                                    y: .value("Used Space (GB)", Double(snap.usedBytes) / 1_000_000_000.0)
+                                )
+                                .foregroundStyle(Color.accentColor)
+                                .interpolationMethod(.catmullRom)
+                                
+                                AreaMark(
+                                    x: .value("Date", snap.timestamp, unit: .day),
+                                    y: .value("Used Space (GB)", Double(snap.usedBytes) / 1_000_000_000.0)
+                                )
+                                .foregroundStyle(LinearGradient(colors: [Color.accentColor.opacity(0.15), Color.clear], startPoint: .top, endPoint: .bottom))
+                                .interpolationMethod(.catmullRom)
+                            }
+                        }
+                        .frame(height: 80)
+                        .chartYScale(domain: Double(manager.storageHistory.map { $0.usedBytes }.min() ?? 0) / 1_000_000_000.0 - 5 ... Double(manager.storageHistory.map { $0.usedBytes }.max() ?? 0) / 1_000_000_000.0 + 5)
+                        .padding(.top, 4)
+                    }
+                }
+                .padding()
+                .background(Color(NSColor.controlBackgroundColor).opacity(0.35))
+                .cornerRadius(12)
+                .padding([.horizontal, .vertical])
+            } else {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
+                    Text("Disk Usage Trend: Stable. Extrapolated storage depletion is low.")
+                        .font(.subheadline).foregroundColor(.secondary)
+                    Spacer()
+                }
+                .padding()
+                .background(Color(NSColor.controlBackgroundColor).opacity(0.2))
+                .cornerRadius(12)
+                .padding([.horizontal, .vertical])
+            }
+        }
     }
 }

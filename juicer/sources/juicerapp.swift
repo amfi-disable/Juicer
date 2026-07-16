@@ -5,8 +5,49 @@ struct juicerapp: App {
     @State private var hasAccess: Bool = onboardingview.checkFullDiskAccess()
 
     init() {
-        // Request notifications permission on app launch
         NotificationManager.shared.requestAuthorization()
+        setupBackgroundScheduler()
+    }
+    
+    private func setupBackgroundScheduler() {
+        // Run background checks every hour
+        Timer.scheduledTimer(withTimeInterval: 3600.0, repeats: true) { _ in
+            self.performBackgroundScanAndAlert()
+        }
+        
+        // Also run a check 10 seconds after launch
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+            self.performBackgroundScanAndAlert()
+        }
+    }
+    
+    private func performBackgroundScanAndAlert() {
+        // 1. Disk usage warning
+        if let attrs = try? FileManager.default.attributesOfFileSystem(forPath: "/"),
+           let total = attrs[.systemSize] as? Int64,
+           let free = attrs[.systemFreeSize] as? Int64 {
+            let usedPercent = Double(total - free) / Double(total)
+            if usedPercent > 0.88 {
+                let freeGB = free / 1_000_000_000
+                NotificationManager.shared.sendNotification(
+                    title: "Juicer Low Disk Space Warning",
+                    body: "Only \(freeGB) GB remaining. Reclaim space via Cache Cleaner or Disk Visualizer."
+                )
+            }
+        }
+        
+        // 2. Package updates check
+        let manager = AppUpdateManager.shared
+        manager.checkForUpdates()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
+            if !manager.updates.isEmpty {
+                NotificationManager.shared.sendNotification(
+                    title: "Software Updates Available",
+                    body: "Juicer found \(manager.updates.count) packages waiting to be upgraded."
+                )
+            }
+        }
     }
     
     var body: some Scene {

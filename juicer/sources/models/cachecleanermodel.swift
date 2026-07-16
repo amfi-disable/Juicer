@@ -9,9 +9,24 @@ struct InsightItem: Identifiable {
     let path: String
     let description: String
     let category: InsightCategory
+    let riskLevel: RiskLevel
     var sizeBytes: Int64 = -1
     var isSelected: Bool = false
     var exists: Bool = false
+
+    enum RiskLevel: String, Codable, CaseIterable {
+        case safe = "safe"
+        case caution = "caution"
+        case risky = "risky"
+
+        var emoji: String {
+            switch self {
+            case .safe: return "🟢"
+            case .caution: return "🟡"
+            case .risky: return "🔴"
+            }
+        }
+    }
 
     enum InsightCategory: String, CaseIterable {
         case system = "System"
@@ -19,6 +34,13 @@ struct InsightItem: Identifiable {
         case developer = "Developer"
         case deps = "Dependencies"
         case ide = "IDE & Editors"
+        case ai = "AI Tools"
+        case game = "Game Engines"
+        case testing = "Testing Tools"
+        case cloud = "Cloud & Infra"
+        case containers = "Containers"
+        case versionManagers = "Version Managers"
+        case ruby = "Ruby Caches"
 
         var icon: String {
             switch self {
@@ -27,6 +49,13 @@ struct InsightItem: Identifiable {
             case .developer: return "hammer.fill"
             case .deps: return "shippingbox.fill"
             case .ide: return "curlybraces.square.fill"
+            case .ai: return "brain"
+            case .game: return "gamecontroller.fill"
+            case .testing: return "theatermasks.fill"
+            case .cloud: return "cloud.fill"
+            case .containers: return "cube.transparent"
+            case .versionManagers: return "square.stack.3d.up.fill"
+            case .ruby: return "diamond.fill"
             }
         }
     }
@@ -85,115 +114,230 @@ class CacheCleanerManager: ObservableObject {
             InsightItem(name: "System Logs",
                         path: "\(home)/Library/Logs",
                         description: "Application crash reports and diagnostic log archives.",
-                        category: .system),
+                        category: .system,
+                        riskLevel: .safe),
             InsightItem(name: "Diagnostic Reports",
                         path: "\(home)/Library/Logs/DiagnosticReports",
                         description: "macOS crash and hang reports for installed applications.",
-                        category: .system),
+                        category: .system,
+                        riskLevel: .safe),
             InsightItem(name: "Saved Application State",
                         path: "\(home)/Library/Saved Application State",
                         description: "Window restoration state data saved when apps quit.",
-                        category: .system),
+                        category: .system,
+                        riskLevel: .safe),
             InsightItem(name: "Trash",
                         path: "\(home)/.Trash",
                         description: "Files awaiting permanent deletion in the Trash.",
-                        category: .system),
+                        category: .system,
+                        riskLevel: .safe),
             InsightItem(name: "Old Downloads (90d+)",
                         path: "\(home)/Downloads",
                         description: "Files in Downloads not modified in the last 90 days.",
-                        category: .system),
+                        category: .system,
+                        riskLevel: .caution),
             // Media & Apps
             InsightItem(name: "iOS Backups",
                         path: "\(home)/Library/Application Support/MobileSync/Backup",
                         description: "Full device backups created by Finder / iTunes.",
-                        category: .media),
+                        category: .media,
+                        riskLevel: .caution),
             InsightItem(name: "Spotify Cache",
                         path: "\(home)/Library/Application Support/Spotify/PersistentCache",
                         description: "Spotify audio stream and thumbnail persistent cache.",
-                        category: .media),
+                        category: .media,
+                        riskLevel: .safe),
             InsightItem(name: "Slack Logs",
                         path: "\(home)/Library/Application Support/Slack/logs",
                         description: "Slack desktop client crash and diagnostic logs.",
-                        category: .media),
+                        category: .media,
+                        riskLevel: .safe),
             InsightItem(name: "Chrome Cache",
                         path: "\(home)/Library/Caches/Google/Chrome/Default/Cache",
                         description: "Google Chrome browser HTTP cache and offline resources.",
-                        category: .media),
+                        category: .media,
+                        riskLevel: .safe),
             InsightItem(name: "Firefox Cache",
                         path: "\(home)/Library/Caches/Firefox/Profiles",
                         description: "Mozilla Firefox browser cache and offline data.",
-                        category: .media),
+                        category: .media,
+                        riskLevel: .safe),
             InsightItem(name: "Safari Cache",
                         path: "\(home)/Library/Caches/com.apple.Safari",
                         description: "Apple Safari browser cache files.",
-                        category: .media),
+                        category: .media,
+                        riskLevel: .safe),
             InsightItem(name: "Mail Downloads",
                         path: "\(home)/Library/Mail Downloads",
                         description: "Email attachments opened from Apple Mail.",
-                        category: .media),
+                        category: .media,
+                        riskLevel: .safe),
             InsightItem(name: "Photos Library Originals Backup",
                         path: "\(home)/Pictures/Photos Library.photoslibrary/Masters",
                         description: "Original unprocessed photos stored in the Photos library.",
-                        category: .media),
+                        category: .media,
+                        riskLevel: .risky),
             // Developer
             InsightItem(name: "Xcode DerivedData",
                         path: "\(home)/Library/Developer/Xcode/DerivedData",
                         description: "Xcode compiled build artifacts, indexes, and logs.",
-                        category: .developer),
+                        category: .developer,
+                        riskLevel: .safe),
             InsightItem(name: "Xcode Simulators",
                         path: "\(home)/Library/Developer/CoreSimulator/Devices",
                         description: "iOS/watchOS/tvOS simulator device data and runtimes.",
-                        category: .developer),
+                        category: .developer,
+                        riskLevel: .caution),
             InsightItem(name: "Xcode Archives",
                         path: "\(home)/Library/Developer/Xcode/Archives",
                         description: "Xcode .xcarchive bundles created for App Store distribution.",
-                        category: .developer),
-            InsightItem(name: "Docker Data",
-                        path: "\(home)/Library/Containers/com.docker.docker/Data",
-                        description: "Docker Desktop container images, volumes, and metadata.",
-                        category: .developer),
+                        category: .developer,
+                        riskLevel: .caution),
             InsightItem(name: "Homebrew Caches",
                         path: "\(home)/Library/Caches/Homebrew",
                         description: "Homebrew downloaded formula and cask archives.",
-                        category: .developer),
+                        category: .developer,
+                        riskLevel: .safe),
             // Dependencies
             InsightItem(name: "pip Cache",
                         path: "\(home)/Library/Caches/pip",
                         description: "Python pip package download cache.",
-                        category: .deps),
+                        category: .deps,
+                        riskLevel: .safe),
             InsightItem(name: "Gradle Caches",
                         path: "\(home)/.gradle/caches",
                         description: "Gradle build system cached artifacts and wrapper JARs.",
-                        category: .deps),
+                        category: .deps,
+                        riskLevel: .safe),
             InsightItem(name: "Maven Repository",
                         path: "\(home)/.m2/repository",
                         description: "Maven local artifact repository (JARs, POMs).",
-                        category: .deps),
+                        category: .deps,
+                        riskLevel: .safe),
             InsightItem(name: "CocoaPods Cache",
                         path: "\(home)/Library/Caches/CocoaPods",
                         description: "CocoaPods pod download cache.",
-                        category: .deps),
+                        category: .deps,
+                        riskLevel: .safe),
             InsightItem(name: "Cargo Registry",
                         path: "\(home)/.cargo/registry",
                         description: "Rust Cargo crate source archives.",
-                        category: .deps),
+                        category: .deps,
+                        riskLevel: .safe),
             InsightItem(name: "npm Cache",
                         path: "\(home)/.npm/_cacache",
                         description: "npm package manager cache directory.",
-                        category: .deps),
+                        category: .deps,
+                        riskLevel: .safe),
             // IDE & Editors
             InsightItem(name: "JetBrains Cache",
                         path: "\(home)/Library/Caches/JetBrains",
                         description: "IntelliJ, WebStorm, PyCharm IDE system caches.",
-                        category: .ide),
-            InsightItem(name: "VS Code Cache",
-                        path: "\(home)/Library/Application Support/Code/Cache",
-                        description: "VS Code Electron renderer cache data.",
-                        category: .ide),
+                        category: .ide,
+                        riskLevel: .safe),
             InsightItem(name: "Android Studio Cache",
                         path: "\(home)/Library/Caches/Google/AndroidStudio",
                         description: "Android Studio IDE caches and indices.",
-                        category: .ide),
+                        category: .ide,
+                        riskLevel: .safe),
+            // AI Tools
+            InsightItem(name: "Ollama Models",
+                        path: "\(home)/.ollama/models",
+                        description: "Downloaded large language models (LLMs) used by Ollama.",
+                        category: .ai,
+                        riskLevel: .risky),
+            InsightItem(name: "HuggingFace Cache",
+                        path: "\(home)/.cache/huggingface",
+                        description: "Downloaded model weights and repositories from HuggingFace.",
+                        category: .ai,
+                        riskLevel: .caution),
+            InsightItem(name: "Claude Desktop Cache",
+                        path: "\(home)/Library/Application Support/Claude",
+                        description: "Logs and caches for the Claude desktop application.",
+                        category: .ai,
+                        riskLevel: .caution),
+            InsightItem(name: "ChatGPT Desktop Cache",
+                        path: "\(home)/Library/Group Containers/group.com.openai.chat",
+                        description: "Temporary data and logs for ChatGPT macOS client.",
+                        category: .ai,
+                        riskLevel: .caution),
+            // Game Engines
+            InsightItem(name: "Unity Asset Store Cache",
+                        path: "\(home)/Library/Unity/Asset Store-5.x",
+                        description: "Downloaded assets and packages from the Unity Asset Store.",
+                        category: .game,
+                        riskLevel: .caution),
+            InsightItem(name: "Unity Build Cache",
+                        path: "\(home)/Library/Caches/Unity",
+                        description: "Temporary Unity project compilation and build caches.",
+                        category: .game,
+                        riskLevel: .safe),
+            InsightItem(name: "Godot Export Templates",
+                        path: "\(home)/Library/Application Support/Godot/export_templates",
+                        description: "Pre-compiled templates used for exporting Godot games.",
+                        category: .game,
+                        riskLevel: .caution),
+            // Testing Tools
+            InsightItem(name: "Playwright Browsers",
+                        path: "\(home)/Library/Caches/ms-playwright",
+                        description: "Local browser dependencies installed by Playwright testing framework.",
+                        category: .testing,
+                        riskLevel: .safe),
+            InsightItem(name: "Puppeteer Caches",
+                        path: "\(home)/.cache/puppeteer",
+                        description: "Downloaded browser bundles managed by Puppeteer.",
+                        category: .testing,
+                        riskLevel: .safe),
+            // Cloud & Infra
+            InsightItem(name: "Terraform Plugins",
+                        path: "\(home)/.terraform.d",
+                        description: "Cached provider plugins for Terraform configurations.",
+                        category: .cloud,
+                        riskLevel: .caution),
+            InsightItem(name: "AWS CLI SSO Cache",
+                        path: "\(home)/.aws/sso/cache",
+                        description: "Temporary AWS single sign-on authentication cache files.",
+                        category: .cloud,
+                        riskLevel: .safe),
+            // Containers
+            InsightItem(name: "Docker Data Caches",
+                        path: "\(home)/Library/Containers/com.docker.docker/Data",
+                        description: "Docker Desktop container images, volumes, and engine data.",
+                        category: .containers,
+                        riskLevel: .risky),
+            // Version Managers
+            InsightItem(name: "nvm Node Versions",
+                        path: "\(home)/.nvm/versions",
+                        description: "Multiple Node.js environment runtimes installed by nvm.",
+                        category: .versionManagers,
+                        riskLevel: .caution),
+            InsightItem(name: "pyenv Python Versions",
+                        path: "\(home)/.pyenv/versions",
+                        description: "Multiple Python environment versions compiled by pyenv.",
+                        category: .versionManagers,
+                        riskLevel: .caution),
+            // Ruby Caches
+            InsightItem(name: "Ruby Gems Cache",
+                        path: "\(home)/.gem",
+                        description: "Locally cached Ruby gem packages.",
+                        category: .ruby,
+                        riskLevel: .safe),
+            InsightItem(name: "Bundler Cache",
+                        path: "\(home)/.bundle/cache",
+                        description: "Ruby Bundler cached package dependencies.",
+                        category: .ruby,
+                        riskLevel: .safe),
+            // VS Code Caches
+            InsightItem(name: "VS Code Cache Files",
+                        path: "\(home)/Library/Caches/com.microsoft.VSCode",
+                        description: "Visual Studio Code temporary Chromium/network cache files.",
+                        category: .ide,
+                        riskLevel: .safe),
+            InsightItem(name: "VS Code Ext Caches",
+                        path: "\(home)/Library/Application Support/Code/CachedExtensionVSIXs",
+                        description: "Cached Visual Studio Code extensions bundles.",
+                        category: .ide,
+                        riskLevel: .safe)
         ]
 
         // Mark existing ones
