@@ -1,0 +1,60 @@
+name: Auto-update Homebrew Cask
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-cask:
+    name: Update Cask in homebrew-juicer
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Calculate Cask Checksum
+        id: calc_hash
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          # Clean version (strip V/v prefix if present)
+          VERSION=$(echo "${TAG_NAME}" | sed 's/[Vv]//')
+          DOWNLOAD_URL="https://github.com/amfi-disable/Juicer/releases/download/${TAG_NAME}/Juicer.zip"
+          
+          echo "Downloading Juicer.zip from ${DOWNLOAD_URL}..."
+          curl -L -o Juicer.zip "${DOWNLOAD_URL}"
+          
+          SHA256=$(sha256sum Juicer.zip | awk '{print $1}')
+          echo "Calculated SHA256: ${SHA256}"
+          
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
+          echo "download_url=${DOWNLOAD_URL}" >> $GITHUB_OUTPUT
+
+      - name: Checkout homebrew-juicer Tap
+        uses: actions/checkout@v4
+        with:
+          repository: amfi-disable/homebrew-juicer
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN || secrets.GITHUB_TOKEN }}
+          path: homebrew-juicer
+
+      - name: Update Cask Definition
+        run: |
+          cd homebrew-juicer
+          VERSION="${{ steps.calc_hash.outputs.version }}"
+          SHA256="${{ steps.calc_hash.outputs.sha256 }}"
+          DOWNLOAD_URL="${{ steps.calc_hash.outputs.download_url }}"
+          
+          # Replace version, sha256, and url in juicer.rb
+          sed -i "s|version \".*\"|version \"${VERSION}\"|g" Casks/juicer.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|g" Casks/juicer.rb
+          sed -i "s|url \".*\"|url \"${DOWNLOAD_URL}\"|g" Casks/juicer.rb
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/juicer.rb
+          
+          # Commit and push changes if updated
+          if git diff --staged --quiet; then
+            echo "No changes to Cask definition."
+          else
+            git commit -m "chore: bump juicer cask to version ${VERSION}"
+            git push origin main
+          fi
