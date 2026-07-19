@@ -253,6 +253,7 @@ struct mainsidebarview: View {
                         case .emojiPicker: emojipickerview()
                         case .unicodeInspector: unicodeinspectorview()
                         case .screenshotAnnotation: screenshotannotationview()
+                        case .windowSnapping: windowsnappingview()
                         }
                     } else {
                         VStack {
