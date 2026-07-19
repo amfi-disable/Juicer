@@ -18,7 +18,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 13. [x] Thermal Throttling Monitor – Show when CPU/GPU is throttling due to temperature and suggest fixes.
 14. [x] Fan Speed Controller (where hardware allows) – Manual fan curve presets.
 15. [x] RAM Cleaner / Memory Purge – Safe purge of inactive memory to free RAM (`purge` command wrapper).
-16. Swap Manager – View swapfile size/viewer and toggle swap on/off (requires admin).
+16. [x] Swap Manager – View swapfile size/viewer and toggle swap on/off (requires admin).
 17. VPN Profile Manager – Import, export, enable/disable, and configure built‑in macOS VPN configurations.
 18. Network Location Manager – Create, switch, and delete network locations (Wi‑Fi, Ethernet, VPN, proxies).
 19. Bluetooth Device Manager – Pair/unpair, view battery levels, and auto‑connect preferred devices.
