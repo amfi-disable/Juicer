@@ -187,6 +187,7 @@ struct mainsidebarview: View {
                         case .thermalMonitor:  thermalmonitorview()
                         case .fanController:   fancontrollerview()
                         case .memoryPurge:     memorypurgeview()
+                        case .swapManager:     swapmanagerview()
                         }
                     } else {
                         VStack {

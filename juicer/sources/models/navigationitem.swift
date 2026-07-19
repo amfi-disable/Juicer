@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager
     
     var id: NavigationItem { self }
     
@@ -58,7 +58,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         switch self {
         case .appStore, .brewExplorer, .appUpdates:
             return .store
-        case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge:
+        case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager:
             return .system
         case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory:
             return .disk
@@ -112,6 +112,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .thermalMonitor: return "Thermal Monitor"
         case .fanController: return "Fan Controller"
         case .memoryPurge: return "RAM Cleaner"
+        case .swapManager: return "Swap Manager"
         }
     }
     
@@ -158,6 +159,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .thermalMonitor: return "thermometer.medium"
         case .fanController: return "fanblades.fill"
         case .memoryPurge: return "memorychip"
+        case .swapManager: return "arrow.left.arrow.right"
         }
     }
 }
