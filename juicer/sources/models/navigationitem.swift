@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera, antiKeylogger
     
     var id: NavigationItem { self }
     
@@ -62,7 +62,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return .system
         case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders, .downloadOrganizer, .archiveUtility, .diskImages, .fileTypeConverter, .symbolicLinks, .diskVerification, .storageSnapshots, .secureDelete:
             return .disk
-        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor, .privacyScanner, .passwordAudit, .quarantinedFiles, .sandboxInspector:
+        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor, .privacyScanner, .passwordAudit, .quarantinedFiles, .sandboxInspector, .antiKeylogger:
             return .configs
         case .utilitiesView:
             return .utilities
@@ -142,6 +142,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .clipboardAccess: return "Clipboard Access Monitor"
         case .locationServices: return "Location Services Auditor"
         case .microphoneCamera: return "Microphone & Camera Indicator"
+        case .antiKeylogger: return "Anti-Keylogger Scanner"
         }
     }
     
@@ -218,6 +219,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .clipboardAccess: return "doc.on.clipboard"
         case .locationServices: return "location.fill"
         case .microphoneCamera: return "mic.and.signal.meter"
+        case .antiKeylogger: return "keyboard.badge.ellipsis"
         }
     }
 }

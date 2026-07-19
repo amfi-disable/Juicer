@@ -55,7 +55,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 46. [x] Clipboard Access Monitor – Notify when apps read the clipboard and allow blocking.
 47. [x] Location Services Auditor – List apps that have requested location access and when they last used it.
 48. [x] Microphone/Camera Indicator – Menubar icon that lights up when mic/cam is active (like the mic/camera indicator in Ventura).
-49. Anti‑Keylogger Scanner – Scan for known keylogger signatures in `/Library/LaunchAgents`, `~/Library/LaunchAgents`, `/Library/LaunchDaemons`.
+49. [x] Anti‑Keylogger Scanner – Scan for known keylogger signatures in `/Library/LaunchAgents`, `~/Library/LaunchAgents`, `/Library/LaunchDaemons`.
 50. Secure Notes Vault – Encrypted local notes stored in the keychain with Touch ID / Face ID protection.
 
 ## Productivity & Utilities
