@@ -72,7 +72,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 61. [x] Screen Ruler & Protractor – On‑screen measurement tool for pixels, inches, centimeters, and angles.
 62. [x] Pixel‑Perfect Screen Loupe – Zoom magnifier with color sampler and crosshair.
 63. [x] Battery‑Saver Mode – Automatically reduce visual effects, lower keyboard backlight, put disks to sleep when on battery.
-64. Printer Queue Manager – View, pause, resume, cancel print jobs; view printer status and ink/toner levels.
+64. [x] Printer Queue Manager – View, pause, resume, cancel print jobs; view printer status and ink/toner levels.
 65. PDF Toolbox – Merge, split, rotate, compress, encrypt/decrypt PDFs using built‑in `PDFKit` or `qpdf`.
 66. Markdown Previewer – Live preview of Markdown files with syntax highlighting and export to HTML/PDF.
 67. Code Snippets Library – Store reusable code blocks with language tagging, search, and one‑click insert.
