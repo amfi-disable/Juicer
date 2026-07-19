@@ -5,6 +5,8 @@ struct statusbarview: View {
     
     @State private var diskUsageString: String = ""
     @State private var memoryUsageString: String = ""
+    @State private var diskUsageRatio: Double = 0
+    @State private var memoryUsageRatio: Double = 0
     @State private var timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
     
     var body: some View {
@@ -32,7 +34,11 @@ struct statusbarview: View {
                 Text("Disk: \(diskUsageString)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                ProgressView(value: diskUsageRatio)
+                    .progressViewStyle(.linear)
+                    .frame(width: 52)
             }
+            .help("Disk usage: \(diskUsageString)")
             
             Divider()
                 .frame(height: 16)
@@ -45,12 +51,18 @@ struct statusbarview: View {
                 Text("RAM: \(memoryUsageString)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                ProgressView(value: memoryUsageRatio)
+                    .progressViewStyle(.linear)
+                    .frame(width: 52)
             }
+            .help("Memory usage: \(memoryUsageString)")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
         .border(Color.secondary.opacity(0.15), width: 1)
+        .frame(minHeight: 30)
+        .accessibilityElement(children: .combine)
         .onAppear {
             updateMetrics()
         }
@@ -72,6 +84,7 @@ struct statusbarview: View {
             let usedString = byteFormatter.string(fromByteCount: usedBytes)
             let totalString = byteFormatter.string(fromByteCount: totalBytes)
             diskUsageString = "\(usedString) / \(totalString)"
+            diskUsageRatio = totalBytes > 0 ? Double(usedBytes) / Double(totalBytes) : 0
         }
         
         // Update Memory Metrics using mach host call
@@ -82,6 +95,7 @@ struct statusbarview: View {
         let usedMemString = byteFormatter.string(fromByteCount: Int64(mem.used))
         let totalMemString = byteFormatter.string(fromByteCount: Int64(mem.total))
         memoryUsageString = "\(usedMemString) / \(totalMemString)"
+        memoryUsageRatio = mem.total > 0 ? mem.used / mem.total : 0
     }
     
     private func getMemoryUsage() -> (used: Double, total: Double) {
