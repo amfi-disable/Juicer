@@ -99,7 +99,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 88. [x] Keyboard Backlight Timer – Automatically turn off keyboard backlight after a period of inactivity.
 89. [x] Trackpad Gesture Customizer – Add, remove, or modify multi‑finger gestures via private APIs (if allowed) or via BetterTouchTool‑style scripting.
 90. [x] Automator/Shortcut Runner – Run saved Automator workflows, Shortcuts, or Shell scripts from the menu bar with one click.
-91. System Info Exporter – Export a comprehensive HTML/JSON report of hardware, software, network, and settings for support tickets.
+91. [x] System Info Exporter – Export a comprehensive HTML/JSON report of hardware, software, network, and settings for support tickets.
 92. License & Software Inventory – List all installed apps (App Store, brew, manual .pkg) with version, install date, and vendor.
 93. Auto‑Update Checker – Poll for updates from brew, mas, npm, composer, cargo, pip, etc., and provide a bulk update button.
 94. Log File Rotator – Automatically compress and delete old logs based on rules (e.g., `/var/log/*.log`).
