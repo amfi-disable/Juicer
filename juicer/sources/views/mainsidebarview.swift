@@ -242,6 +242,7 @@ struct mainsidebarview: View {
                         case .wifiSurvey: wifisurveyview()
                         case .networkProfileSwitcher: networkprofileswitcherview()
                         case .vpnAutoConnect: vpnautoconnectview()
+                        case .publicIP: publicipview()
                         }
                     } else {
                         VStack {
