@@ -231,6 +231,7 @@ struct mainsidebarview: View {
                         case .colorPicker: colorpickerview()
                         case .screenRuler: screenrulerview()
                         case .screenLoupe: screenloupeview()
+                        case .batterySaver: batterysaverview()
                         }
                     } else {
                         VStack {
