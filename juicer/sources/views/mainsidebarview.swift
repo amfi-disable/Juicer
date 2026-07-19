@@ -251,6 +251,7 @@ struct mainsidebarview: View {
                         case .fileVaultAutoLock: filevaultautolockview()
                         case .japaneseKana: japanesekanahelperview()
                         case .emojiPicker: emojipickerview()
+                        case .unicodeInspector: unicodeinspectorview()
                         }
                     } else {
                         VStack {

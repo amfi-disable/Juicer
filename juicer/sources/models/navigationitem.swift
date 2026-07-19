@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera, antiKeylogger, secureNotes, clipboardManager, snippetExpander, menuBarCustomizer, desktopIcons, hotCorners, keyboardShortcuts, textCaseConverter, characterCounter, qrCode, colorPicker, screenRuler, screenLoupe, batterySaver, printerQueue, pdfToolbox, markdownPreviewer, codeSnippets, localWebServer, portScanner, lanDiscovery, wifiSurvey, networkProfileSwitcher, vpnAutoConnect, publicIP, speedTest, dnsDiagnostics, hostsFile, blocklistUpdater, appLocker, fileVaultAutoLock, japaneseKana, emojiPicker
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera, antiKeylogger, secureNotes, clipboardManager, snippetExpander, menuBarCustomizer, desktopIcons, hotCorners, keyboardShortcuts, textCaseConverter, characterCounter, qrCode, colorPicker, screenRuler, screenLoupe, batterySaver, printerQueue, pdfToolbox, markdownPreviewer, codeSnippets, localWebServer, portScanner, lanDiscovery, wifiSurvey, networkProfileSwitcher, vpnAutoConnect, publicIP, speedTest, dnsDiagnostics, hostsFile, blocklistUpdater, appLocker, fileVaultAutoLock, japaneseKana, emojiPicker, unicodeInspector
     
     var id: NavigationItem { self }
     
@@ -64,7 +64,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return .disk
         case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor, .privacyScanner, .passwordAudit, .quarantinedFiles, .sandboxInspector, .antiKeylogger, .secureNotes:
             return .configs
-        case .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .batterySaver, .printerQueue, .pdfToolbox, .markdownPreviewer, .codeSnippets, .localWebServer, .portScanner, .lanDiscovery, .wifiSurvey, .networkProfileSwitcher, .vpnAutoConnect, .publicIP, .speedTest, .dnsDiagnostics, .hostsFile, .blocklistUpdater, .appLocker, .fileVaultAutoLock, .japaneseKana, .emojiPicker:
+        case .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .batterySaver, .printerQueue, .pdfToolbox, .markdownPreviewer, .codeSnippets, .localWebServer, .portScanner, .lanDiscovery, .wifiSurvey, .networkProfileSwitcher, .vpnAutoConnect, .publicIP, .speedTest, .dnsDiagnostics, .hostsFile, .blocklistUpdater, .appLocker, .fileVaultAutoLock, .japaneseKana, .emojiPicker, .unicodeInspector:
             return .utilities
         }
     }
@@ -176,6 +176,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .fileVaultAutoLock: return "File Vault Auto-Lock"
         case .japaneseKana: return "Japanese & Kana Helper"
         case .emojiPicker: return "Emoji Picker"
+        case .unicodeInspector: return "Unicode Character Inspector"
         }
     }
     
@@ -286,6 +287,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .fileVaultAutoLock: return "lock.display"
         case .japaneseKana: return "character.book.closed"
         case .emojiPicker: return "face.smiling"
+        case .unicodeInspector: return "character"
         }
     }
 }

@@ -1,0 +1,3 @@
+import SwiftUI
+
+struct unicodeinspectorview: View { @State private var text = "A"; var scalar: UnicodeScalar? { text.unicodeScalars.first }; var body: some View { VStack(alignment: .leading, spacing: 16) { JuicerFeatureHeader(title: "Unicode Character Inspector", subtitle: "Inspect code points, encodings, and Unicode categories.", icon: "character", refreshing: false, action: {}) ; TextField("Character", text: $text); if let scalar { Text("U+\(String(scalar.value, radix: 16, uppercase: true))").font(.title2.monospaced()); Text("UTF-8: \(Array(String(scalar).utf8).map { String(format: "%02X", $0) }.joined(separator: " "))"); Text("UTF-16 units: \(String(scalar).utf16.count)"); Text("Glyph: \(String(scalar))").font(.largeTitle) }; Spacer() }.padding(24) } }
