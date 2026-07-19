@@ -104,6 +104,12 @@ class SettingsManager: ObservableObject {
         UserDefaults.standard.set(true, forKey: "juicer.settings.restoreMainWindow")
         UserDefaults.standard.set(true, forKey: "juicer.settings.showStatusBar")
         UserDefaults.standard.set("2s", forKey: "juicer.settings.statusMonitorRefresh")
+        UserDefaults.standard.set("system", forKey: "juicer.settings.appearance")
+        UserDefaults.standard.set("orange", forKey: "juicer.settings.accentColor")
+        UserDefaults.standard.set(240, forKey: "juicer.settings.sidebarWidth")
+        UserDefaults.standard.set(true, forKey: "juicer.dashboard.showVitals")
+        UserDefaults.standard.set(true, forKey: "juicer.dashboard.showCuratedTools")
+        UserDefaults.standard.set(true, forKey: "juicer.dashboard.showBookmarks")
         
         // Lists defaults
         self.ignoredPaths = ["/System/Library", "/Library/Updates", "/private/var"]

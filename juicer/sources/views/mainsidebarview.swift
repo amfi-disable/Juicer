@@ -42,6 +42,9 @@ struct mainsidebarview: View {
     @State private var sidebarSearch = ""
     @AppStorage("juicer.settings.showStatusBar") private var showStatusBar = true
     @AppStorage("juicer.settings.restoreMainWindow") private var restoreMainWindow = true
+    @AppStorage("juicer.settings.sidebarWidth") private var sidebarWidth = 240
+    @AppStorage("juicer.settings.appearance") private var appearance = "system"
+    @AppStorage("juicer.settings.accentColor") private var accentColor = "orange"
     @StateObject private var navigationPreferences = navigationpreferences.shared
     
     var body: some View {
@@ -91,7 +94,7 @@ struct mainsidebarview: View {
                         }
                     }
                     .listStyle(.sidebar)
-                    .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
+                    .navigationSplitViewColumnWidth(min: 200, ideal: CGFloat(sidebarWidth), max: 340)
                 } detail: {
                     switch selectedStoreItem {
                     case .allCasks:
@@ -170,7 +173,7 @@ struct mainsidebarview: View {
                     }
                     .listStyle(.sidebar)
                     .searchable(text: $sidebarSearch, placement: .sidebar, prompt: "Search tools")
-                    .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
+                    .navigationSplitViewColumnWidth(min: 200, ideal: CGFloat(sidebarWidth), max: 340)
                 } detail: {
                     if let item = selectedItem {
                         switch item {
@@ -311,6 +314,8 @@ struct mainsidebarview: View {
                 statusbarview()
             }
         }
+        .preferredColorScheme(preferredColorScheme)
+        .tint(selectedAccentColor)
         // Menu navigation event listeners (switching workspace automatically)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.dashboard"))) { _ in
             currentWorkspace = .system
@@ -424,6 +429,24 @@ struct mainsidebarview: View {
                 currentWorkspace = item.workspace
                 selectedItem = item
             }
+        }
+    }
+
+    private var preferredColorScheme: ColorScheme? {
+        switch appearance {
+        case "light": return .light
+        case "dark": return .dark
+        default: return nil
+        }
+    }
+
+    private var selectedAccentColor: Color {
+        switch accentColor {
+        case "blue": return .blue
+        case "purple": return .purple
+        case "green": return .green
+        case "pink": return .pink
+        default: return .orange
         }
     }
     
