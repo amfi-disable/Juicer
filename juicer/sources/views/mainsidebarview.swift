@@ -203,6 +203,7 @@ struct mainsidebarview: View {
                         case .metadataEditor: metadataeditorview()
                         case .symbolicLinks: symboliclinkview()
                         case .diskVerification: diskverificationview()
+                        case .storageSnapshots: storagesnapshotview()
                         }
                     } else {
                         VStack {

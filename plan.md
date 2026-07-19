@@ -39,7 +39,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 32. [x] Metadata Editor – Edit EXIF, IPTC, XMP, ID3, PDF, and Office document metadata in batch.
 33. [x] Symbolic Link Manager – Create, list, validate, and delete symlinks & hard links with a UI.
 34. [x] Disk Verification & Repair – Run `fsck_hfs`, `fsck_apfs`, `diskutil verify/repair` with progress UI.
-35. Storage Snapshot Manager – Create APFS snapshots, list, compare, and rollback (requires admin).
+35. [x] Storage Snapshot Manager – Create APFS snapshots, list, compare, and rollback (requires admin).
 
 ## Privacy & Security
 36. FileVault Status & Recovery Key Manager – Show encryption status, and allow backing up or changing the recovery key.
