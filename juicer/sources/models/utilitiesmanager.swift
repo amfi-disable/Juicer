@@ -102,7 +102,7 @@ class UtilitiesManager: ObservableObject {
     }
 
     func showBetterCmdTabPanel() {
-        let apps = NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular }
+        let windows = betterCmdTabWindows()
         if betterCmdTabPanel == nil {
             let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 620, height: 190), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
             panel.isFloatingPanel = true
@@ -115,7 +115,7 @@ class UtilitiesManager: ObservableObject {
             betterCmdTabPanel = panel
         }
         let panel = betterCmdTabPanel!
-        panel.contentView = NSHostingView(rootView: bettercmdtaboverlayview(apps: apps, select: { [weak self] app in
+        panel.contentView = NSHostingView(rootView: bettercmdtaboverlayview(windows: windows, select: { [weak self] app in
             app.activate(options: [.activateIgnoringOtherApps])
             self?.hideBetterCmdTabPanel()
         }, dismiss: { [weak self] in self?.hideBetterCmdTabPanel() }))
@@ -129,6 +129,23 @@ class UtilitiesManager: ObservableObject {
 
     func hideBetterCmdTabPanel() {
         betterCmdTabPanel?.orderOut(nil)
+    }
+
+    private func betterCmdTabWindows() -> [bettercmdtabwindow] {
+        guard let windowInfo = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return [] }
+        let apps = NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular }
+        return apps.compactMap { app in
+            let matching = windowInfo.first { info in
+                let owner = info[kCGWindowOwnerPID as String] as? Int32
+                let layer = info[kCGWindowLayer as String] as? Int
+                return owner == app.processIdentifier && layer == 0
+            }
+            guard let matching, let number = matching[kCGWindowNumber as String] as? CGWindowID else { return nil }
+            let image = CGWindowListCreateImage(.null, .optionIncludingWindow, number, [.boundsIgnoreFraming, .bestResolution]).map { cgImage in
+                NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
+            }
+            return bettercmdtabwindow(id: number, app: app, image: image)
+        }
     }
     
     enum TileDirection {

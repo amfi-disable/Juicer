@@ -1,7 +1,13 @@
 import SwiftUI
 
+struct bettercmdtabwindow: Identifiable {
+    let id: CGWindowID
+    let app: NSRunningApplication
+    let image: NSImage?
+}
+
 struct bettercmdtaboverlayview: View {
-    let apps: [NSRunningApplication]
+    let windows: [bettercmdtabwindow]
     let select: (NSRunningApplication) -> Void
     let dismiss: () -> Void
 
@@ -21,20 +27,22 @@ struct bettercmdtaboverlayview: View {
                     .keyboardShortcut(.escape, modifiers: [])
             }
 
-            if apps.isEmpty {
+            if windows.isEmpty {
                 ContentUnavailableView("No Applications", systemImage: "app.dashed", description: Text("No switchable applications are running."))
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: 12) {
-                        ForEach(apps, id: \.processIdentifier) { app in
-                            Button { select(app) } label: {
+                        ForEach(windows) { window in
+                            Button { select(window.app) } label: {
                                 VStack(spacing: 9) {
-                                    if let icon = app.icon {
+                                    if let image = window.image {
+                                        Image(nsImage: image).resizable().scaledToFit().frame(width: 84, height: 52)
+                                    } else if let icon = window.app.icon {
                                         Image(nsImage: icon).resizable().scaledToFit().frame(width: 52, height: 52)
                                     } else {
                                         Image(systemName: "app.fill").font(.system(size: 42)).frame(width: 52, height: 52)
                                     }
-                                    Text(app.localizedName ?? "Application").font(.caption).lineLimit(1).frame(maxWidth: 96)
+                                    Text(window.app.localizedName ?? "Application").font(.caption).lineLimit(1).frame(maxWidth: 96)
                                 }
                                 .padding(12).frame(width: 120, height: 112)
                                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
