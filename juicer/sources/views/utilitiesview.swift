@@ -19,7 +19,7 @@ struct utilitiesview: View {
                     // BetterCmdTab
                     utilityCard(
                         title: "BetterCmdTab (Window Switcher)",
-                        description: "Replaces standard switcher overlays with full thumbnail lists of active windows.",
+                        description: "Shows a floating, material-backed switcher above other apps, even when Juicer is not frontmost.",
                         isEnabled: $manager.betterCmdTabEnabled,
                         hotkey: "⌥ + Tab"
                     )
@@ -172,8 +172,10 @@ struct utilitiesview: View {
                     .font(.subheadline).foregroundStyle(.secondary)
             }
             Spacer()
-            Toggle("", isOn: isEnabled)
+            Toggle("Enable (title)", isOn: isEnabled)
                 .toggleStyle(.switch)
+                .labelsHidden()
+                .help(isEnabled.wrappedValue ? "Disable (title)" : "Enable (title)")
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor).opacity(0.2))
