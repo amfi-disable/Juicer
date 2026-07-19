@@ -24,6 +24,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
 
 enum NavigationItem: String, CaseIterable, Identifiable {
     case dashboard
+    case featureCatalog
     case appUninstaller
     case orphanScanner
     case serviceManager
@@ -64,7 +65,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return .disk
         case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor, .privacyScanner, .passwordAudit, .quarantinedFiles, .sandboxInspector, .antiKeylogger, .secureNotes:
             return .configs
-        case .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .batterySaver, .printerQueue, .pdfToolbox, .markdownPreviewer, .codeSnippets, .localWebServer, .portScanner, .lanDiscovery, .wifiSurvey, .networkProfileSwitcher, .vpnAutoConnect, .publicIP, .speedTest, .dnsDiagnostics, .hostsFile, .blocklistUpdater, .appLocker, .fileVaultAutoLock, .japaneseKana, .emojiPicker, .unicodeInspector, .screenshotAnnotation, .windowSnapping, .displayProfiles, .nightShift, .keyboardBacklight, .trackpadGestures, .shortcutRunner, .systemInfoExporter, .softwareInventory, .autoUpdateChecker, .logRotator, .systemServices, .diskSpacePredictor, .backupTrigger, .networkLimiter, .diskImageMounter, .soundVolumeMixer:
+        case .featureCatalog, .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .batterySaver, .printerQueue, .pdfToolbox, .markdownPreviewer, .codeSnippets, .localWebServer, .portScanner, .lanDiscovery, .wifiSurvey, .networkProfileSwitcher, .vpnAutoConnect, .publicIP, .speedTest, .dnsDiagnostics, .hostsFile, .blocklistUpdater, .appLocker, .fileVaultAutoLock, .japaneseKana, .emojiPicker, .unicodeInspector, .screenshotAnnotation, .windowSnapping, .displayProfiles, .nightShift, .keyboardBacklight, .trackpadGestures, .shortcutRunner, .systemInfoExporter, .softwareInventory, .autoUpdateChecker, .logRotator, .systemServices, .diskSpacePredictor, .backupTrigger, .networkLimiter, .diskImageMounter, .soundVolumeMixer:
             return .utilities
         }
     }
@@ -72,6 +73,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .dashboard: return "Dashboard"
+        case .featureCatalog: return "Additional Features"
         case .appUninstaller: return "App Uninstaller"
         case .orphanScanner: return "Orphan Finder"
         case .serviceManager: return "Service Manager"
@@ -200,6 +202,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     var iconName: String {
         switch self {
         case .dashboard: return "house.fill"
+        case .featureCatalog: return "square.grid.2x2"
         case .appUninstaller: return "trash.fill"
         case .orphanScanner: return "folder.badge.minus"
         case .serviceManager: return "cpu"
