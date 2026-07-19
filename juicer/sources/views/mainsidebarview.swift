@@ -234,6 +234,7 @@ struct mainsidebarview: View {
                         case .batterySaver: batterysaverview()
                         case .printerQueue: printerqueueview()
                         case .pdfToolbox: pdftoolboxview()
+                        case .markdownPreviewer: markdownpreviewerview()
                         }
                     } else {
                         VStack {
