@@ -182,5 +182,10 @@ struct juicerapp: App {
         Settings {
             settingsview()
         }
+
+        MenuBarExtra("AirDrop Quick-Send", systemImage: "airplayaudio") {
+            airdropquicksendview()
+                .frame(width: 360, height: 430)
+        }
     }
 }

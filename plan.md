@@ -22,7 +22,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 17. [x] VPN Profile Manager – Import, export, enable/disable, and configure built‑in macOS VPN configurations.
 18. [x] Network Location Manager – Create, switch, and delete network locations (Wi‑Fi, Ethernet, VPN, proxies).
 19. [x] Bluetooth Device Manager – Pair/unpair, view battery levels, and auto‑connect preferred devices.
-20. AirDrop Quick‑Send – Drag‑and‑drop files onto a menu‑bar item to instantly AirDrop to nearby devices.
+20. [x] AirDrop Quick‑Send – Drag‑and‑drop files onto a menu‑bar item to instantly AirDrop to nearby devices.
 
 ## Storage & Filesystem
 21. Duplicate File Finder – Scan for duplicate files by hash, size, name, or content with preview & safe‑delete.
