@@ -66,7 +66,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 55. [x] Hot Corners Configurator – Edit Mission Control Hot Corners with additional actions (scripts, URLs, apps).
 56. [x] Keyboard Shortcut Manager – View, search, add, edit, and remove custom keyboard shortcuts for all apps.
 57. [x] Text Case Converter – Selected text → Upper, Lower, Title, Sentence, Camel, Snake, Kebab case via menu‑bar or service.
-58. Character/Word Counter – Live count for selected text or clipboard content.
+58. [x] Character/Word Counter – Live count for selected text or clipboard content.
 59. QR Code Generator/Scanner – Create QR codes from text/URL and scan using the Mac’s camera.
 60. Color Picker – System‑wide color picker with history, HEX/RGB/HSB/CMYK values, and copy‑to‑clipboard.
 61. Screen Ruler & Protractor – On‑screen measurement tool for pixels, inches, centimeters, and angles.
