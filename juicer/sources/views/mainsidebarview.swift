@@ -200,6 +200,7 @@ struct mainsidebarview: View {
                         case .permissionRepair: permissionrepairview()
                         case .extendedAttributes: extendedattributeview()
                         case .fileTypeConverter: filetypeconverterview()
+                        case .metadataEditor: metadataeditorview()
                         }
                     } else {
                         VStack {

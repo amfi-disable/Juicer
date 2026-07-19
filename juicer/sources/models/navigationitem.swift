@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor
     
     var id: NavigationItem { self }
     
@@ -62,7 +62,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return .system
         case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders, .downloadOrganizer, .archiveUtility, .diskImages, .fileTypeConverter:
             return .disk
-        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes:
+        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor:
             return .configs
         case .utilitiesView:
             return .utilities
@@ -125,6 +125,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .permissionRepair: return "Permissions Repair"
         case .extendedAttributes: return "Extended Attributes"
         case .fileTypeConverter: return "File Type Converter"
+        case .metadataEditor: return "Metadata Editor"
         }
     }
     
@@ -184,6 +185,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .permissionRepair: return "lock.document"
         case .extendedAttributes: return "tag"
         case .fileTypeConverter: return "arrow.triangle.2.circlepath"
+        case .metadataEditor: return "tag.fill"
         }
     }
 }
