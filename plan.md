@@ -78,7 +78,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 67. [x] Code Snippets Library – Store reusable code blocks with language tagging, search, and one‑click insert.
 68. [x] Local Web Server – One‑click start/stop a simple static file server (`python -m http.server` or Swift‑NIO) for testing.
 69. [x] Port Scanner – Scan localhost or remote host for open TCP/UDP ports with service guesswork.
-70. LAN Device Discovery – Bonjour/mDNS browser showing all services (_http, _ssh, _afpovertcp, _smb, _ipp, etc.).
+70. [x] LAN Device Discovery – Bonjour/mDNS browser showing all services (_http, _ssh, _afpovertcp, _smb, _ipp, etc.).
 71. Wi‑Fi Survey Tool – Show SSID, signal strength, channel, security, and recommend least‑crowded channel.
 72. Network‑Profile Switcher – Switch between predefined network configurations (static IP, DNS, proxies, proxies‑exceptions).
 73. VPN Auto‑Connect – Auto‑connect a preferred VPN on specific Wi‑Fi SSIDs or when launching certain apps.
