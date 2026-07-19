@@ -196,6 +196,7 @@ struct mainsidebarview: View {
                         case .emptyFolders:   emptyfolderview()
                         case .downloadOrganizer: downloadorganizerview()
                         case .archiveUtility: archiveutilityview()
+                        case .diskImages:     diskimageview()
                         }
                     } else {
                         VStack {
