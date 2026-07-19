@@ -107,7 +107,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 96. [x] Disk Space Predictor – Predict when disk will be full based on current usage trends and notify.
 97. [x] Automatic Backup Trigger – Start rsync‑based backup to local/network volume when specific folders change.
 98. [x] Network Speed Limiter (Bandwidth Control) – Limit upload/download speed per app or port via `pfctl` or `ipfw` wrapper.
-99. Automatic Disk Image Mounter – Automatically mount `.dmg` or `.iso` files dropped into a folder and notify.
+99. [x] Automatic Disk Image Mounter – Automatically mount `.dmg` or `.iso` files dropped into a folder and notify.
 100. Sound Volume Mixer – Per‑app output volume adjustment UI (Core Audio audio session wrapper).
 
 ## Implementation Notes
