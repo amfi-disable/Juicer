@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge
     
     var id: NavigationItem { self }
     
@@ -58,7 +58,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         switch self {
         case .appStore, .brewExplorer, .appUpdates:
             return .store
-        case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager:
+        case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge:
             return .system
         case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory:
             return .disk
@@ -108,6 +108,10 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .processKiller: return "Process Killer"
         case .systemLogs: return "System Log Viewer"
         case .kextManager: return "KEXT Manager"
+        case .powerSchedule: return "Power Schedule"
+        case .thermalMonitor: return "Thermal Monitor"
+        case .fanController: return "Fan Controller"
+        case .memoryPurge: return "RAM Cleaner"
         }
     }
     
@@ -150,6 +154,10 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .processKiller: return "xmark.octagon"
         case .systemLogs: return "doc.text.magnifyingglass"
         case .kextManager: return "puzzlepiece.extension"
+        case .powerSchedule: return "calendar.badge.clock"
+        case .thermalMonitor: return "thermometer.medium"
+        case .fanController: return "fanblades.fill"
+        case .memoryPurge: return "memorychip"
         }
     }
 }
