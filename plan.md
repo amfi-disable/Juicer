@@ -52,7 +52,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 43. [x] Network Exposure Monitor – Show which apps have open listening ports and remote connections.
 44. [x] USB Device Guard – Whitelist/blacklist USB devices and get notified when unknown USB is plugged in.
 45. [x] Screen Recording Detector – Alert when any app starts a screen‑recording session.
-46. Clipboard Access Monitor – Notify when apps read the clipboard and allow blocking.
+46. [x] Clipboard Access Monitor – Notify when apps read the clipboard and allow blocking.
 47. Location Services Auditor – List apps that have requested location access and when they last used it.
 48. Microphone/Camera Indicator – Menubar icon that lights up when mic/cam is active (like the mic/camera indicator in Ventura).
 49. Anti‑Keylogger Scanner – Scan for known keylogger signatures in `/Library/LaunchAgents`, `~/Library/LaunchAgents`, `/Library/LaunchDaemons`.

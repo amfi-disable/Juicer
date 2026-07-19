@@ -214,6 +214,7 @@ struct mainsidebarview: View {
                         case .networkExposure: networkexposureview()
                         case .usbDeviceGuard: usbdeviceguardview()
                         case .screenRecording: screenrecordingdetectorview()
+                        case .clipboardAccess: clipboardaccessview()
                         }
                     } else {
                         VStack {
