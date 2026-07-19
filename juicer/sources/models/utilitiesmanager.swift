@@ -160,8 +160,26 @@ class UtilitiesManager: ObservableObject {
         let err = AXUIElementCopyAttributeValue(appRef, kAXFocusedWindowAttribute as CFString, &temp)
         guard err == .success, let windowRef = temp as! AXUIElement? else { return }
         
+        var currentPosition = CGPoint.zero
+        var positionValue: AnyObject?
+        if AXUIElementCopyAttributeValue(windowRef, kAXPositionAttribute as CFString, &positionValue) == .success,
+           let positionValue,
+           AXValueGetValue(positionValue as! AXValue, .cgPoint, &currentPosition) {
+            let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
+            let globalPoint = NSPoint(x: currentPosition.x, y: primaryHeight - currentPosition.y)
+            let screen = NSScreen.screens.first(where: { $0.frame.contains(globalPoint) }) ?? NSScreen.main
+            guard let screen else { return }
+            let screenRect = screen.visibleFrame
+
+            setWindowFrame(windowRef, screenRect: screenRect, direction: direction)
+            return
+        }
+
         guard let screen = NSScreen.main else { return }
-        let screenRect = screen.visibleFrame
+        setWindowFrame(windowRef, screenRect: screen.visibleFrame, direction: direction)
+    }
+
+    private func setWindowFrame(_ windowRef: AXUIElement, screenRect: NSRect, direction: TileDirection) {
         
         let targetWidth = screenRect.width / 2
         let targetHeight = screenRect.height
