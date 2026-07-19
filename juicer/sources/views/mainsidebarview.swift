@@ -246,6 +246,7 @@ struct mainsidebarview: View {
                         case .speedTest: speedtestview()
                         case .dnsDiagnostics: dnsdiagnosticsview()
                         case .hostsFile: hostsfileview()
+                        case .blocklistUpdater: blocklistupdaterview()
                         }
                     } else {
                         VStack {
