@@ -236,6 +236,7 @@ struct mainsidebarview: View {
                         case .pdfToolbox: pdftoolboxview()
                         case .markdownPreviewer: markdownpreviewerview()
                         case .codeSnippets: codesnippetsview()
+                        case .localWebServer: localwebserverview()
                         }
                     } else {
                         VStack {
