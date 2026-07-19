@@ -26,7 +26,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 
 ## Storage & Filesystem
 21. [x] Duplicate File Finder – Scan for duplicate files by hash, size, name, or content with preview & safe‑delete.
-22. Large File Finder – Locate files larger than a user‑defined threshold across selected folders.
+22. [x] Large File Finder – Locate files larger than a user‑defined threshold across selected folders.
 23. Empty Folder Cleaner – Locate and delete empty directories recursively.
 24. Temporary Files Cleaner – Clean `/tmp`, `~/Library/Caches`, `/Library/Caches`, and app‑specific temp folders.
 25. Download Folder Organizer – Auto‑sort downloaded files into subfolders by type/date with rule‑based engine.

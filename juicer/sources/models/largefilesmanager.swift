@@ -17,8 +17,20 @@ class LargeFilesManager: ObservableObject {
     @Published var isTrashing = false
     @Published var sizeThresholdMB: Double = 100.0
     @Published var ageThresholdMonths: Int = 12
+    @Published var searchDirectories: [URL]
     
     private let fileManager = FileManager.default
+
+    init() {
+        let home = fileManager.homeDirectoryForCurrentUser
+        searchDirectories = ["Downloads", "Documents", "Desktop"].map { home.appendingPathComponent($0) }
+    }
+
+    func addSearchDirectory(_ url: URL) {
+        guard !searchDirectories.contains(url) else { return }
+        searchDirectories.append(url)
+        startScan()
+    }
     
     func startScan() {
         self.isScanning = true
@@ -30,17 +42,10 @@ class LargeFilesManager: ObservableObject {
         let cutoffDate = calendar.date(byAdding: .month, value: -ageThresholdMonths, to: Date()) ?? Date.distantPast
         
         Task.detached(priority: .userInitiated) {
-            let home = FileManager.default.homeDirectoryForCurrentUser
-            let searchDirectories = [
-                home.appendingPathComponent("Downloads"),
-                home.appendingPathComponent("Documents"),
-                home.appendingPathComponent("Desktop")
-            ]
-            
             var discovered: [LargeFileItem] = []
             let keys: [URLResourceKey] = [.fileSizeKey, .contentModificationDateKey, .isRegularFileKey]
             
-            for directory in searchDirectories {
+            for directory in self.searchDirectories {
                 guard self.fileManager.fileExists(atPath: directory.path) else { continue }
                 
                 guard let enumerator = self.fileManager.enumerator(
