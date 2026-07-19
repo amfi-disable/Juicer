@@ -92,7 +92,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 81. [x] Japanese/Kana Input Helper – Quick switch to Romaji → Kana/Kanji conversion popup.
 82. [x] Emoji Picker – Searchable emoji palette with history and frecency ordering.
 83. [x] Unicode Character Inspector – Show code point, UTF‑8/16/32 bytes, glyph, and category for any selected character.
-84. Screen‑Shot Annotation Tool – Quick markup (arrows, boxes, text, blur) after a screenshot, with save / copy options.
+84. [x] Screen‑Shot Annotation Tool – Quick markup (arrows, boxes, text, blur) after a screenshot, with save / copy options.
 85. Window‑Snapping/Tiling Manager – Drag windows to screen edges or use keyboard shortcuts to tile, quarter, full‑screen, center.
 86. Display Profile Manager – Create, switch, and calibrate color profiles (ICC) for external monitors.
 87. Night Shift/True Tone Scheduler – Schedule Night Shift, True Tone, and custom color temperature changes based on time/location.

@@ -252,6 +252,7 @@ struct mainsidebarview: View {
                         case .japaneseKana: japanesekanahelperview()
                         case .emojiPicker: emojipickerview()
                         case .unicodeInspector: unicodeinspectorview()
+                        case .screenshotAnnotation: screenshotannotationview()
                         }
                     } else {
                         VStack {
