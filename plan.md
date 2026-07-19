@@ -105,7 +105,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 94. [x] Log File Rotator – Automatically compress and delete old logs based on rules (e.g., `/var/log/*.log`).
 95. [x] System Service Status Dashboard – Wrapper around `launchctl list` showing service state (running/waiting/failed) with color coding.
 96. [x] Disk Space Predictor – Predict when disk will be full based on current usage trends and notify.
-97. Automatic Backup Trigger – Start rsync‑based backup to local/network volume when specific folders change.
+97. [x] Automatic Backup Trigger – Start rsync‑based backup to local/network volume when specific folders change.
 98. Network Speed Limiter (Bandwidth Control) – Limit upload/download speed per app or port via `pfctl` or `ipfw` wrapper.
 99. Automatic Disk Image Mounter – Automatically mount `.dmg` or `.iso` files dropped into a folder and notify.
 100. Sound Volume Mixer – Per‑app output volume adjustment UI (Core Audio audio session wrapper).
