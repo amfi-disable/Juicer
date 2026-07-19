@@ -223,6 +223,7 @@ struct mainsidebarview: View {
                         case .snippetExpander: snippetexpanderview()
                         case .menuBarCustomizer: menubarcustomizerview()
                         case .desktopIcons: desktopiconstoggleview()
+                        case .hotCorners: hotcornersview()
                         }
                     } else {
                         VStack {
