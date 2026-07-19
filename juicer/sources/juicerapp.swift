@@ -3,6 +3,9 @@ import SwiftUI
 @main
 struct juicerapp: App {
     @State private var hasAccess: Bool = onboardingview.checkFullDiskAccess()
+    @AppStorage("juicer.settings.showStatusMenuBar") private var showStatusMenuBar = true
+    @AppStorage("juicer.settings.showQuickSendMenuBar") private var showQuickSendMenuBar = true
+    @AppStorage("juicer.settings.menuBarLabelStyle") private var menuBarLabelStyle = "label"
 
     init() {
         NotificationManager.shared.requestAuthorization()
@@ -185,13 +188,30 @@ struct juicerapp: App {
             settingsview()
         }
 
-        MenuBarExtra("AirDrop Quick-Send", systemImage: "airplayaudio") {
-            airdropquicksendview()
-                .frame(width: 360, height: 430)
+        if showQuickSendMenuBar {
+            MenuBarExtra {
+                airdropquicksendview()
+                    .frame(width: 360, height: 430)
+            } label: {
+                menuBarLabel(title: "AirDrop Quick-Send", icon: "airplayaudio")
+            }
         }
 
-        MenuBarExtra("Juicer Status", systemImage: "waveform.path.ecg") {
-            menubarmonitorview()
+        if showStatusMenuBar {
+            MenuBarExtra {
+                menubarmonitorview()
+            } label: {
+                menuBarLabel(title: "Juicer Status", icon: "waveform.path.ecg")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func menuBarLabel(title: String, icon: String) -> some View {
+        if menuBarLabelStyle == "icon" {
+            Image(systemName: icon)
+        } else {
+            Label(title, systemImage: icon)
         }
     }
 }

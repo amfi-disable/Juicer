@@ -143,6 +143,11 @@ class StatusMonitorManager: ObservableObject {
     @Published var processSortKey: ProcessSortKey = .cpu
     @Published var isRefreshing: Bool = false
 
+    init() {
+        let stored = UserDefaults.standard.string(forKey: "juicer.settings.statusMonitorRefresh")
+        refreshInterval = RefreshInterval(rawValue: stored ?? "2s") ?? .twoSeconds
+    }
+
     enum ProcessSortKey: String, CaseIterable {
         case cpu = "CPU %"
         case mem = "Memory"

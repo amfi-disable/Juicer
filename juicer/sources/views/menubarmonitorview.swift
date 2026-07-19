@@ -14,8 +14,7 @@ struct menubarmonitorview: View {
             Label(memory, systemImage: "memorychip")
             Divider()
             Button("Open Juicer Dashboard") {
-                NSApp.activate(ignoringOtherApps: true)
-                NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.dashboard"), object: nil)
+                openMainWindow()
             }
             Button("Refresh") { update() }
         }
@@ -26,6 +25,12 @@ struct menubarmonitorview: View {
             timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { _ in update() }
         }
         .onDisappear { timer?.invalidate() }
+    }
+
+    private func openMainWindow() {
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.windows.first(where: { $0.canBecomeKey && $0.title != "" })?.makeKeyAndOrderFront(nil)
+        NotificationCenter.default.post(name: NSNotification.Name("juicer.nav.dashboard"), object: nil)
     }
 
     private func update() {
