@@ -224,6 +224,7 @@ struct mainsidebarview: View {
                         case .menuBarCustomizer: menubarcustomizerview()
                         case .desktopIcons: desktopiconstoggleview()
                         case .hotCorners: hotcornersview()
+                        case .keyboardShortcuts: keyboardshortcutview()
                         }
                     } else {
                         VStack {
