@@ -191,6 +191,7 @@ struct mainsidebarview: View {
                         case .vpnProfiles:     vpnprofileview()
                         case .networkLocations: networklocationview()
                         case .bluetoothDevices: bluetoothdeviceview()
+                        case .airDropQuickSend: airdropquicksendview()
                         }
                     } else {
                         VStack {
