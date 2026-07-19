@@ -124,9 +124,6 @@ struct utilitiesview: View {
         .sheet(isPresented: $showClipboardSheet) {
             clipboardOverlay()
         }
-        .sheet(isPresented: $showCmdTabSheet) {
-            cmdTabOverlay()
-        }
         .sheet(isPresented: $showLoupeSheet) {
             loupeOverlay()
         }
@@ -134,7 +131,7 @@ struct utilitiesview: View {
             showClipboardSheet = true
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.util.triggerCmdTab"))) { _ in
-            showCmdTabSheet = true
+            manager.showBetterCmdTabPanel()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.util.triggerLoupe"))) { _ in
             showLoupeSheet = true
