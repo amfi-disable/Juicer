@@ -226,6 +226,7 @@ struct mainsidebarview: View {
                         case .hotCorners: hotcornersview()
                         case .keyboardShortcuts: keyboardshortcutview()
                         case .textCaseConverter: textcaseconverterview()
+                        case .characterCounter: charactercounterview()
                         }
                     } else {
                         VStack {
