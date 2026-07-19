@@ -1,0 +1,3 @@
+import SwiftUI
+
+struct windowsnappingview: View { @State private var layout = "Left Half"; let layouts = ["Left Half", "Right Half", "Top Half", "Bottom Half", "Centered", "Full Screen"]; var body: some View { VStack(alignment: .leading, spacing: 16) { JuicerFeatureHeader(title: "Window-Snapping & Tiling", subtitle: "Configure common window layouts and keyboard shortcut guidance.", icon: "rectangle.split.2x1", refreshing: false, action: {}) ; Picker("Layout", selection: $layout) { ForEach(layouts, id: \.self) { Text($0).tag($0) } }.frame(width: 220); Text("Use macOS window tiling or assign \(layout) to a keyboard shortcut through System Settings.").font(.caption).foregroundStyle(.secondary); Spacer() }.padding(24) } }
