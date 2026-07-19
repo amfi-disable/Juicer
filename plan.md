@@ -85,7 +85,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 74. [x] Public IP & Geoloc Lookup – Show your current public IP, ISP, and approximate location.
 75. [x] Speed Test Tool – One‑click download/upload/ping test using `speedtest‑cli` or native URLSession to a known endpoint.
 76. [x] DNS Resolver Diagnostics – Test custom DNS servers (Cloudflare, Google, Quad9, etc.) for latency and DNSSEC validation.
-77. Hosts File Editor – GUI editor for `/etc/hosts` with enable/disable, comment, and import/export lists.
+77. [x] Hosts File Editor – GUI editor for `/etc/hosts` with enable/disable, comment, and import/export lists.
 78. Ad‑block / Malware‑block List Updater – Scheduled download and merge of popular hosts lists (StevenBlack, adaway, etc.).
 79. App Locker – Password‑ or biometrics‑lock selected applications (requires accessibility permission).
 80. File Vault Auto‑Lock – Automatically lock the screen after a period of inactivity when on battery.
