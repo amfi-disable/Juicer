@@ -151,6 +151,7 @@ struct mainsidebarview: View {
                 } detail: {
                     if let item = selectedItem {
                         switch item {
+                        case .featureCatalog:   additionalfeaturecatalogview()
                         case .dashboard:        dashboardview()
                         case .appUninstaller:   appuninstallerview()
                         case .orphanScanner:    orphanscannerview()
