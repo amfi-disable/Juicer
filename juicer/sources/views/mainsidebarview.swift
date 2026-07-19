@@ -233,6 +233,7 @@ struct mainsidebarview: View {
                         case .screenLoupe: screenloupeview()
                         case .batterySaver: batterysaverview()
                         case .printerQueue: printerqueueview()
+                        case .pdfToolbox: pdftoolboxview()
                         }
                     } else {
                         VStack {
