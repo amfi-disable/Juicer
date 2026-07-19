@@ -87,7 +87,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 76. [x] DNS Resolver Diagnostics – Test custom DNS servers (Cloudflare, Google, Quad9, etc.) for latency and DNSSEC validation.
 77. [x] Hosts File Editor – GUI editor for `/etc/hosts` with enable/disable, comment, and import/export lists.
 78. [x] Ad‑block / Malware‑block List Updater – Scheduled download and merge of popular hosts lists (StevenBlack, adaway, etc.).
-79. App Locker – Password‑ or biometrics‑lock selected applications (requires accessibility permission).
+79. [x] App Locker – Password‑ or biometrics‑lock selected applications (requires accessibility permission).
 80. File Vault Auto‑Lock – Automatically lock the screen after a period of inactivity when on battery.
 81. Japanese/Kana Input Helper – Quick switch to Romaji → Kana/Kanji conversion popup.
 82. Emoji Picker – Searchable emoji palette with history and frecency ordering.

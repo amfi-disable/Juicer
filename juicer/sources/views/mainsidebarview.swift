@@ -247,6 +247,7 @@ struct mainsidebarview: View {
                         case .dnsDiagnostics: dnsdiagnosticsview()
                         case .hostsFile: hostsfileview()
                         case .blocklistUpdater: blocklistupdaterview()
+                        case .appLocker: applockerview()
                         }
                     } else {
                         VStack {
