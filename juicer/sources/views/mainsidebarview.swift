@@ -244,6 +244,7 @@ struct mainsidebarview: View {
                         case .vpnAutoConnect: vpnautoconnectview()
                         case .publicIP: publicipview()
                         case .speedTest: speedtestview()
+                        case .dnsDiagnostics: dnsdiagnosticsview()
                         }
                     } else {
                         VStack {
