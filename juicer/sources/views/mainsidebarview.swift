@@ -227,6 +227,7 @@ struct mainsidebarview: View {
                         case .keyboardShortcuts: keyboardshortcutview()
                         case .textCaseConverter: textcaseconverterview()
                         case .characterCounter: charactercounterview()
+                        case .qrCode: qrcodeview()
                         }
                     } else {
                         VStack {
