@@ -4,6 +4,10 @@ DerivedData/
 *.xcodeproj
 *.xcworkspace
 *.xcuserstate
-xcuserdata/
+userdata/
 galleries/
-
+my-clean-crew/
+my_clean_crew/
+opencode.json
+open-source-feature-audit.md
+ui-improvements.md
