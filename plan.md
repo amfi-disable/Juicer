@@ -43,7 +43,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 
 ## Privacy & Security
 36. [x] FileVault Status & Recovery Key Manager – Show encryption status, and allow backing up or changing the recovery key.
-37. Firewall Configuration GUI – Easy toggle for macOS Application Firewall with per‑app allow/deny lists.
+37. [x] Firewall Configuration GUI – Easy toggle for macOS Application Firewall with per‑app allow/deny lists.
 38. Privacy Scanner – Scan for microphone, camera, screen‑recording, accessibility, and full‑disk access permissions granted to apps.
 39. Password Audit – Scan keychain for weak, reused, or expired passwords and suggest updates.
 40. Secure Delete (Secure Erase) – Overwrite file deletion with multiple passes (DoD 5220.22‑M, Gutmann).
