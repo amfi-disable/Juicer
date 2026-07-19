@@ -15,6 +15,7 @@ struct JuicerFeatureHeader: View { let title: String; let subtitle: String; let 
             Spacer(minLength: 12)
             Button(action: action) {
                 Image(systemName: refreshing ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
+                    .symbolEffect(.rotate, isActive: refreshing)
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
