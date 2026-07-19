@@ -254,6 +254,7 @@ struct mainsidebarview: View {
                         case .unicodeInspector: unicodeinspectorview()
                         case .screenshotAnnotation: screenshotannotationview()
                         case .windowSnapping: windowsnappingview()
+                        case .displayProfiles: displayprofileview()
                         }
                     } else {
                         VStack {
