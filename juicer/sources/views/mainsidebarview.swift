@@ -268,6 +268,7 @@ struct mainsidebarview: View {
                         case .backupTrigger: backuptriggerview()
                         case .networkLimiter: networklimiterview()
                         case .diskImageMounter: diskimagemounterview()
+                        case .soundVolumeMixer: soundvolumemixerview()
                         }
                     } else {
                         VStack {
