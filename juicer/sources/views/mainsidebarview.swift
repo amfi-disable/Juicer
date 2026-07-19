@@ -173,6 +173,16 @@ struct mainsidebarview: View {
                         case .undoHistory:      deletionhistoryview()
                         case .appUpdates:       appupdaterview()
                         case .tccViewer:        tccviewerview()
+                        case .cpuMemoryMonitor: cpumemorymonitorview()
+                        case .gpuMonitor:       gpumonitorview()
+                        case .diskIOMonitor:    diskiomonitorview()
+                        case .networkTraffic:   networktrafficmonitorview()
+                        case .batteryHealth:    batteryhealthview()
+                        case .startupItems:     startupitemview()
+                        case .loginItemDelays:  loginitemdelayview()
+                        case .processKiller:    processkillerview()
+                        case .systemLogs:       systemlogview()
+                        case .kextManager:      kextmanagerview()
                         }
                     } else {
                         VStack {
