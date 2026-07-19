@@ -22,7 +22,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
     }
 }
 
-enum NavigationItem: String, CaseIterable, Identifiable {
+enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     case dashboard
     case featureCatalog
     case permissionCenter
