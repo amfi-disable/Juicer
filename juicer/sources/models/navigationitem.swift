@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders
     
     var id: NavigationItem { self }
     
@@ -60,7 +60,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return .store
         case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .vpnProfiles, .networkLocations, .bluetoothDevices, .airDropQuickSend:
             return .system
-        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles:
+        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders:
             return .disk
         case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer:
             return .configs
@@ -118,6 +118,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .bluetoothDevices: return "Bluetooth Devices"
         case .airDropQuickSend: return "AirDrop Quick-Send"
         case .duplicateFiles: return "Duplicate Files"
+        case .emptyFolders: return "Empty Folders"
         }
     }
     
@@ -170,6 +171,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .bluetoothDevices: return "dot.radiowaves.left.and.right"
         case .airDropQuickSend: return "airplayaudio"
         case .duplicateFiles: return "doc.on.doc"
+        case .emptyFolders: return "folder.badge.minus"
         }
     }
 }
