@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices
     
     var id: NavigationItem { self }
     
@@ -58,7 +58,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         switch self {
         case .appStore, .brewExplorer, .appUpdates:
             return .store
-        case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .vpnProfiles, .networkLocations, .bluetoothDevices, .airDropQuickSend, .fileVault, .firewall, .networkExposure, .usbDeviceGuard, .screenRecording, .clipboardAccess:
+        case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .vpnProfiles, .networkLocations, .bluetoothDevices, .airDropQuickSend, .fileVault, .firewall, .networkExposure, .usbDeviceGuard, .screenRecording, .clipboardAccess, .locationServices:
             return .system
         case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders, .downloadOrganizer, .archiveUtility, .diskImages, .fileTypeConverter, .symbolicLinks, .diskVerification, .storageSnapshots, .secureDelete:
             return .disk
@@ -140,6 +140,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .usbDeviceGuard: return "USB Device Guard"
         case .screenRecording: return "Screen Recording Detector"
         case .clipboardAccess: return "Clipboard Access Monitor"
+        case .locationServices: return "Location Services Auditor"
         }
     }
     
@@ -214,6 +215,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .usbDeviceGuard: return "externaldrive.connected.to.line.below"
         case .screenRecording: return "record.circle"
         case .clipboardAccess: return "doc.on.clipboard"
+        case .locationServices: return "location.fill"
         }
     }
 }

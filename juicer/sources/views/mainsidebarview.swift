@@ -215,6 +215,7 @@ struct mainsidebarview: View {
                         case .usbDeviceGuard: usbdeviceguardview()
                         case .screenRecording: screenrecordingdetectorview()
                         case .clipboardAccess: clipboardaccessview()
+                        case .locationServices: locationservicesview()
                         }
                     } else {
                         VStack {
