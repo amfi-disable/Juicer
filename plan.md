@@ -62,7 +62,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 51. [x] Clipboard Manager – Keep a history of copied text, images, files (with preview) and quick‑paste shortcuts.
 52. [x] Snippet Expander – Text expansion with snippet variables (date, time, clipboard, clipboard history).
 53. [x] Menu‑Bar Customizer – Rearrange, hide, show, and add custom scripts or SwiftUI views to the menu bar.
-54. Desktop Icons Toggle – Show/Hide desktop icons with a single click (like HiddenMe).
+54. [x] Desktop Icons Toggle – Show/Hide desktop icons with a single click (like HiddenMe).
 55. Hot Corners Configurator – Edit Mission Control Hot Corners with additional actions (scripts, URLs, apps).
 56. Keyboard Shortcut Manager – View, search, add, edit, and remove custom keyboard shortcuts for all apps.
 57. Text Case Converter – Selected text → Upper, Lower, Title, Sentence, Camel, Snake, Kebab case via menu‑bar or service.
