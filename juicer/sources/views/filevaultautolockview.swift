@@ -1,0 +1,6 @@
+import SwiftUI
+
+struct filevaultautolockview: View { @State private var minutes = "10"; @State private var message = ""; var body: some View { VStack(alignment: .leading, spacing: 16) { JuicerFeatureHeader(title: "File Vault Auto-Lock", subtitle: "Set a battery display-sleep timeout and lock the screen immediately.", icon: "lock.display", refreshing: false, action: {}) ; HStack { TextField("Battery timeout in minutes", text: $minutes).frame(width: 220); Button("Apply Battery Timeout") { apply() }.buttonStyle(.borderedProminent) }; Button("Lock Screen Now") { lock() }; Text("Changing power-management settings may require administrator approval.").font(.caption).foregroundStyle(.secondary); Text(message).font(.caption); Spacer() }.padding(24) }
+    private func apply() { guard Int(minutes) != nil else { message = "Enter a valid number of minutes."; return }; let result = SystemMetricsSupport.run("/usr/bin/pmset", ["-b", "displaysleep", minutes]) ?? "Unable to update power settings."; message = result.isEmpty ? "Battery display sleep set to \(minutes) minutes." : result }
+    private func lock() { _ = SystemMetricsSupport.run("/usr/bin/pmset", ["displaysleepnow"]); message = "Lock requested." }
+}
