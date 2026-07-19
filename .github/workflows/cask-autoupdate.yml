@@ -16,12 +16,12 @@ jobs:
           TAG_NAME="${{ github.event.release.tag_name }}"
           # Clean version (strip V/v prefix if present)
           VERSION=$(echo "${TAG_NAME}" | sed 's/[Vv]//')
-          DOWNLOAD_URL="https://github.com/amfi-disable/Juicer/releases/download/${TAG_NAME}/Juicer.zip"
+          DOWNLOAD_URL="https://github.com/amfi-disable/Juicer/releases/download/${TAG_NAME}/juicer.zip"
           
-          echo "Downloading Juicer.zip from ${DOWNLOAD_URL}..."
-          curl -L -o Juicer.zip "${DOWNLOAD_URL}"
+          echo "Downloading juicer.zip from ${DOWNLOAD_URL}..."
+          curl -L -o juicer.zip "${DOWNLOAD_URL}"
           
-          SHA256=$(sha256sum Juicer.zip | awk '{print $1}')
+          SHA256=$(sha256sum juicer.zip | awk '{print $1}')
           echo "Calculated SHA256: ${SHA256}"
           
           echo "version=${VERSION}" >> $GITHUB_OUTPUT

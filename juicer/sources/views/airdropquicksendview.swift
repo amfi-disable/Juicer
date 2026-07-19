@@ -10,7 +10,7 @@ struct airdropquicksendview: View {
             VStack(spacing: 10) {
                 Image(systemName: manager.isTargeted ? "arrow.down.circle.fill" : "airplayaudio")
                     .font(.system(size: 44))
-                    .foregroundStyle(manager.isTargeted ? .accent : .secondary)
+                    .foregroundStyle(manager.isTargeted ? Color.accentColor : Color.secondary)
                 Text("Drop files here")
                     .font(.headline)
                 Text(manager.message)

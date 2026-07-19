@@ -204,22 +204,20 @@ struct juicerapp: App {
             settingsview()
         }
 
-        if showQuickSendMenuBar {
-            MenuBarExtra {
-                airdropquicksendview()
-                    .frame(width: 360, height: 430)
-            } label: {
-                menuBarLabel(title: "AirDrop Quick-Send", icon: "airplayaudio")
-            }
+        MenuBarExtra(isInserted: $showQuickSendMenuBar) {
+            airdropquicksendview()
+                .frame(width: 360, height: 430)
+        } label: {
+            menuBarLabel(title: "AirDrop Quick-Send", icon: "airplayaudio")
         }
+        .menuBarExtraStyle(.window)
 
-        if showStatusMenuBar {
-            MenuBarExtra {
-                menubarmonitorview()
-            } label: {
-                menuBarLabel(title: "Juicer Status", icon: "waveform.path.ecg")
-            }
+        MenuBarExtra(isInserted: $showStatusMenuBar) {
+            menubarmonitorview()
+        } label: {
+            menuBarLabel(title: "Juicer Status", icon: "waveform.path.ecg")
         }
+        .menuBarExtraStyle(.window)
     }
 
     @ViewBuilder
