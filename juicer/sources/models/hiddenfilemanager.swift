@@ -16,8 +16,21 @@ class HiddenFileManager: ObservableObject {
     @Published var hiddenItems: [HiddenFileItem] = []
     @Published var isScanning = false
     @Published var selectedPath: String = ""
+    @Published var showAllFiles = false
     
     private let fileManager = FileManager.default
+
+    init() { refreshGlobalVisibility() }
+
+    func refreshGlobalVisibility() {
+        showAllFiles = (SystemMetricsSupport.run("/usr/bin/defaults", ["read", "com.apple.finder", "AppleShowAllFiles"]) ?? "").contains("1") || (SystemMetricsSupport.run("/usr/bin/defaults", ["read", "com.apple.finder", "AppleShowAllFiles"]) ?? "").contains("true")
+    }
+
+    func toggleGlobalVisibility(_ visible: Bool) {
+        _ = SystemMetricsSupport.run("/usr/bin/defaults", ["write", "com.apple.finder", "AppleShowAllFiles", "-bool", visible ? "true" : "false"])
+        _ = SystemMetricsSupport.run("/usr/bin/killall", ["Finder"])
+        showAllFiles = visible
+    }
     
     func startScan(for directoryPath: String) {
         let cleanPath = directoryPath.trimmingCharacters(in: .whitespacesAndNewlines)

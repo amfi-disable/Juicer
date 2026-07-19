@@ -11,6 +11,15 @@ struct hiddenfileview: View {
             // Selection panel
             pathSelectionForm()
                 .padding()
+
+            HStack {
+                Toggle("Show hidden files in Finder", isOn: Binding(get: { manager.showAllFiles }, set: { manager.toggleGlobalVisibility($0) }))
+                Spacer()
+                Text("Restarts Finder to apply the global setting.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal)
             
             // List of hidden files
             if manager.isScanning {
@@ -23,6 +32,7 @@ struct hiddenfileview: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
+        .onAppear { manager.refreshGlobalVisibility() }
     }
     
     // MARK: - Header UI
