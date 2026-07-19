@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 enum UnifiedStoreItem: String, CaseIterable, Identifiable {
     case allCasks = "All Casks"
@@ -451,6 +452,10 @@ struct mainsidebarview: View {
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
         }
         .buttonStyle(.plain)
+        .contentShape(RoundedRectangle(cornerRadius: 16))
+        .onHover { hovering in
+            if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+        }
     }
     
     @ViewBuilder
