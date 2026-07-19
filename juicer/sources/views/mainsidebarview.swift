@@ -237,6 +237,7 @@ struct mainsidebarview: View {
                         case .markdownPreviewer: markdownpreviewerview()
                         case .codeSnippets: codesnippetsview()
                         case .localWebServer: localwebserverview()
+                        case .portScanner: portscannerview()
                         }
                     } else {
                         VStack {
