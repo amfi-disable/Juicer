@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair
     
     var id: NavigationItem { self }
     
@@ -62,7 +62,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return .system
         case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders, .downloadOrganizer, .archiveUtility, .diskImages:
             return .disk
-        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer:
+        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair:
             return .configs
         case .utilitiesView:
             return .utilities
@@ -122,6 +122,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .downloadOrganizer: return "Download Organizer"
         case .archiveUtility: return "Archive Utility"
         case .diskImages: return "Disk Image Manager"
+        case .permissionRepair: return "Permissions Repair"
         }
     }
     
@@ -178,6 +179,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .downloadOrganizer: return "folder.badge.gearshape"
         case .archiveUtility: return "archivebox"
         case .diskImages: return "externaldrive.badge.timemachine"
+        case .permissionRepair: return "lock.document"
         }
     }
 }
