@@ -243,6 +243,7 @@ struct mainsidebarview: View {
                         case .networkProfileSwitcher: networkprofileswitcherview()
                         case .vpnAutoConnect: vpnautoconnectview()
                         case .publicIP: publicipview()
+                        case .speedTest: speedtestview()
                         }
                     } else {
                         VStack {

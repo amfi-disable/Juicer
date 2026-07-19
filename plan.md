@@ -83,7 +83,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 72. [x] Network‑Profile Switcher – Switch between predefined network configurations (static IP, DNS, proxies, proxies‑exceptions).
 73. [x] VPN Auto‑Connect – Auto‑connect a preferred VPN on specific Wi‑Fi SSIDs or when launching certain apps.
 74. [x] Public IP & Geoloc Lookup – Show your current public IP, ISP, and approximate location.
-75. Speed Test Tool – One‑click download/upload/ping test using `speedtest‑cli` or native URLSession to a known endpoint.
+75. [x] Speed Test Tool – One‑click download/upload/ping test using `speedtest‑cli` or native URLSession to a known endpoint.
 76. DNS Resolver Diagnostics – Test custom DNS servers (Cloudflare, Google, Quad9, etc.) for latency and DNSSEC validation.
 77. Hosts File Editor – GUI editor for `/etc/hosts` with enable/disable, comment, and import/export lists.
 78. Ad‑block / Malware‑block List Updater – Scheduled download and merge of popular hosts lists (StevenBlack, adaway, etc.).
