@@ -37,6 +37,7 @@ struct mainsidebarview: View {
     @State private var selectedItem: NavigationItem? = nil
     @State private var selectedStoreItem: UnifiedStoreItem = .allCasks
     @State private var isShowingGuide = false
+    @State private var sidebarSearch = ""
     
     var body: some View {
         VStack(spacing: 0) {
@@ -134,7 +135,9 @@ struct mainsidebarview: View {
                         Divider().padding(.vertical, 4)
                         
                         // Dynamically filtered workspace sections
-                        let items = NavigationItem.allCases.filter { $0.workspace == currentWorkspace }
+                        let items = NavigationItem.allCases.filter { item in
+                            item.workspace == currentWorkspace && (sidebarSearch.isEmpty || item.title.localizedCaseInsensitiveContains(sidebarSearch))
+                        }
                         Section(currentWorkspace.title) {
                             ForEach(items) { item in
                                 sidebarLink(for: item)
@@ -142,6 +145,7 @@ struct mainsidebarview: View {
                         }
                     }
                     .listStyle(.sidebar)
+                    .searchable(text: $sidebarSearch, placement: .sidebar, prompt: "Search tools")
                     .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
                 } detail: {
                     if let item = selectedItem {
@@ -382,8 +386,9 @@ struct mainsidebarview: View {
     // MARK: - Startup Hub Launchpad View
     @ViewBuilder
     private func hubLaunchpadView() -> some View {
-        VStack(spacing: 30) {
-            Spacer()
+        ScrollView {
+            VStack(spacing: 30) {
+            Spacer(minLength: 16)
             
             // App Hub Header
             VStack(spacing: 10) {
@@ -412,7 +417,9 @@ struct mainsidebarview: View {
             }
             .frame(maxWidth: 880)
             
-            Spacer()
+            Spacer(minLength: 16)
+            }
+            .frame(maxWidth: .infinity)
         }
         .padding(40)
         .background(Color(NSColor.windowBackgroundColor))
