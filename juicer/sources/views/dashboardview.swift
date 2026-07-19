@@ -65,6 +65,9 @@ struct dashboardview: View {
     @State private var isShowingAddLink = false
     @State private var newLinkName = ""
     @State private var newLinkPath = ""
+    @AppStorage("juicer.dashboard.showVitals") private var showVitals = true
+    @AppStorage("juicer.dashboard.showCuratedTools") private var showCuratedTools = true
+    @AppStorage("juicer.dashboard.showBookmarks") private var showBookmarks = true
     
     var body: some View {
         ScrollView {
@@ -73,13 +76,15 @@ struct dashboardview: View {
                 editorialMainCard()
                 
                 // System Vitals & Recommendations grid
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)], spacing: 20) {
-                    vitalsCard()
-                    curatedToolsCard()
+                if showVitals || showCuratedTools {
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)], spacing: 20) {
+                        if showVitals { vitalsCard() }
+                        if showCuratedTools { curatedToolsCard() }
+                    }
                 }
 
                 // Bookmarks & Quick Links Section
-                bookmarksSection()
+                if showBookmarks { bookmarksSection() }
             }
             .padding(24)
         }

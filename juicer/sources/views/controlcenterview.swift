@@ -11,14 +11,22 @@ struct controlcenterview: View {
     @AppStorage("juicer.settings.restoreMainWindow") private var restoreMainWindow = true
     @AppStorage("juicer.settings.showStatusBar") private var showStatusBar = true
     @AppStorage("juicer.settings.statusMonitorRefresh") private var refreshInterval = "2s"
+    @AppStorage("juicer.settings.appearance") private var appearance = "system"
+    @AppStorage("juicer.settings.accentColor") private var accentColor = "orange"
+    @AppStorage("juicer.settings.sidebarWidth") private var sidebarWidth = 240
+    @AppStorage("juicer.dashboard.showVitals") private var showVitals = true
+    @AppStorage("juicer.dashboard.showCuratedTools") private var showCuratedTools = true
+    @AppStorage("juicer.dashboard.showBookmarks") private var showBookmarks = true
     @State private var loginError = ""
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 header
+                appearanceSection
                 menuBarSection
                 appBehaviorSection
+                dashboardSection
                 permissionSection
             }
             .padding(24)
@@ -44,6 +52,42 @@ struct controlcenterview: View {
             }
             .pickerStyle(.segmented)
             Text("Menu-bar status items appear on the right side of the macOS menu bar. The application menu and Cmd+, remain on the left when Juicer is the active main window.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var appearanceSection: some View {
+        settingsCard(title: "Appearance", icon: "paintpalette") {
+            Picker("Color scheme", selection: $appearance) {
+                Text("Follow macOS").tag("system")
+                Text("Light").tag("light")
+                Text("Dark").tag("dark")
+            }
+            .pickerStyle(.segmented)
+            Picker("Accent color", selection: $accentColor) {
+                Text("Orange").tag("orange")
+                Text("Blue").tag("blue")
+                Text("Purple").tag("purple")
+                Text("Green").tag("green")
+                Text("Pink").tag("pink")
+            }
+            .pickerStyle(.menu)
+            Picker("Sidebar width", selection: $sidebarWidth) {
+                Text("Compact").tag(210)
+                Text("Standard").tag(240)
+                Text("Wide").tag(290)
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
+    private var dashboardSection: some View {
+        settingsCard(title: "Dashboard Layout", icon: "rectangle.3.group") {
+            Toggle("Show system vitals", isOn: $showVitals)
+            Toggle("Show recommended tools", isOn: $showCuratedTools)
+            Toggle("Show bookmarks and shortcuts", isOn: $showBookmarks)
+            Text("Changes apply immediately to the Dashboard workspace.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
