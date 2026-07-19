@@ -194,6 +194,7 @@ struct mainsidebarview: View {
                         case .airDropQuickSend: airdropquicksendview()
                         case .duplicateFiles:  duplicatefileview()
                         case .emptyFolders:   emptyfolderview()
+                        case .downloadOrganizer: downloadorganizerview()
                         }
                     } else {
                         VStack {

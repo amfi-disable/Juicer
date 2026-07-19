@@ -29,7 +29,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 22. [x] Large File Finder – Locate files larger than a user‑defined threshold across selected folders.
 23. [x] Empty Folder Cleaner – Locate and delete empty directories recursively.
 24. [x] Temporary Files Cleaner – Clean `/tmp`, `~/Library/Caches`, `/Library/Caches`, and app‑specific temp folders.
-25. Download Folder Organizer – Auto‑sort downloaded files into subfolders by type/date with rule‑based engine.
+25. [x] Download Folder Organizer – Auto‑sort downloaded files into subfolders by type/date with rule‑based engine.
 26. Archive Extractor/Creator – Zip, tar, gzip, bzip2, xz, 7z extraction & creation with drag‑and‑drop.
 27. Disk Image Manager – Create, mount, verify, convert, and encrypt `.dmg`, `.iso`, `.sparsebundle`.
 28. File Permissions Repair – Repair permissions on home folder, Applications, Library, or custom paths.
