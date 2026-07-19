@@ -259,6 +259,7 @@ struct mainsidebarview: View {
                         case .keyboardBacklight: keyboardbacklightview()
                         case .trackpadGestures: trackpadgestureview()
                         case .shortcutRunner: shortcutrunnerview()
+                        case .systemInfoExporter: systeminfoexporterview()
                         }
                     } else {
                         VStack {
