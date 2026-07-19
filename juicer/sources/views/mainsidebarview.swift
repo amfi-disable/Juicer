@@ -220,6 +220,7 @@ struct mainsidebarview: View {
                         case .antiKeylogger: antikeyloggerscannerview()
                         case .secureNotes: securenotesvaultview()
                         case .clipboardManager: clipboardmanagerview()
+                        case .snippetExpander: snippetexpanderview()
                         }
                     } else {
                         VStack {
