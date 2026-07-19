@@ -266,6 +266,7 @@ struct mainsidebarview: View {
                         case .systemServices: systemservicesview()
                         case .diskSpacePredictor: diskspacepredictorview()
                         case .backupTrigger: backuptriggerview()
+                        case .networkLimiter: networklimiterview()
                         }
                     } else {
                         VStack {
