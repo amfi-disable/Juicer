@@ -249,6 +249,7 @@ struct mainsidebarview: View {
                         case .blocklistUpdater: blocklistupdaterview()
                         case .appLocker: applockerview()
                         case .fileVaultAutoLock: filevaultautolockview()
+                        case .japaneseKana: japanesekanahelperview()
                         }
                     } else {
                         VStack {
