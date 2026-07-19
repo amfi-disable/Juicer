@@ -68,7 +68,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 57. [x] Text Case Converter – Selected text → Upper, Lower, Title, Sentence, Camel, Snake, Kebab case via menu‑bar or service.
 58. [x] Character/Word Counter – Live count for selected text or clipboard content.
 59. [x] QR Code Generator/Scanner – Create QR codes from text/URL and scan using the Mac’s camera.
-60. Color Picker – System‑wide color picker with history, HEX/RGB/HSB/CMYK values, and copy‑to‑clipboard.
+60. [x] Color Picker – System‑wide color picker with history, HEX/RGB/HSB/CMYK values, and copy‑to‑clipboard.
 61. Screen Ruler & Protractor – On‑screen measurement tool for pixels, inches, centimeters, and angles.
 62. Pixel‑Perfect Screen Loupe – Zoom magnifier with color sampler and crosshair.
 63. Battery‑Saver Mode – Automatically reduce visual effects, lower keyboard backlight, put disks to sleep when on battery.
