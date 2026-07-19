@@ -97,7 +97,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 86. [x] Display Profile Manager – Create, switch, and calibrate color profiles (ICC) for external monitors.
 87. [x] Night Shift/True Tone Scheduler – Schedule Night Shift, True Tone, and custom color temperature changes based on time/location.
 88. [x] Keyboard Backlight Timer – Automatically turn off keyboard backlight after a period of inactivity.
-89. Trackpad Gesture Customizer – Add, remove, or modify multi‑finger gestures via private APIs (if allowed) or via BetterTouchTool‑style scripting.
+89. [x] Trackpad Gesture Customizer – Add, remove, or modify multi‑finger gestures via private APIs (if allowed) or via BetterTouchTool‑style scripting.
 90. Automator/Shortcut Runner – Run saved Automator workflows, Shortcuts, or Shell scripts from the menu bar with one click.
 91. System Info Exporter – Export a comprehensive HTML/JSON report of hardware, software, network, and settings for support tickets.
 92. License & Software Inventory – List all installed apps (App Store, brew, manual .pkg) with version, install date, and vendor.
