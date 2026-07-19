@@ -188,6 +188,7 @@ struct mainsidebarview: View {
                         case .fanController:   fancontrollerview()
                         case .memoryPurge:     memorypurgeview()
                         case .swapManager:     swapmanagerview()
+                        case .vpnProfiles:     vpnprofileview()
                         }
                     } else {
                         VStack {

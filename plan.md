@@ -19,7 +19,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 14. [x] Fan Speed Controller (where hardware allows) – Manual fan curve presets.
 15. [x] RAM Cleaner / Memory Purge – Safe purge of inactive memory to free RAM (`purge` command wrapper).
 16. [x] Swap Manager – View swapfile size/viewer and toggle swap on/off (requires admin).
-17. VPN Profile Manager – Import, export, enable/disable, and configure built‑in macOS VPN configurations.
+17. [x] VPN Profile Manager – Import, export, enable/disable, and configure built‑in macOS VPN configurations.
 18. Network Location Manager – Create, switch, and delete network locations (Wi‑Fi, Ethernet, VPN, proxies).
 19. Bluetooth Device Manager – Pair/unpair, view battery levels, and auto‑connect preferred devices.
 20. AirDrop Quick‑Send – Drag‑and‑drop files onto a menu‑bar item to instantly AirDrop to nearby devices.
