@@ -94,7 +94,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 83. [x] Unicode Character Inspector – Show code point, UTF‑8/16/32 bytes, glyph, and category for any selected character.
 84. [x] Screen‑Shot Annotation Tool – Quick markup (arrows, boxes, text, blur) after a screenshot, with save / copy options.
 85. [x] Window‑Snapping/Tiling Manager – Drag windows to screen edges or use keyboard shortcuts to tile, quarter, full‑screen, center.
-86. Display Profile Manager – Create, switch, and calibrate color profiles (ICC) for external monitors.
+86. [x] Display Profile Manager – Create, switch, and calibrate color profiles (ICC) for external monitors.
 87. Night Shift/True Tone Scheduler – Schedule Night Shift, True Tone, and custom color temperature changes based on time/location.
 88. Keyboard Backlight Timer – Automatically turn off keyboard backlight after a period of inactivity.
 89. Trackpad Gesture Customizer – Add, remove, or modify multi‑finger gestures via private APIs (if allowed) or via BetterTouchTool‑style scripting.
