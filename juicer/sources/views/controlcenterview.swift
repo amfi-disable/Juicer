@@ -21,6 +21,10 @@ struct controlcenterview: View {
     @AppStorage("juicer.settings.lowDiskAlerts") private var lowDiskAlerts = true
     @AppStorage("juicer.settings.updateAlerts") private var updateAlerts = true
     @AppStorage("juicer.settings.backgroundInterval") private var backgroundInterval = 3600
+    @AppStorage("juicer.settings.safeMode") private var safeMode = false
+    @AppStorage("juicer.settings.previewBeforeDelete") private var previewBeforeDelete = true
+    @AppStorage("juicer.settings.maskSensitiveLogs") private var maskSensitiveLogs = true
+    @AppStorage("juicer.settings.workspaceProfile") private var workspaceProfile = "standard"
     @State private var loginError = ""
 
     var body: some View {
@@ -30,6 +34,7 @@ struct controlcenterview: View {
                 appearanceSection
                 menuBarSection
                 appBehaviorSection
+                safetySection
                 dashboardSection
                 automationSection
                 permissionSection
@@ -93,6 +98,27 @@ struct controlcenterview: View {
             Toggle("Show recommended tools", isOn: $showCuratedTools)
             Toggle("Show bookmarks and shortcuts", isOn: $showBookmarks)
             Text("Changes apply immediately to the Dashboard workspace.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var safetySection: some View {
+        settingsCard(title: "Safety and Profiles", icon: "checkmark.shield") {
+            Picker("Workspace profile", selection: Binding(
+                get: { workspaceProfile },
+                set: { workspaceProfile = $0; applyProfile($0) }
+            )) {
+                Text("Standard").tag("standard")
+                Text("Minimal").tag("minimal")
+                Text("Monitoring").tag("monitoring")
+                Text("Maintenance").tag("maintenance")
+            }
+            .pickerStyle(.segmented)
+            Toggle("Safe mode (disable background automation)", isOn: $safeMode)
+            Toggle("Preview destructive cleanup results first", isOn: $previewBeforeDelete)
+            Toggle("Mask likely secrets in the local action log", isOn: $maskSensitiveLogs)
+            Text("Profiles adjust visibility and monitoring defaults. Individual settings remain editable after selecting a profile.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -220,6 +246,35 @@ struct controlcenterview: View {
             loginError = "Settings imported. Reopen Settings or Juicer to refresh every control."
         } catch {
             loginError = "Settings import failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func applyProfile(_ profile: String) {
+        switch profile {
+        case "minimal":
+            showStatusBar = false
+            showVitals = false
+            showCuratedTools = false
+            showBookmarks = true
+        case "monitoring":
+            showStatusBar = true
+            showVitals = true
+            showCuratedTools = true
+            showBookmarks = false
+            backgroundChecks = true
+        case "maintenance":
+            showStatusBar = true
+            showVitals = true
+            showCuratedTools = true
+            showBookmarks = true
+            backgroundChecks = true
+            lowDiskAlerts = true
+            updateAlerts = true
+        default:
+            showStatusBar = true
+            showVitals = true
+            showCuratedTools = true
+            showBookmarks = true
         }
     }
 }

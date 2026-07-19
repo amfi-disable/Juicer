@@ -114,6 +114,10 @@ class SettingsManager: ObservableObject {
         UserDefaults.standard.set(true, forKey: "juicer.settings.lowDiskAlerts")
         UserDefaults.standard.set(true, forKey: "juicer.settings.updateAlerts")
         UserDefaults.standard.set(3600, forKey: "juicer.settings.backgroundInterval")
+        UserDefaults.standard.set(false, forKey: "juicer.settings.safeMode")
+        UserDefaults.standard.set(true, forKey: "juicer.settings.previewBeforeDelete")
+        UserDefaults.standard.set(true, forKey: "juicer.settings.maskSensitiveLogs")
+        UserDefaults.standard.set("standard", forKey: "juicer.settings.workspaceProfile")
         
         // Lists defaults
         self.ignoredPaths = ["/System/Library", "/Library/Updates", "/private/var"]
