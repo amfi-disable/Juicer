@@ -275,15 +275,7 @@ struct mainsidebarview: View {
                         case .soundVolumeMixer: soundvolumemixerview()
                         }
                     } else {
-                        VStack {
-                            Image(systemName: "square.dashed")
-                                .font(.system(size: 48))
-                                .foregroundStyle(.secondary)
-                                .padding(.bottom, 8)
-                            Text("No Tool Selected")
-                                .font(.headline)
-                                .foregroundStyle(.secondary)
-                        }
+                        ContentUnavailableView("No Tool Selected", systemImage: "square.dashed", description: Text("Choose a tool from the sidebar to get started."))
                     }
                 }
             }
