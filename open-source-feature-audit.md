@@ -40,3 +40,32 @@ Juicer currently has six workspaces and 200 user-facing capabilities:
 - Do not copy Pearcleaner or Ice source because their license terms are not compatible with an unreviewed direct import.
 - Keep security boundaries explicit: destructive file work stays behind confirmation/Trash, and privileged work should use a separately reviewed helper target.
 - Prefer modular adapters so Stats-like sensors and SwiftBar-like plugins do not increase the core app’s startup cost.
+
+## second benchmark pass
+
+The following repositories were temporarily cloned to a disposable directory while implementing the Workflow Center. Their behavior informed the design; no source was copied.
+
+- [Stats](https://github.com/exelban/stats.git) — modular health readers and compact status presentation (MIT).
+- [Maccy](https://github.com/p0deje/Maccy.git) — search, pins, keyboard-first actions, and persistent history (MIT).
+- [Rectangle](https://github.com/rxhanson/Rectangle.git) — safe previews, retryable actions, config portability, and visible debug output (MIT).
+- [SwiftBar](https://github.com/swiftbar/SwiftBar.git) — scheduled plugin execution and error visibility (MIT).
+- [AltTab](https://github.com/lwouis/alt-tab-macos.git) — permission-aware utility surfaces and keyboard navigation (license reviewed before reuse).
+- [KeepingYouAwake](https://github.com/newmarcel/KeepingYouAwake.git) — focused menu-bar controls and explicit active state (MIT).
+- [Mos](https://github.com/Caldis/Mos.git) — per-app profiles and configurable automation (CC BY-NC; concepts only).
+- [Nightfall](https://github.com/r-thomson/Nightfall.git) — simple settings and permission explanations (MIT).
+- [Pearcleaner](https://github.com/alienator88/Pearcleaner.git) — dry-run cleanup, manifests, and search scope (Commons Clause; concepts only).
+- [Mole](https://github.com/tw93/Mole.git) — dry-run diagnostics, operation history, JSON/report output (GPL; concepts only).
+- [BetterDisplay](https://github.com/waydabber/BetterDisplay.git) — profiles, export, and automation integration (license reviewed before reuse).
+- [MonitorControl](https://github.com/MonitorControl/MonitorControl.git) — compact controls and device-aware status (MIT).
+- [Hidden Bar](https://github.com/dwarvesf/hidden.git) — unobtrusive menu-bar organization (MIT).
+- [Hammerspoon](https://github.com/Hammerspoon/hammerspoon.git) — scriptable, composable workflows (MIT).
+- [yabai](https://github.com/koekeishiya/yabai.git) — deterministic automation and explicit state transitions (MIT).
+- [skhd](https://github.com/koekeishiya/skhd.git) — responsive queues and hot-reloadable configuration (MIT).
+- [Karabiner-Elements](https://github.com/pqrs-org/Karabiner-Elements.git) — permission lifecycle and signer-change guidance (public domain).
+- [LuLu](https://github.com/objective-see/LuLu.git) — security-first status and user-visible decisions (GPL; concepts only).
+- [KnockKnock](https://github.com/objective-see/KnockKnock.git) — audit reports and persistence-aware scans (GPL; concepts only).
+- [Snapzy](https://github.com/duongductrong/Snapzy.git) — preview-first capture workflows and permission onboarding (license reviewed before reuse).
+
+## second benchmark implementation
+
+The Workflow Center adds a native, read-only implementation of the compatible patterns: queued diagnostics, sequential execution, pause/resume, cancellation, retry, persistent run history, bounded history retention, dry-run previews, completion notifications, custom path scope, stable presets, copyable output, plain-text report export, Finder reveal, error state visibility, status timestamps, keyboard-friendly buttons, and safe cleanup of finished tasks.

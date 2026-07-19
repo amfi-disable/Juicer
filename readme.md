@@ -31,6 +31,7 @@ Juicer is the ultimate all-in-one companion utility for **macOS developers and p
 - **Trusted Script Plugins 🧩**: Extensions interface that watches a user-defined folder, lists executable shell scripts (`.sh`, `.command`, `.zsh`), and runs custom developer automation workflows securely with real-time log output.
 - **DNS Profile Manager & Ad-Blocker 🛡️**: Save and switch between local DNS profiles. Instantly download, parse, and apply public ad-blocking/malware hosts filters (like StevenBlack's hosts filter) to your `/etc/hosts` file.
 - **Service Manager**: Load, unload, inspect, edit, and create user and system launch daemons/agents.
+- **Workflow Center 🧪**: Queue safe system, disk, network, Homebrew, and recent-error diagnostics with pause/resume, retry, cancellation, previews, persistent history, custom scan paths, copy, export, and completion notifications.
 - **Developer Cache Pruner**: Reclaim space by pruning DerivedData, simulator support, package manager caches (npm, yarn, bun, cargo, homebrew), and unused Docker assets.
 - **System Tweaks**: Configure hidden macOS settings for Dock, Finder, Keyboard speed, and screenshot options.
 - **Quarantine Stripper**: Strip Gatekeeper quarantine tags from downloaded files and apps recursively.

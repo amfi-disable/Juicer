@@ -182,6 +182,7 @@ struct mainsidebarview: View {
                         case .permissionCenter: permissioncenterview()
                         case .scriptPlugins:    scriptpluginsview()
                         case .dashboard:        dashboardview()
+                        case .workflowCenter:  workflowcenterview()
                         case .appUninstaller:   appuninstallerview()
                         case .orphanScanner:    orphanscannerview()
                         case .serviceManager:   launchdmanagerview()

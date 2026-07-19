@@ -23,7 +23,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
 }
 
 enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
-    case dashboard
+    case dashboard, workflowCenter
     case featureCatalog
     case actionHistory
     case permissionCenter
@@ -62,7 +62,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         switch self {
         case .appStore, .brewExplorer, .appUpdates:
             return .store
-        case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .vpnProfiles, .networkLocations, .bluetoothDevices, .airDropQuickSend, .fileVault, .firewall, .networkExposure, .usbDeviceGuard, .screenRecording, .clipboardAccess, .locationServices, .microphoneCamera:
+        case .dashboard, .workflowCenter, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .vpnProfiles, .networkLocations, .bluetoothDevices, .airDropQuickSend, .fileVault, .firewall, .networkExposure, .usbDeviceGuard, .screenRecording, .clipboardAccess, .locationServices, .microphoneCamera:
             return .system
         case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders, .downloadOrganizer, .archiveUtility, .diskImages, .fileTypeConverter, .symbolicLinks, .diskVerification, .storageSnapshots, .secureDelete:
             return .disk
@@ -76,6 +76,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     var title: String {
         switch self {
         case .dashboard: return "Dashboard"
+        case .workflowCenter: return "Workflow Center"
         case .featureCatalog: return "Additional Features"
         case .actionHistory: return "Action History"
         case .permissionCenter: return "Permission Center"
@@ -208,6 +209,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     var iconName: String {
         switch self {
         case .dashboard: return "house.fill"
+        case .workflowCenter: return "list.bullet.clipboard"
         case .featureCatalog: return "square.grid.2x2"
         case .actionHistory: return "clock.arrow.circlepath"
         case .permissionCenter: return "lock.shield"
