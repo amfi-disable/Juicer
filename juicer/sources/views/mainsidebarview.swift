@@ -267,6 +267,7 @@ struct mainsidebarview: View {
                         case .diskSpacePredictor: diskspacepredictorview()
                         case .backupTrigger: backuptriggerview()
                         case .networkLimiter: networklimiterview()
+                        case .diskImageMounter: diskimagemounterview()
                         }
                     } else {
                         VStack {
