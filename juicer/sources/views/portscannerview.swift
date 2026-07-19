@@ -1,0 +1,5 @@
+import SwiftUI
+
+struct portscannerview: View { @State private var host = "127.0.0.1"; @State private var range = "22,80,443,3000,8000"; @State private var results: [String] = []; @State private var scanning = false; var body: some View { VStack(alignment: .leading, spacing: 16) { JuicerFeatureHeader(title: "Port Scanner", subtitle: "Check selected TCP ports on a host with a short timeout.", icon: "dot.radiowaves.left.and.right", refreshing: scanning, action: scan); HStack { TextField("Host", text: $host); TextField("Ports", text: $range); Button("Scan") { scan() }.buttonStyle(.borderedProminent) }; List(results, id: \.self) { Text($0).font(.system(.body, design: .monospaced)) }.listStyle(.inset) }.padding(24) }
+    private func scan() { let ports = range.split(separator: ",").map(String.init); scanning = true; DispatchQueue.global().async { let found = ports.filter { SystemMetricsSupport.run("/usr/bin/nc", ["-z", "-G", "1", host, $0]) != nil }.map { "\(host):\($0) open" }; DispatchQueue.main.async { results = found; scanning = false } } }
+}
