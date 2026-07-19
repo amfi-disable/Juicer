@@ -261,6 +261,7 @@ struct mainsidebarview: View {
                         case .shortcutRunner: shortcutrunnerview()
                         case .systemInfoExporter: systeminfoexporterview()
                         case .softwareInventory: softwareinventoryview()
+                        case .autoUpdateChecker: autoupdatecheckerview()
                         }
                     } else {
                         VStack {
