@@ -248,6 +248,7 @@ struct mainsidebarview: View {
                         case .hostsFile: hostsfileview()
                         case .blocklistUpdater: blocklistupdaterview()
                         case .appLocker: applockerview()
+                        case .fileVaultAutoLock: filevaultautolockview()
                         }
                     } else {
                         VStack {
