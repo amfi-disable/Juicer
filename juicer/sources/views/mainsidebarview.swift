@@ -197,6 +197,7 @@ struct mainsidebarview: View {
                         case .downloadOrganizer: downloadorganizerview()
                         case .archiveUtility: archiveutilityview()
                         case .diskImages:     diskimageview()
+                        case .permissionRepair: permissionrepairview()
                         }
                     } else {
                         VStack {
