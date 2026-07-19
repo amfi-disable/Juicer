@@ -257,6 +257,7 @@ struct mainsidebarview: View {
                         case .displayProfiles: displayprofileview()
                         case .nightShift: nightshiftschedulerview()
                         case .keyboardBacklight: keyboardbacklightview()
+                        case .trackpadGestures: trackpadgestureview()
                         }
                     } else {
                         VStack {

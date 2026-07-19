@@ -1,0 +1,3 @@
+import SwiftUI
+
+struct trackpadgestureview: View { @State private var gestures = ["Three-finger swipe: Mission Control", "Four-finger pinch: Launchpad", "Two-finger secondary click: Enabled"]; var body: some View { VStack(alignment: .leading, spacing: 16) { JuicerFeatureHeader(title: "Trackpad Gesture Customizer", subtitle: "Review common gestures and their macOS action mappings.", icon: "hand.draw", refreshing: false, action: {}) ; List(gestures, id: \.self) { Text($0) }.listStyle(.inset); Text("Private gesture APIs are intentionally not modified. Use Trackpad settings or a supported gesture utility for changes.").font(.caption).foregroundStyle(.secondary); Spacer() }.padding(24) } }
