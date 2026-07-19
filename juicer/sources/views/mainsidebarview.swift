@@ -211,6 +211,7 @@ struct mainsidebarview: View {
                         case .secureDelete: securedeleteview()
                         case .quarantinedFiles: quarantinedfilesview()
                         case .sandboxInspector: sandboxinspectorview()
+                        case .networkExposure: networkexposureview()
                         }
                     } else {
                         VStack {
