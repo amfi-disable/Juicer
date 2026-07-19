@@ -229,6 +229,7 @@ struct mainsidebarview: View {
                         case .characterCounter: charactercounterview()
                         case .qrCode: qrcodeview()
                         case .colorPicker: colorpickerview()
+                        case .screenRuler: screenrulerview()
                         }
                     } else {
                         VStack {
