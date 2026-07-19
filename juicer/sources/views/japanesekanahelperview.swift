@@ -1,0 +1,3 @@
+import SwiftUI
+
+struct japanesekanahelperview: View { @State private var romaji = "konnichiwa"; var body: some View { VStack(alignment: .leading, spacing: 16) { JuicerFeatureHeader(title: "Japanese & Kana Input Helper", subtitle: "Prepare Romaji text for macOS Japanese input methods.", icon: "character.book.closed", refreshing: false, action: {}) ; TextField("Romaji", text: $romaji); Text("Switch the active input source with Control-Space, then type the prepared text.").font(.caption).foregroundStyle(.secondary); Button("Copy Text") { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(romaji, forType: .string) }; Spacer() }.padding(24) } }
