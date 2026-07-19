@@ -1,14 +1,14 @@
 import Foundation
 import Combine
 
-struct StorageSnapshot: Identifiable {
+struct APFSStorageSnapshot: Identifiable {
     let id: String
     let detail: String
 }
 
 final class StorageSnapshotManager: ObservableObject {
     @Published var volume = "/"
-    @Published var snapshots: [StorageSnapshot] = []
+    @Published var snapshots: [APFSStorageSnapshot] = []
     @Published var selectedID = ""
     @Published var output = ""
     @Published var working = false
@@ -18,10 +18,10 @@ final class StorageSnapshotManager: ObservableObject {
         let selectedVolume = volume
         DispatchQueue.global(qos: .userInitiated).async {
             let result = SystemMetricsSupport.run("/usr/sbin/diskutil", ["apfs", "listSnapshots", selectedVolume]) ?? "Unable to list snapshots."
-            let parsed = result.components(separatedBy: .newlines).compactMap { line -> StorageSnapshot? in
+            let parsed = result.components(separatedBy: .newlines).compactMap { line -> APFSStorageSnapshot? in
                 guard let range = line.range(of: "Snapshot UUID:") else { return nil }
                 let uuid = line[range.upperBound...].trimmingCharacters(in: .whitespaces)
-                return uuid.isEmpty ? nil : StorageSnapshot(id: uuid, detail: line.trimmingCharacters(in: .whitespaces))
+                return uuid.isEmpty ? nil : APFSStorageSnapshot(id: uuid, detail: line.trimmingCharacters(in: .whitespaces))
             }
             DispatchQueue.main.async { self.snapshots = parsed; self.output = result; self.working = false; if !parsed.contains(where: { $0.id == self.selectedID }) { self.selectedID = parsed.first?.id ?? "" } }
         }

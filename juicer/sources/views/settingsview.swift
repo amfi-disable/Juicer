@@ -118,6 +118,9 @@ class SettingsManager: ObservableObject {
         UserDefaults.standard.set(true, forKey: "juicer.settings.previewBeforeDelete")
         UserDefaults.standard.set(true, forKey: "juicer.settings.maskSensitiveLogs")
         UserDefaults.standard.set("standard", forKey: "juicer.settings.workspaceProfile")
+        UserDefaults.standard.set(false, forKey: "juicer.workflow.dryRun")
+        UserDefaults.standard.set(true, forKey: "juicer.workflow.notifications")
+        UserDefaults.standard.set("", forKey: "juicer.workflow.customPaths")
         
         // Lists defaults
         self.ignoredPaths = ["/System/Library", "/Library/Updates", "/private/var"]
