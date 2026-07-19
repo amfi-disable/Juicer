@@ -260,6 +260,7 @@ struct mainsidebarview: View {
                         case .trackpadGestures: trackpadgestureview()
                         case .shortcutRunner: shortcutrunnerview()
                         case .systemInfoExporter: systeminfoexporterview()
+                        case .softwareInventory: softwareinventoryview()
                         }
                     } else {
                         VStack {
