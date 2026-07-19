@@ -217,6 +217,7 @@ struct mainsidebarview: View {
                         case .clipboardAccess: clipboardaccessview()
                         case .locationServices: locationservicesview()
                         case .microphoneCamera: microphonecameraindicatorview()
+                        case .antiKeylogger: antikeyloggerscannerview()
                         }
                     } else {
                         VStack {
