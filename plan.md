@@ -102,7 +102,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 91. [x] System Info Exporter – Export a comprehensive HTML/JSON report of hardware, software, network, and settings for support tickets.
 92. [x] License & Software Inventory – List all installed apps (App Store, brew, manual .pkg) with version, install date, and vendor.
 93. [x] Auto‑Update Checker – Poll for updates from brew, mas, npm, composer, cargo, pip, etc., and provide a bulk update button.
-94. Log File Rotator – Automatically compress and delete old logs based on rules (e.g., `/var/log/*.log`).
+94. [x] Log File Rotator – Automatically compress and delete old logs based on rules (e.g., `/var/log/*.log`).
 95. System Service Status Dashboard – Wrapper around `launchctl list` showing service state (running/waiting/failed) with color coding.
 96. Disk Space Predictor – Predict when disk will be full based on current usage trends and notify.
 97. Automatic Backup Trigger – Start rsync‑based backup to local/network volume when specific folders change.
