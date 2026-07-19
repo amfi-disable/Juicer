@@ -25,6 +25,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
 enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     case dashboard
     case featureCatalog
+    case actionHistory
     case permissionCenter
     case scriptPlugins
     case appUninstaller
@@ -67,7 +68,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
             return .disk
         case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor, .privacyScanner, .passwordAudit, .quarantinedFiles, .sandboxInspector, .antiKeylogger, .secureNotes:
             return .configs
-        case .featureCatalog, .permissionCenter, .scriptPlugins, .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .batterySaver, .printerQueue, .pdfToolbox, .markdownPreviewer, .codeSnippets, .localWebServer, .portScanner, .lanDiscovery, .wifiSurvey, .networkProfileSwitcher, .vpnAutoConnect, .publicIP, .speedTest, .dnsDiagnostics, .hostsFile, .blocklistUpdater, .appLocker, .fileVaultAutoLock, .japaneseKana, .emojiPicker, .unicodeInspector, .screenshotAnnotation, .windowSnapping, .displayProfiles, .nightShift, .keyboardBacklight, .trackpadGestures, .shortcutRunner, .systemInfoExporter, .softwareInventory, .autoUpdateChecker, .logRotator, .systemServices, .diskSpacePredictor, .backupTrigger, .networkLimiter, .diskImageMounter, .soundVolumeMixer:
+        case .featureCatalog, .actionHistory, .permissionCenter, .scriptPlugins, .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .batterySaver, .printerQueue, .pdfToolbox, .markdownPreviewer, .codeSnippets, .localWebServer, .portScanner, .lanDiscovery, .wifiSurvey, .networkProfileSwitcher, .vpnAutoConnect, .publicIP, .speedTest, .dnsDiagnostics, .hostsFile, .blocklistUpdater, .appLocker, .fileVaultAutoLock, .japaneseKana, .emojiPicker, .unicodeInspector, .screenshotAnnotation, .windowSnapping, .displayProfiles, .nightShift, .keyboardBacklight, .trackpadGestures, .shortcutRunner, .systemInfoExporter, .softwareInventory, .autoUpdateChecker, .logRotator, .systemServices, .diskSpacePredictor, .backupTrigger, .networkLimiter, .diskImageMounter, .soundVolumeMixer:
             return .utilities
         }
     }
@@ -76,6 +77,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         switch self {
         case .dashboard: return "Dashboard"
         case .featureCatalog: return "Additional Features"
+        case .actionHistory: return "Action History"
         case .permissionCenter: return "Permission Center"
         case .scriptPlugins: return "Script Plugins"
         case .appUninstaller: return "App Uninstaller"
@@ -207,6 +209,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         switch self {
         case .dashboard: return "house.fill"
         case .featureCatalog: return "square.grid.2x2"
+        case .actionHistory: return "clock.arrow.circlepath"
         case .permissionCenter: return "lock.shield"
         case .scriptPlugins: return "puzzlepiece.extension"
         case .appUninstaller: return "trash.fill"
