@@ -255,6 +255,7 @@ struct mainsidebarview: View {
                         case .screenshotAnnotation: screenshotannotationview()
                         case .windowSnapping: windowsnappingview()
                         case .displayProfiles: displayprofileview()
+                        case .nightShift: nightshiftschedulerview()
                         }
                     } else {
                         VStack {
