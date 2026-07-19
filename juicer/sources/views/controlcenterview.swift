@@ -119,6 +119,13 @@ struct controlcenterview: View {
             if !loginError.isEmpty {
                 Text(loginError).font(.caption).foregroundStyle(.red)
             }
+            HStack {
+                Button("Export Settings…") { exportSettings() }
+                Button("Import Settings…") { importSettings() }
+            }
+            Text("Settings backups are local plist files and never leave this Mac unless you move them yourself.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -181,6 +188,38 @@ struct controlcenterview: View {
             loginError = ""
         } catch {
             loginError = "Could not update launch-at-login: \(error.localizedDescription)"
+        }
+    }
+
+    private func exportSettings() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "juicer-settings.plist"
+        panel.allowedFileTypes = ["plist"]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        let values = UserDefaults.standard.persistentDomain(forName: Bundle.main.bundleIdentifier ?? "com.even.juicer") ?? [:]
+        do {
+            let data = try PropertyListSerialization.data(fromPropertyList: values, format: .xml, options: 0)
+            try data.write(to: url, options: .atomic)
+            loginError = "Settings exported successfully."
+        } catch {
+            loginError = "Settings export failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func importSettings() {
+        let panel = NSOpenPanel()
+        panel.allowedFileTypes = ["plist"]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let data = try Data(contentsOf: url)
+            guard let values = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] else {
+                throw NSError(domain: "juicer.settings", code: 1, userInfo: [NSLocalizedDescriptionKey: "The selected file is not a Juicer settings backup."])
+            }
+            let domain = Bundle.main.bundleIdentifier ?? "com.even.juicer"
+            UserDefaults.standard.setPersistentDomain(values, forName: domain)
+            loginError = "Settings imported. Reopen Settings or Juicer to refresh every control."
+        } catch {
+            loginError = "Settings import failed: \(error.localizedDescription)"
         }
     }
 }
