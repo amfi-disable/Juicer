@@ -189,6 +189,7 @@ struct mainsidebarview: View {
                         case .memoryPurge:     memorypurgeview()
                         case .swapManager:     swapmanagerview()
                         case .vpnProfiles:     vpnprofileview()
+                        case .networkLocations: networklocationview()
                         }
                     } else {
                         VStack {
