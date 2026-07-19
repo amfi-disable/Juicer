@@ -61,6 +61,8 @@ struct juicerapp: App {
             }
         }
         .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 1180, height: 760)
+        .windowResizability(.contentSize)
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates...") {
