@@ -20,13 +20,15 @@ struct juicerapp: App {
             : 3600.0
 
         Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
-            guard UserDefaults.standard.object(forKey: "juicer.settings.backgroundChecks") as? Bool ?? true else { return }
+            guard !(UserDefaults.standard.object(forKey: "juicer.settings.safeMode") as? Bool ?? false),
+                  UserDefaults.standard.object(forKey: "juicer.settings.backgroundChecks") as? Bool ?? true else { return }
             self.performBackgroundScanAndAlert()
         }
         
         // Also run a check 10 seconds after launch
         DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
-            guard UserDefaults.standard.object(forKey: "juicer.settings.backgroundChecks") as? Bool ?? true else { return }
+            guard !(UserDefaults.standard.object(forKey: "juicer.settings.safeMode") as? Bool ?? false),
+                  UserDefaults.standard.object(forKey: "juicer.settings.backgroundChecks") as? Bool ?? true else { return }
             self.performBackgroundScanAndAlert()
         }
     }

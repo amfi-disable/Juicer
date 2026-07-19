@@ -4,11 +4,15 @@ struct commandpaletteview: View {
     let onSelect: (NavigationItem) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
+    @AppStorage("juicer.navigation.searchHistory") private var searchHistory = ""
     @FocusState private var searchFocused: Bool
 
     private var results: [NavigationItem] {
         let items = NavigationItem.allCases
-        guard !query.isEmpty else { return items }
+        guard !query.isEmpty else {
+            let recent = searchHistory.split(separator: ",").compactMap { NavigationItem(rawValue: String($0)) }
+            return recent + items.filter { !recent.contains($0) }
+        }
         return items.filter {
             $0.title.localizedCaseInsensitiveContains(query) ||
             $0.rawValue.localizedCaseInsensitiveContains(query) ||
@@ -35,6 +39,7 @@ struct commandpaletteview: View {
 
             List(results) { item in
                 Button {
+                    remember(item)
                     onSelect(item)
                     dismiss()
                 } label: {
@@ -66,7 +71,15 @@ struct commandpaletteview: View {
 
     private func selectFirst() {
         guard let item = results.first else { return }
+        remember(item)
         onSelect(item)
         dismiss()
+    }
+
+    private func remember(_ item: NavigationItem) {
+        var values = searchHistory.split(separator: ",").map(String.init)
+        values.removeAll { $0 == item.rawValue }
+        values.insert(item.rawValue, at: 0)
+        searchHistory = values.prefix(8).joined(separator: ",")
     }
 }
