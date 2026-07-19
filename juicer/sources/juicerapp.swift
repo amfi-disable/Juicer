@@ -8,25 +8,33 @@ struct juicerapp: App {
     @AppStorage("juicer.settings.menuBarLabelStyle") private var menuBarLabelStyle = "label"
 
     init() {
-        NotificationManager.shared.requestAuthorization()
+        if UserDefaults.standard.object(forKey: "juicer.settings.enableNotifications") as? Bool ?? true {
+            NotificationManager.shared.requestAuthorization()
+        }
         setupBackgroundScheduler()
     }
     
     private func setupBackgroundScheduler() {
-        // Run background checks every hour
-        Timer.scheduledTimer(withTimeInterval: 3600.0, repeats: true) { _ in
+        let interval = UserDefaults.standard.double(forKey: "juicer.settings.backgroundInterval") > 0
+            ? UserDefaults.standard.double(forKey: "juicer.settings.backgroundInterval")
+            : 3600.0
+
+        Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
+            guard UserDefaults.standard.object(forKey: "juicer.settings.backgroundChecks") as? Bool ?? true else { return }
             self.performBackgroundScanAndAlert()
         }
         
         // Also run a check 10 seconds after launch
         DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+            guard UserDefaults.standard.object(forKey: "juicer.settings.backgroundChecks") as? Bool ?? true else { return }
             self.performBackgroundScanAndAlert()
         }
     }
     
     private func performBackgroundScanAndAlert() {
         // 1. Disk usage warning
-        if let attrs = try? FileManager.default.attributesOfFileSystem(forPath: "/"),
+        if (UserDefaults.standard.object(forKey: "juicer.settings.lowDiskAlerts") as? Bool ?? true),
+           let attrs = try? FileManager.default.attributesOfFileSystem(forPath: "/"),
            let total = attrs[.systemSize] as? Int64,
            let free = attrs[.systemFreeSize] as? Int64 {
             let usedPercent = Double(total - free) / Double(total)
@@ -40,6 +48,7 @@ struct juicerapp: App {
         }
         
         // 2. Package updates check
+        guard UserDefaults.standard.object(forKey: "juicer.settings.updateAlerts") as? Bool ?? true else { return }
         let manager = AppUpdateManager.shared
         manager.checkForUpdates()
         

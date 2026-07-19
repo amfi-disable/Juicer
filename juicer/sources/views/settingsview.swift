@@ -110,6 +110,10 @@ class SettingsManager: ObservableObject {
         UserDefaults.standard.set(true, forKey: "juicer.dashboard.showVitals")
         UserDefaults.standard.set(true, forKey: "juicer.dashboard.showCuratedTools")
         UserDefaults.standard.set(true, forKey: "juicer.dashboard.showBookmarks")
+        UserDefaults.standard.set(true, forKey: "juicer.settings.backgroundChecks")
+        UserDefaults.standard.set(true, forKey: "juicer.settings.lowDiskAlerts")
+        UserDefaults.standard.set(true, forKey: "juicer.settings.updateAlerts")
+        UserDefaults.standard.set(3600, forKey: "juicer.settings.backgroundInterval")
         
         // Lists defaults
         self.ignoredPaths = ["/System/Library", "/Library/Updates", "/private/var"]

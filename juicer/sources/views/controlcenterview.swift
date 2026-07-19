@@ -17,6 +17,10 @@ struct controlcenterview: View {
     @AppStorage("juicer.dashboard.showVitals") private var showVitals = true
     @AppStorage("juicer.dashboard.showCuratedTools") private var showCuratedTools = true
     @AppStorage("juicer.dashboard.showBookmarks") private var showBookmarks = true
+    @AppStorage("juicer.settings.backgroundChecks") private var backgroundChecks = true
+    @AppStorage("juicer.settings.lowDiskAlerts") private var lowDiskAlerts = true
+    @AppStorage("juicer.settings.updateAlerts") private var updateAlerts = true
+    @AppStorage("juicer.settings.backgroundInterval") private var backgroundInterval = 3600
     @State private var loginError = ""
 
     var body: some View {
@@ -27,6 +31,7 @@ struct controlcenterview: View {
                 menuBarSection
                 appBehaviorSection
                 dashboardSection
+                automationSection
                 permissionSection
             }
             .padding(24)
@@ -133,6 +138,23 @@ struct controlcenterview: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
+        }
+    }
+
+    private var automationSection: some View {
+        settingsCard(title: "Background Automation", icon: "clock.badge.checkmark") {
+            Toggle("Run background checks", isOn: $backgroundChecks)
+            Toggle("Notify about low disk space", isOn: $lowDiskAlerts)
+            Toggle("Notify about available package updates", isOn: $updateAlerts)
+            Picker("Check frequency", selection: $backgroundInterval) {
+                Text("Every hour").tag(3600)
+                Text("Every 6 hours").tag(21600)
+                Text("Once a day").tag(86400)
+            }
+            .pickerStyle(.menu)
+            Text("Background checks use local disk statistics and the existing package-update service. Notifications remain controlled by macOS.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
