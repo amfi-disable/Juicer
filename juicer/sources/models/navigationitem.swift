@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer
     
     var id: NavigationItem { self }
     
@@ -60,7 +60,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return .store
         case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .vpnProfiles, .networkLocations, .bluetoothDevices, .airDropQuickSend:
             return .system
-        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders:
+        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders, .downloadOrganizer:
             return .disk
         case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer:
             return .configs
@@ -119,6 +119,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .airDropQuickSend: return "AirDrop Quick-Send"
         case .duplicateFiles: return "Duplicate Files"
         case .emptyFolders: return "Empty Folders"
+        case .downloadOrganizer: return "Download Organizer"
         }
     }
     
@@ -172,6 +173,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .airDropQuickSend: return "airplayaudio"
         case .duplicateFiles: return "doc.on.doc"
         case .emptyFolders: return "folder.badge.minus"
+        case .downloadOrganizer: return "folder.badge.gearshape"
         }
     }
 }
