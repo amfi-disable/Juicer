@@ -46,7 +46,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 37. [x] Firewall Configuration GUI – Easy toggle for macOS Application Firewall with per‑app allow/deny lists.
 38. [x] Privacy Scanner – Scan for microphone, camera, screen‑recording, accessibility, and full‑disk access permissions granted to apps.
 39. [x] Password Audit – Scan keychain for weak, reused, or expired passwords and suggest updates.
-40. Secure Delete (Secure Erase) – Overwrite file deletion with multiple passes (DoD 5220.22‑M, Gutmann).
+40. [x] Secure Delete (Secure Erase) – Overwrite file deletion with multiple passes (DoD 5220.22‑M, Gutmann).
 41. Quarantined‑file Scanner – Find all files with `com.apple.quarantine` attribute and let user strip or review them.
 42. Application Sandbox Inspector – Show which App Sandbox entitlements each installed app has requested/used.
 43. Network Exposure Monitor – Show which apps have open listening ports and remote connections.
