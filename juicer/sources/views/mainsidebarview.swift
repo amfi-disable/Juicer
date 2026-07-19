@@ -206,6 +206,7 @@ struct mainsidebarview: View {
                         case .storageSnapshots: storagesnapshotview()
                         case .fileVault: filevaultview()
                         case .firewall: firewallview()
+                        case .privacyScanner: privacyscannerview()
                         }
                     } else {
                         VStack {
