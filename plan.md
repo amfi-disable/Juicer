@@ -37,7 +37,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 30. [x] Hidden File Visibility Toggle – Quick toggle to show/hide hidden files in Finder via a menu‑bar toggle.
 31. [x] File Type Converter – Batch convert images, audio, video, documents via built‑in `sips`, `afconvert`, `ffmpeg` (bundled static binary).
 32. [x] Metadata Editor – Edit EXIF, IPTC, XMP, ID3, PDF, and Office document metadata in batch.
-33. Symbolic Link Manager – Create, list, validate, and delete symlinks & hard links with a UI.
+33. [x] Symbolic Link Manager – Create, list, validate, and delete symlinks & hard links with a UI.
 34. Disk Verification & Repair – Run `fsck_hfs`, `fsck_apfs`, `diskutil verify/repair` with progress UI.
 35. Storage Snapshot Manager – Create APFS snapshots, list, compare, and rollback (requires admin).
 
