@@ -22,6 +22,12 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Juicer uses camera access only for its camera privacy indicator.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Juicer uses microphone access only for its microphone privacy indicator.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Juicer uses location access only for location and network auditing.</string>
 	<key>SUFeedURL</key>
 	<string>https://raw.githubusercontent.com/amfi-disable/Juicer/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
