@@ -59,7 +59,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 50. [x] Secure Notes Vault – Encrypted local notes stored in the keychain with Touch ID / Face ID protection.
 
 ## Productivity & Utilities
-51. Clipboard Manager – Keep a history of copied text, images, files (with preview) and quick‑paste shortcuts.
+51. [x] Clipboard Manager – Keep a history of copied text, images, files (with preview) and quick‑paste shortcuts.
 52. Snippet Expander – Text expansion with snippet variables (date, time, clipboard, clipboard history).
 53. Menu‑Bar Customizer – Rearrange, hide, show, and add custom scripts or SwiftUI views to the menu bar.
 54. Desktop Icons Toggle – Show/Hide desktop icons with a single click (like HiddenMe).
