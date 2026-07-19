@@ -26,6 +26,7 @@ class UtilitiesManager: ObservableObject {
     private var lastChangeCount = 0
     private var clipboardTimer: Timer?
     private var globalMonitor: Any?
+    private var betterCmdTabPanel: NSPanel?
     
     init() {
         setupClipboardTracker()
@@ -90,6 +91,44 @@ class UtilitiesManager: ObservableObject {
             
             return event
         }
+
+        NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, self.betterCmdTabEnabled else { return }
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            if flags.contains(.option) && event.keyCode == self.betterCmdTabKey {
+                self.showBetterCmdTabPanel()
+            }
+        }
+    }
+
+    func showBetterCmdTabPanel() {
+        let apps = NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular }
+        if betterCmdTabPanel == nil {
+            let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 620, height: 190), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+            panel.isFloatingPanel = true
+            panel.level = .statusBar
+            panel.hidesOnDeactivate = false
+            panel.hasShadow = true
+            panel.isOpaque = false
+            panel.backgroundColor = .clear
+            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            betterCmdTabPanel = panel
+        }
+        let panel = betterCmdTabPanel!
+        panel.contentView = NSHostingView(rootView: bettercmdtaboverlayview(apps: apps, select: { [weak self] app in
+            app.activate(options: [.activateIgnoringOtherApps])
+            self?.hideBetterCmdTabPanel()
+        }, dismiss: { [weak self] in self?.hideBetterCmdTabPanel() }))
+        if let screen = NSScreen.main ?? NSScreen.screens.first {
+            let frame = panel.frame
+            panel.setFrameOrigin(NSPoint(x: screen.visibleFrame.midX - frame.width / 2, y: screen.visibleFrame.midY - frame.height / 2))
+        }
+        panel.orderFrontRegardless()
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func hideBetterCmdTabPanel() {
+        betterCmdTabPanel?.orderOut(nil)
     }
     
     enum TileDirection {
