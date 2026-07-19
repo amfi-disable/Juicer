@@ -230,6 +230,7 @@ struct mainsidebarview: View {
                         case .qrCode: qrcodeview()
                         case .colorPicker: colorpickerview()
                         case .screenRuler: screenrulerview()
+                        case .screenLoupe: screenloupeview()
                         }
                     } else {
                         VStack {
