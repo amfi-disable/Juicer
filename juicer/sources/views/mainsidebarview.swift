@@ -263,6 +263,7 @@ struct mainsidebarview: View {
                         case .softwareInventory: softwareinventoryview()
                         case .autoUpdateChecker: autoupdatecheckerview()
                         case .logRotator: logrotatorview()
+                        case .systemServices: systemservicesview()
                         }
                     } else {
                         VStack {
