@@ -121,6 +121,7 @@ class SettingsManager: ObservableObject {
         UserDefaults.standard.set(false, forKey: "juicer.workflow.dryRun")
         UserDefaults.standard.set(true, forKey: "juicer.workflow.notifications")
         UserDefaults.standard.set("", forKey: "juicer.workflow.customPaths")
+        UserDefaults.standard.set("", forKey: "juicer.workflow.favoriteRecipes")
         
         // Lists defaults
         self.ignoredPaths = ["/System/Library", "/Library/Updates", "/private/var"]

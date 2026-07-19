@@ -74,6 +74,9 @@ struct WorkflowTask: Identifiable, Codable, Hashable {
     var output: String
     var finishedAt: Date?
     var commandOverride: String?
+    var recipeID: String?
+    var recipeTitle: String?
+    var recipeIcon: String?
 
     init(kind: WorkflowTaskKind) {
         id = UUID()
@@ -83,7 +86,26 @@ struct WorkflowTask: Identifiable, Codable, Hashable {
         output = ""
         finishedAt = nil
         commandOverride = nil
+        recipeID = nil
+        recipeTitle = nil
+        recipeIcon = nil
     }
+
+    init(recipe: workflowrecipe) {
+        id = UUID()
+        kind = .systemHealth
+        createdAt = Date()
+        state = .queued
+        output = ""
+        finishedAt = nil
+        commandOverride = recipe.command
+        recipeID = recipe.id
+        recipeTitle = recipe.title
+        recipeIcon = recipe.icon
+    }
+
+    var displayTitle: String { recipeTitle ?? kind.title }
+    var displayIcon: String { recipeIcon ?? kind.icon }
 }
 
 @MainActor
@@ -108,12 +130,18 @@ final class workflowtaskmanager: ObservableObject {
         startNextIfNeeded()
     }
 
+    func enqueue(_ recipe: workflowrecipe) {
+        tasks.append(WorkflowTask(recipe: recipe))
+        persist()
+        startNextIfNeeded()
+    }
+
     func enqueueDiskHealth(paths: [String]) {
         var task = WorkflowTask(kind: .diskHealth)
         let validPaths = paths.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
         if !validPaths.isEmpty {
             let quoted = validPaths.map { "\\\"\($0.replacingOccurrences(of: "\\\"", with: "\\\\\\\""))\\\"" }.joined(separator: " ")
-            task.commandOverride = "printf '%s\\n' '--- selected paths ---'; du -sh (quoted) 2>&1 | sort -hr"
+            task.commandOverride = "printf '%s\\n' '--- selected paths ---'; du -sh \(quoted) 2>&1 | sort -hr"
         }
         tasks.append(task)
         persist()
@@ -129,9 +157,11 @@ final class workflowtaskmanager: ObservableObject {
     }
 
     func retry(_ task: WorkflowTask) {
-        tasks.append(WorkflowTask(kind: task.kind))
-        persist()
-        startNextIfNeeded()
+        if let recipeID = task.recipeID, let recipe = workflowrecipe.all.first(where: { $0.id == recipeID }) {
+            enqueue(recipe)
+        } else {
+            enqueue(task.kind)
+        }
     }
 
     func togglePause() {
@@ -174,7 +204,7 @@ final class workflowtaskmanager: ObservableObject {
     func reportText() -> String {
         tasks.map { task in
             let date = task.createdAt.formatted(date: .abbreviated, time: .shortened)
-            return "[(date)] (task.kind.title) — (task.state.title)\n(task.output)"
+            return "[\(date)] \(task.displayTitle) — \(task.state.title)\n\(task.output)"
         }.joined(separator: "\n\n")
     }
 
@@ -223,7 +253,7 @@ final class workflowtaskmanager: ObservableObject {
                 self.isRunning = false
                 self.persist()
                 if UserDefaults.standard.object(forKey: "juicer.workflow.notifications") as? Bool ?? true {
-                    NotificationManager.shared.sendNotification(title: "Workflow complete", body: "(self.tasks[index].kind.title) finished with status: \(self.tasks[index].state.title).")
+                    NotificationManager.shared.sendNotification(title: "Workflow complete", body: "\(self.tasks[index].displayTitle) finished with status: \(self.tasks[index].state.title).")
                 }
                 self.startNextIfNeeded()
             }

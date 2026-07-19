@@ -6,7 +6,10 @@ struct workflowcenterview: View {
     @AppStorage("juicer.workflow.dryRun") private var dryRun = false
     @AppStorage("juicer.workflow.notifications") private var notifications = true
     @AppStorage("juicer.workflow.customPaths") private var customPaths = ""
+    @AppStorage("juicer.workflow.favoriteRecipes") private var favoriteRecipes = ""
     @State private var pathInput = ""
+    @State private var recipeSearch = ""
+    @State private var recipeCategory = "All"
     @State private var copied = false
 
     var body: some View {
@@ -18,6 +21,7 @@ struct workflowcenterview: View {
 
                 controls
                 presets
+                recipeLibrary
                 taskList
                 scanScope
                 reportActions
@@ -93,7 +97,7 @@ struct workflowcenterview: View {
                 ForEach(manager.tasks) { task in
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Label(task.kind.title, systemImage: task.kind.icon).font(.headline)
+                            Label(task.displayTitle, systemImage: task.displayIcon).font(.headline)
                             Spacer()
                             Text(task.state.title).font(.caption).foregroundStyle(task.state == .failed ? .red : .secondary)
                             if task.state == .failed { Button("Retry") { manager.retry(task) }.buttonStyle(.link) }
@@ -115,6 +119,74 @@ struct workflowcenterview: View {
                 }
             }
         }
+    }
+
+    private var recipeLibrary: some View {
+        JuicerFeatureList(title: "Recipe library · \(workflowrecipe.all.count) features") {
+            HStack {
+                TextField("Search recipes", text: $recipeSearch)
+                    .textFieldStyle(.roundedBorder)
+                Picker("Category", selection: $recipeCategory) {
+                    Text("All").tag("All")
+                    ForEach(workflowrecipe.categories, id: \.self) { category in
+                        Text(category).tag(category)
+                    }
+                }
+                .pickerStyle(.menu)
+                Button("Queue favorites") {
+                    for recipe in workflowrecipe.all where favoriteSet.contains(recipe.id) {
+                        if dryRun { AppLogger.shared.log("Previewed recipe: \(recipe.title)") } else { manager.enqueue(recipe) }
+                    }
+                }
+                .buttonStyle(.bordered)
+            }
+            Text("All recipes are local and read-only. Mark frequently used checks with the star, then queue them together.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 250), spacing: 10)], spacing: 10) {
+                ForEach(filteredRecipes) { recipe in
+                    HStack(spacing: 8) {
+                        Button {
+                            if dryRun {
+                                AppLogger.shared.log("Previewed recipe: \(recipe.title)")
+                            } else {
+                                manager.enqueue(recipe)
+                            }
+                        } label: {
+                            Label(recipe.title, systemImage: recipe.icon)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.bordered)
+                        Button { toggleFavorite(recipe) } label: {
+                            Image(systemName: favoriteSet.contains(recipe.id) ? "star.fill" : "star")
+                        }
+                        .buttonStyle(.borderless)
+                        .help(favoriteSet.contains(recipe.id) ? "Remove favorite" : "Add favorite")
+                    }
+                }
+            }
+            if filteredRecipes.isEmpty {
+                ContentUnavailableView("No matching recipes", systemImage: "magnifyingglass", description: Text("Try a different search or category."))
+            }
+        }
+    }
+
+    private var favoriteSet: Set<String> {
+        Set(favoriteRecipes.split(separator: ",").map(String.init))
+    }
+
+    private var filteredRecipes: [workflowrecipe] {
+        workflowrecipe.all.filter { recipe in
+            let matchesCategory = recipeCategory == "All" || recipe.category == recipeCategory
+            let matchesSearch = recipeSearch.isEmpty || recipe.title.localizedCaseInsensitiveContains(recipeSearch) || recipe.category.localizedCaseInsensitiveContains(recipeSearch)
+            return matchesCategory && matchesSearch
+        }
+    }
+
+    private func toggleFavorite(_ recipe: workflowrecipe) {
+        var updated = favoriteSet
+        if updated.contains(recipe.id) { updated.remove(recipe.id) } else { updated.insert(recipe.id) }
+        favoriteRecipes = updated.sorted().joined(separator: ",")
     }
 
     private var scanScope: some View {
