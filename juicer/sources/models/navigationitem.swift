@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera, antiKeylogger, secureNotes, clipboardManager, snippetExpander
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera, antiKeylogger, secureNotes, clipboardManager, snippetExpander, menuBarCustomizer
     
     var id: NavigationItem { self }
     
@@ -64,7 +64,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return .disk
         case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor, .privacyScanner, .passwordAudit, .quarantinedFiles, .sandboxInspector, .antiKeylogger, .secureNotes:
             return .configs
-        case .utilitiesView, .clipboardManager, .snippetExpander:
+        case .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer:
             return .utilities
         }
     }
@@ -146,6 +146,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .secureNotes: return "Secure Notes Vault"
         case .clipboardManager: return "Clipboard Manager"
         case .snippetExpander: return "Snippet Expander"
+        case .menuBarCustomizer: return "Menu-Bar Customizer"
         }
     }
     
@@ -226,6 +227,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .secureNotes: return "note.text.badge.lock"
         case .clipboardManager: return "doc.on.clipboard.fill"
         case .snippetExpander: return "text.badge.plus"
+        case .menuBarCustomizer: return "menubar.rectangle"
         }
     }
 }

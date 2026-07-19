@@ -221,6 +221,7 @@ struct mainsidebarview: View {
                         case .secureNotes: securenotesvaultview()
                         case .clipboardManager: clipboardmanagerview()
                         case .snippetExpander: snippetexpanderview()
+                        case .menuBarCustomizer: menubarcustomizerview()
                         }
                     } else {
                         VStack {
