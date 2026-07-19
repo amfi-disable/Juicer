@@ -50,7 +50,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 41. [x] Quarantined‑file Scanner – Find all files with `com.apple.quarantine` attribute and let user strip or review them.
 42. [x] Application Sandbox Inspector – Show which App Sandbox entitlements each installed app has requested/used.
 43. [x] Network Exposure Monitor – Show which apps have open listening ports and remote connections.
-44. USB Device Guard – Whitelist/blacklist USB devices and get notified when unknown USB is plugged in.
+44. [x] USB Device Guard – Whitelist/blacklist USB devices and get notified when unknown USB is plugged in.
 45. Screen Recording Detector – Alert when any app starts a screen‑recording session.
 46. Clipboard Access Monitor – Notify when apps read the clipboard and allow blocking.
 47. Location Services Auditor – List apps that have requested location access and when they last used it.
