@@ -101,6 +101,10 @@ struct largefilesview: View {
             }
             
             Spacer()
+
+            Button(action: addSearchDirectory) {
+                Label("Add Folder", systemImage: "folder.badge.plus")
+            }
             
             Button(action: { manager.startScan() }) {
                 HStack {
@@ -116,6 +120,13 @@ struct largefilesview: View {
         .cornerRadius(12)
         .onChange(of: manager.sizeThresholdMB) { _, _ in manager.startScan() }
         .onChange(of: manager.ageThresholdMonths) { _, _ in manager.startScan() }
+    }
+
+    private func addSearchDirectory() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        if panel.runModal() == .OK, let url = panel.url { manager.addSearchDirectory(url) }
     }
     
     // MARK: - Scanning Placeholder
