@@ -20,6 +20,8 @@ struct additionalfeaturecatalogview: View {
     @State private var query = ""
     @State private var category = "All"
     @State private var message = ""
+    @State private var favoritesOnly = false
+    @AppStorage("juicer.additionalFeatures.favorites") private var favoriteIDs = ""
 
     private let categories = ["All", "System", "Privacy", "Developer", "Files", "Network", "Accessibility", "Hardware"]
     private let features = additionalfeaturecatalogview.catalog
@@ -27,6 +29,7 @@ struct additionalfeaturecatalogview: View {
     private var filtered: [additionalfeature] {
         features.filter { feature in
             (category == "All" || feature.category == category) &&
+            (!favoritesOnly || favoriteSet.contains(feature.id)) &&
             (query.isEmpty || feature.title.localizedCaseInsensitiveContains(query) || feature.detail.localizedCaseInsensitiveContains(query))
         }
     }
@@ -42,6 +45,8 @@ struct additionalfeaturecatalogview: View {
                     ForEach(categories, id: \.self) { Text($0).tag($0) }
                 }
                 .frame(width: 150)
+                Toggle("Favorites only", isOn: $favoritesOnly)
+                    .toggleStyle(.checkbox)
             }
 
             Text("\(filtered.count) available features")
@@ -60,6 +65,14 @@ struct additionalfeaturecatalogview: View {
                             Text(feature.detail).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                         }
                         Spacer()
+                        Button {
+                            toggleFavorite(feature.id)
+                        } label: {
+                            Image(systemName: favoriteSet.contains(feature.id) ? "star.fill" : "star")
+                                .foregroundStyle(favoriteSet.contains(feature.id) ? .yellow : .secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Favorite this feature")
                         Image(systemName: "arrow.up.forward.app").font(.caption).foregroundStyle(.secondary)
                     }
                     .contentShape(Rectangle())
@@ -88,6 +101,17 @@ struct additionalfeaturecatalogview: View {
             NSPasteboard.general.setString(value, forType: .string)
             message = "Copied \(feature.title) result to the clipboard."
         }
+        AppLogger.shared.log("Ran additional feature: \(feature.title)")
+    }
+
+    private var favoriteSet: Set<Int> {
+        Set(favoriteIDs.split(separator: ",").compactMap { Int($0) })
+    }
+
+    private func toggleFavorite(_ id: Int) {
+        var updated = favoriteSet
+        if updated.contains(id) { updated.remove(id) } else { updated.insert(id) }
+        favoriteIDs = updated.sorted().map(String.init).joined(separator: ",")
     }
 
     private static let catalog: [additionalfeature] = [
