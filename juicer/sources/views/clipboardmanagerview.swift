@@ -1,16 +1,146 @@
 import SwiftUI
 import AppKit
 
+private struct clipboardrecord: Codable, Identifiable, Hashable {
+    let id: UUID
+    let value: String
+    var pinned: Bool
+    let createdAt: Date
+}
+
 struct clipboardmanagerview: View {
-    @State private var history: [String] = []
+    @AppStorage("juicer.clipboard.records") private var storedRecords = Data()
+    @State private var records: [clipboardrecord] = []
+    @State private var searchText = ""
     @State private var lastCount = NSPasteboard.general.changeCount
     @State private var timer: Timer?
+    @State private var message = ""
+
+    private var filteredRecords: [clipboardrecord] {
+        records.filter { searchText.isEmpty || $0.value.localizedCaseInsensitiveContains(searchText) }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            JuicerFeatureHeader(title: "Clipboard Manager", subtitle: "Keep a local session history of copied text with one-click restore.", icon: "doc.on.clipboard.fill", refreshing: false, action: poll)
-            HStack { Button("Clear History") { history.removeAll() }; Spacer(); Text("Session only").font(.caption).foregroundStyle(.secondary) }
-            List(history, id: \.self) { value in HStack { Text(value).lineLimit(2); Spacer(); Button("Copy") { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(value, forType: .string) }.buttonStyle(.borderless) } }.listStyle(.inset)
-        }.padding(24).onAppear { timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in poll() } }.onDisappear { timer?.invalidate() }
+            JuicerFeatureHeader(title: "Clipboard Manager", subtitle: "Keep a private local history with pins, search, and keyboard-friendly paste actions.", icon: "doc.on.clipboard.fill", refreshing: false, action: poll)
+
+            HStack(spacing: 10) {
+                TextField("Search clipboard history", text: $searchText)
+                    .textFieldStyle(.roundedBorder)
+                Button("Clear Unpinned", role: .destructive) {
+                    records.removeAll { !$0.pinned }
+                    save()
+                }
+                .disabled(records.allSatisfy(\.pinned))
+                Button("Clear All", role: .destructive) {
+                    records.removeAll()
+                    save()
+                }
+            }
+
+            HStack {
+                Label("\(records.count) items", systemImage: "number")
+                if records.contains(where: \.pinned) { Label("\(records.filter(\.pinned).count) pinned", systemImage: "pin.fill") }
+                Spacer()
+                Text("Sensitive pasteboard types are ignored")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            if filteredRecords.isEmpty {
+                ContentUnavailableView("Clipboard Empty", systemImage: "doc.on.clipboard", description: Text("Copy text in another app to build a local history."))
+            } else {
+                List(filteredRecords) { record in
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: record.pinned ? "pin.fill" : "doc.on.clipboard")
+                            .foregroundStyle(record.pinned ? .orange : .secondary)
+                            .frame(width: 18)
+                        Text(record.value)
+                            .lineLimit(3)
+                            .textSelection(.enabled)
+                        Spacer()
+                        Button { copy(record) } label: { Image(systemName: "doc.on.doc") }
+                            .buttonStyle(.borderless).help("Copy")
+                        Button { paste(record) } label: { Image(systemName: "arrow.right.doc.on.clipboard") }
+                            .buttonStyle(.borderless).help("Copy and paste")
+                        Button { togglePin(record) } label: { Image(systemName: record.pinned ? "pin.slash" : "pin") }
+                            .buttonStyle(.borderless).help(record.pinned ? "Unpin" : "Pin")
+                    }
+                    .padding(.vertical, 4)
+                    .contextMenu {
+                        Button(record.pinned ? "Unpin" : "Pin") { togglePin(record) }
+                        Button("Copy") { copy(record) }
+                        Button("Copy Without Formatting") { copy(record, removeFormatting: true) }
+                        Button("Delete", role: .destructive) { delete(record) }
+                    }
+                }
+                .listStyle(.inset)
+            }
+
+            if !message.isEmpty { Text(message).font(.caption).foregroundStyle(.secondary) }
+        }
+        .padding(24)
+        .onAppear {
+            load()
+            timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in poll() }
+        }
+        .onDisappear { timer?.invalidate() }
     }
-    private func poll() { let pasteboard = NSPasteboard.general; guard pasteboard.changeCount != lastCount else { return }; lastCount = pasteboard.changeCount; if let value = pasteboard.string(forType: .string), !value.isEmpty, value != history.first { history.insert(value, at: 0); history = Array(history.prefix(25)) } }
+
+    private func load() {
+        records = (try? JSONDecoder().decode([clipboardrecord].self, from: storedRecords)) ?? []
+    }
+
+    private func save() {
+        storedRecords = (try? JSONEncoder().encode(records)) ?? Data()
+    }
+
+    private func poll() {
+        let pasteboard = NSPasteboard.general
+        guard pasteboard.changeCount != lastCount else { return }
+        lastCount = pasteboard.changeCount
+        let types = Set(pasteboard.types ?? [])
+        let ignoredTypes: Set<NSPasteboard.PasteboardType> = [
+            NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"),
+            NSPasteboard.PasteboardType("org.nspasteboard.TransientType"),
+            NSPasteboard.PasteboardType("org.nspasteboard.AutoGeneratedType")
+        ]
+        guard types.isDisjoint(with: ignoredTypes), let value = pasteboard.string(forType: .string), !value.isEmpty else { return }
+        guard records.first?.value != value else { return }
+        records.insert(clipboardrecord(id: UUID(), value: value, pinned: false, createdAt: Date()), at: 0)
+        records = Array(records.filter(\.pinned) + records.filter { !$0.pinned }.prefix(99))
+        save()
+    }
+
+    private func togglePin(_ record: clipboardrecord) {
+        guard let index = records.firstIndex(where: { $0.id == record.id }) else { return }
+        records[index].pinned.toggle()
+        records.sort { lhs, rhs in
+            if lhs.pinned != rhs.pinned { return lhs.pinned && !rhs.pinned }
+            return lhs.createdAt > rhs.createdAt
+        }
+        save()
+    }
+
+    private func delete(_ record: clipboardrecord) {
+        records.removeAll { $0.id == record.id }
+        save()
+    }
+
+    private func copy(_ record: clipboardrecord, removeFormatting: Bool = false) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(removeFormatting ? record.value.trimmingCharacters(in: .whitespacesAndNewlines) : record.value, forType: .string)
+        message = "Copied clipboard item."
+    }
+
+    private func paste(_ record: clipboardrecord) {
+        copy(record)
+        guard let source = CGEventSource(stateID: .combinedSessionState),
+              let down = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: true),
+              let up = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: false) else { return }
+        down.flags = .maskCommand
+        up.flags = .maskCommand
+        down.post(tap: .cgSessionEventTap)
+        up.post(tap: .cgSessionEventTap)
+        message = "Pasted clipboard item. Accessibility permission may be required."
+    }
 }
