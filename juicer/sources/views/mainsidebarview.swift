@@ -199,6 +199,7 @@ struct mainsidebarview: View {
                         case .diskImages:     diskimageview()
                         case .permissionRepair: permissionrepairview()
                         case .extendedAttributes: extendedattributeview()
+                        case .fileTypeConverter: filetypeconverterview()
                         }
                     } else {
                         VStack {
