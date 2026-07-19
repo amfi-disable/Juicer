@@ -50,6 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager
     
     var id: NavigationItem { self }
     
@@ -57,7 +58,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         switch self {
         case .appStore, .brewExplorer, .appUpdates:
             return .store
-        case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots:
+        case .dashboard, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager:
             return .system
         case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory:
             return .disk
@@ -97,6 +98,16 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .undoHistory: return "Undo Deletion History"
         case .appUpdates: return "Package Upgrades"
         case .tccViewer: return "Privacy Cabinet"
+        case .cpuMemoryMonitor: return "CPU & Memory Monitor"
+        case .gpuMonitor: return "GPU Utilization Monitor"
+        case .diskIOMonitor: return "Disk I/O Monitor"
+        case .networkTraffic: return "Network Traffic Monitor"
+        case .batteryHealth: return "Battery Health Dashboard"
+        case .startupItems: return "Startup Item Manager"
+        case .loginItemDelays: return "Login Item Delays"
+        case .processKiller: return "Process Killer"
+        case .systemLogs: return "System Log Viewer"
+        case .kextManager: return "KEXT Manager"
         }
     }
     
@@ -129,6 +140,16 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .undoHistory: return "clock.arrow.circlepath"
         case .appUpdates: return "arrow.triangle.2.circlepath.circle.fill"
         case .tccViewer: return "shield.fill"
+        case .cpuMemoryMonitor: return "waveform.path.ecg"
+        case .gpuMonitor: return "display.2"
+        case .diskIOMonitor: return "internaldrive"
+        case .networkTraffic: return "network"
+        case .batteryHealth: return "battery.100"
+        case .startupItems: return "arrow.up.forward.app"
+        case .loginItemDelays: return "timer"
+        case .processKiller: return "xmark.octagon"
+        case .systemLogs: return "doc.text.magnifyingglass"
+        case .kextManager: return "puzzlepiece.extension"
         }
     }
 }
