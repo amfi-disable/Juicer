@@ -94,6 +94,16 @@ class SettingsManager: ObservableObject {
         
         // System Tweaks defaults
         UserDefaults.standard.set(true, forKey: "juicer.settings.autoRestartShell")
+
+        // Control Center defaults
+        UserDefaults.standard.set(true, forKey: "juicer.settings.showStatusMenuBar")
+        UserDefaults.standard.set(true, forKey: "juicer.settings.showQuickSendMenuBar")
+        UserDefaults.standard.set("label", forKey: "juicer.settings.menuBarLabelStyle")
+        UserDefaults.standard.set(false, forKey: "juicer.settings.launchAtLogin")
+        UserDefaults.standard.set(true, forKey: "juicer.settings.confirmDestructiveActions")
+        UserDefaults.standard.set(true, forKey: "juicer.settings.restoreMainWindow")
+        UserDefaults.standard.set(true, forKey: "juicer.settings.showStatusBar")
+        UserDefaults.standard.set("2s", forKey: "juicer.settings.statusMonitorRefresh")
         
         // Lists defaults
         self.ignoredPaths = ["/System/Library", "/Library/Updates", "/private/var"]
@@ -139,6 +149,9 @@ struct settingsview: View {
     
     var body: some View {
         TabView {
+            controlcenterview()
+                .tabItem { Label("Control Center", systemImage: "switch.2") }
+
             // Tab 1: General
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
@@ -376,6 +389,9 @@ struct settingsview: View {
             }
             .tabItem { Label("Custom Rules", systemImage: "list.bullet.rectangle.portrait") }
             .padding()
+
+            helpview()
+                .tabItem { Label("Help", systemImage: "questionmark.circle") }
         }
         .frame(width: 760, height: 530)
         // First Confirmation Alert

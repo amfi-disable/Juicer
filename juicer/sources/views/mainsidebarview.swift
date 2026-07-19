@@ -39,6 +39,8 @@ struct mainsidebarview: View {
     @State private var selectedStoreItem: UnifiedStoreItem = .allCasks
     @State private var isShowingGuide = false
     @State private var sidebarSearch = ""
+    @AppStorage("juicer.settings.showStatusBar") private var showStatusBar = true
+    @AppStorage("juicer.settings.restoreMainWindow") private var restoreMainWindow = true
     
     var body: some View {
         VStack(spacing: 0) {
@@ -284,7 +286,9 @@ struct mainsidebarview: View {
                 }
             }
             
-            statusbarview()
+            if showStatusBar {
+                statusbarview()
+            }
         }
         // Menu navigation event listeners (switching workspace automatically)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.dashboard"))) { _ in
@@ -355,6 +359,10 @@ struct mainsidebarview: View {
             currentWorkspace = .utilities
             selectedItem = .utilitiesView
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.permissionCenter"))) { _ in
+            currentWorkspace = .utilities
+            selectedItem = .permissionCenter
+        }
         
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.uninstaller.scan"))) { notification in
             if let appURL = notification.object as? URL {
@@ -368,6 +376,10 @@ struct mainsidebarview: View {
         
         .onAppear {
             TrashObserver.shared.startObserving()
+            if restoreMainWindow {
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.windows.first(where: { $0.canBecomeKey && $0.title != "" })?.makeKeyAndOrderFront(nil)
+            }
         }
         
         // Help & Guide triggers
