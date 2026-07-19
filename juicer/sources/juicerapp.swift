@@ -189,5 +189,9 @@ struct juicerapp: App {
             airdropquicksendview()
                 .frame(width: 360, height: 430)
         }
+
+        MenuBarExtra("Juicer Status", systemImage: "waveform.path.ecg") {
+            menubarmonitorview()
+        }
     }
 }
