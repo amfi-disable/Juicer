@@ -210,6 +210,7 @@ struct mainsidebarview: View {
                         case .passwordAudit: passwordauditview()
                         case .secureDelete: securedeleteview()
                         case .quarantinedFiles: quarantinedfilesview()
+                        case .sandboxInspector: sandboxinspectorview()
                         }
                     } else {
                         VStack {
