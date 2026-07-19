@@ -16,6 +16,7 @@ struct launchdmanagerview: View {
     @State private var editStandardOutPath = ""
     @State private var editStandardErrorPath = ""
     @State private var editPlistPath = ""
+    @State private var editorValidationMessage = ""
     
     // Detail View tab
     @State private var selectedDetailTab = 0
@@ -173,6 +174,7 @@ struct launchdmanagerview: View {
             }
             .pickerStyle(.segmented)
             .padding(.horizontal)
+
             .padding(.bottom, 8)
             
             Divider()
@@ -372,6 +374,13 @@ struct launchdmanagerview: View {
                 }
             }
             .padding(.horizontal)
+
+            if !editorValidationMessage.isEmpty {
+                Text(editorValidationMessage)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .padding(.horizontal)
+            }
             
             HStack {
                 Spacer()
@@ -384,7 +393,7 @@ struct launchdmanagerview: View {
                     saveEditorChanges()
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(editLabel.isEmpty || editProgramArguments.isEmpty)
+                .disabled(!editorValidationMessage.isEmpty || editLabel.isEmpty || editProgramArguments.isEmpty)
             }
             .padding()
         }
@@ -441,6 +450,7 @@ struct launchdmanagerview: View {
         self.editStandardOutPath = service.standardOutPath ?? ""
         self.editStandardErrorPath = service.standardErrorPath ?? ""
         self.editPlistPath = service.plistURL.path
+        self.editorValidationMessage = ""
         self.isShowingEditor = true
     }
     
@@ -453,10 +463,27 @@ struct launchdmanagerview: View {
         self.editStandardOutPath = ""
         self.editStandardErrorPath = ""
         self.editPlistPath = "user"
+        self.editorValidationMessage = ""
         self.isShowingEditor = true
     }
     
     private func saveEditorChanges() {
+        let trimmedLabel = editLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+        let args = editProgramArguments.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+        var validation: String?
+        if trimmedLabel.isEmpty || !trimmedLabel.contains(".") {
+            validation = "Label must be a non-empty reverse-DNS identifier, such as com.example.task."
+        } else if args.isEmpty {
+            validation = "At least one program argument is required."
+        } else {
+            let candidate: [String: Any] = ["Label": trimmedLabel, "ProgramArguments": args, "RunAtLoad": editRunAtLoad, "KeepAlive": editKeepAlive]
+            if (try? PropertyListSerialization.data(fromPropertyList: candidate, format: .xml, options: 0)) == nil {
+                validation = "The launchd property list could not be serialized."
+            }
+        }
+        editorValidationMessage = validation ?? ""
+        guard validation == nil else { return }
+
         let plistURL: URL
         let type: String
         
@@ -480,13 +507,11 @@ struct launchdmanagerview: View {
             type = selectedService?.type ?? "User Agent"
         }
         
-        let args = editProgramArguments.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
-        
         let outPath = editStandardOutPath.trimmingCharacters(in: .whitespacesAndNewlines)
         let errPath = editStandardErrorPath.trimmingCharacters(in: .whitespacesAndNewlines)
         
         let service = LaunchdService(
-            label: editLabel,
+            label: trimmedLabel,
             programArguments: args,
             runAtLoad: editRunAtLoad,
             keepAlive: editKeepAlive,

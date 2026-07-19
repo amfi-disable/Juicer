@@ -13,11 +13,11 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 8. [x] Process Killer / Force‑Quit Assistant – Search & kill misbehaving processes with safety confirmations.
 9. [x] System Log Viewer – Unified viewer for `/var/log/system.log`, `console.log`, and user logs with filtering & search.
 10. [x] Kernel Extension (KEXT) Manager – List, enable/disable, and view details of loaded kernel extensions (Intel Macs).
-11. Launch Daemon/Agent Editor – GUI plist editor with validation and syntax highlighting.
-12. Timer‑Based Power Schedule – Schedule sleep, wake, shutdown, or reboot at specific times/dates.
-13. Thermal Throttling Monitor – Show when CPU/GPU is throttling due to temperature and suggest fixes.
-14. Fan Speed Controller (where hardware allows) – Manual fan curve presets.
-15. RAM Cleaner / Memory Purge – Safe purge of inactive memory to free RAM (`purge` command wrapper).
+11. [x] Launch Daemon/Agent Editor – GUI plist editor with validation and syntax highlighting.
+12. [x] Timer‑Based Power Schedule – Schedule sleep, wake, shutdown, or reboot at specific times/dates.
+13. [x] Thermal Throttling Monitor – Show when CPU/GPU is throttling due to temperature and suggest fixes.
+14. [x] Fan Speed Controller (where hardware allows) – Manual fan curve presets.
+15. [x] RAM Cleaner / Memory Purge – Safe purge of inactive memory to free RAM (`purge` command wrapper).
 16. Swap Manager – View swapfile size/viewer and toggle swap on/off (requires admin).
 17. VPN Profile Manager – Import, export, enable/disable, and configure built‑in macOS VPN configurations.
 18. Network Location Manager – Create, switch, and delete network locations (Wi‑Fi, Ethernet, VPN, proxies).

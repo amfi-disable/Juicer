@@ -183,6 +183,10 @@ struct mainsidebarview: View {
                         case .processKiller:    processkillerview()
                         case .systemLogs:       systemlogview()
                         case .kextManager:      kextmanagerview()
+                        case .powerSchedule:   powerscheduleview()
+                        case .thermalMonitor:  thermalmonitorview()
+                        case .fanController:   fancontrollerview()
+                        case .memoryPurge:     memorypurgeview()
                         }
                     } else {
                         VStack {
