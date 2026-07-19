@@ -38,9 +38,11 @@ struct mainsidebarview: View {
     @State private var selectedItem: NavigationItem? = nil
     @State private var selectedStoreItem: UnifiedStoreItem = .allCasks
     @State private var isShowingGuide = false
+    @State private var isShowingCommandPalette = false
     @State private var sidebarSearch = ""
     @AppStorage("juicer.settings.showStatusBar") private var showStatusBar = true
     @AppStorage("juicer.settings.restoreMainWindow") private var restoreMainWindow = true
+    @StateObject private var navigationPreferences = navigationpreferences.shared
     
     var body: some View {
         VStack(spacing: 0) {
@@ -142,8 +144,27 @@ struct mainsidebarview: View {
                             item.workspace == currentWorkspace && (sidebarSearch.isEmpty || item.title.localizedCaseInsensitiveContains(sidebarSearch))
                         }
                         Section(currentWorkspace.title) {
+                            if !navigationPreferences.favorites.filter({ $0.workspace == currentWorkspace }).isEmpty {
+                                ForEach(navigationPreferences.favorites.filter { $0.workspace == currentWorkspace }) { item in
+                                    sidebarLink(for: item)
+                                }
+                                Divider()
+                            }
                             ForEach(items) { item in
-                                sidebarLink(for: item)
+                                if !navigationPreferences.isFavorite(item) {
+                                    sidebarLink(for: item)
+                                }
+                            }
+                        }
+
+                        if !navigationPreferences.recent.isEmpty {
+                            Section("Recent") {
+                                ForEach(navigationPreferences.recent) { item in
+                                    sidebarLink(for: item)
+                                }
+                                Button("Clear Recent") { navigationPreferences.clearRecent() }
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -363,6 +384,15 @@ struct mainsidebarview: View {
             currentWorkspace = .utilities
             selectedItem = .permissionCenter
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.action.commandPalette"))) { _ in
+            isShowingCommandPalette = true
+        }
+        .onChange(of: selectedItem) { _, item in
+            if let item {
+                navigationPreferences.record(item)
+                currentWorkspace = item.workspace
+            }
+        }
         
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.uninstaller.scan"))) { notification in
             if let appURL = notification.object as? URL {
@@ -388,6 +418,12 @@ struct mainsidebarview: View {
         }
         .sheet(isPresented: $isShowingGuide) {
             userGuideSheet()
+        }
+        .sheet(isPresented: $isShowingCommandPalette) {
+            commandpaletteview { item in
+                currentWorkspace = item.workspace
+                selectedItem = item
+            }
         }
     }
     
@@ -485,6 +521,11 @@ struct mainsidebarview: View {
             }
         }
         .padding(.vertical, 4)
+        .contextMenu {
+            Button(navigationPreferences.isFavorite(item) ? "Remove from Favorites" : "Add to Favorites") {
+                navigationPreferences.toggleFavorite(item)
+            }
+        }
     }
     
     @ViewBuilder

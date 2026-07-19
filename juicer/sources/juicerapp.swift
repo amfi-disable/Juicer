@@ -90,6 +90,11 @@ struct juicerapp: App {
                     NotificationCenter.default.post(name: NSNotification.Name("juicer.action.refresh"), object: nil)
                 }
                 .keyboardShortcut("r", modifiers: [.command])
+
+                Button("Command Palette…") {
+                    NotificationCenter.default.post(name: NSNotification.Name("juicer.action.commandPalette"), object: nil)
+                }
+                .keyboardShortcut("k", modifiers: [.command])
                 
                 Divider()
                 
