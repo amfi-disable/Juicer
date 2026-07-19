@@ -15,5 +15,18 @@ struct textcaseconverterview: View {
             Spacer()
         }.padding(24)
     }
-    private func convert(_ value: String) -> String { let words = value.split { !$0.isLetter && !$0.isNumber }.map(String.init); switch style { case "Upper": value.uppercased(); case "Lower": value.lowercased(); case "Title": value.capitalized; case "Sentence": value.prefix(1).uppercased() + value.dropFirst().lowercased(); case "Snake": words.map { $0.lowercased() }.joined(separator: "_"); case "Kebab": words.map { $0.lowercased() }.joined(separator: "-"); default: guard let first = words.first else { return "" }; return first.lowercased() + words.dropFirst().map { $0.capitalized }.joined() } }
+    private func convert(_ value: String) -> String {
+        let words = value.split { !$0.isLetter && !$0.isNumber }.map(String.init)
+        switch style {
+        case "Upper": return value.uppercased()
+        case "Lower": return value.lowercased()
+        case "Title": return value.capitalized
+        case "Sentence": return value.prefix(1).uppercased() + value.dropFirst().lowercased()
+        case "Snake": return words.map { $0.lowercased() }.joined(separator: "_")
+        case "Kebab": return words.map { $0.lowercased() }.joined(separator: "-")
+        default:
+            guard let first = words.first else { return "" }
+            return first.lowercased() + words.dropFirst().map { $0.capitalized }.joined()
+        }
+    }
 }

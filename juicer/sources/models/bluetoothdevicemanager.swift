@@ -61,7 +61,7 @@ final class BluetoothDeviceManager: ObservableObject {
             if parts.count == 2 { result[parts[0].trimmingCharacters(in: .whitespaces)] = parts[1].trimmingCharacters(in: .whitespaces) }
         }
         guard let address = fields["address"] else { return nil }
-        let battery = fields["battery"]?.filter { $0.isNumber }.flatMap(Int.init)
+        let battery = fields["battery"].flatMap { Int($0.filter { $0.isNumber }) }
         let preferred = UserDefaults.standard.bool(forKey: "juicer.bluetooth.preferred.\(address)")
         return BluetoothDevice(address: address, name: fields["name"] ?? address, connected: fields["connected"] == "1", battery: battery, preferred: preferred)
     }
