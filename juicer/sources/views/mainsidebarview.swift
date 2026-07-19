@@ -202,6 +202,7 @@ struct mainsidebarview: View {
                         case .fileTypeConverter: filetypeconverterview()
                         case .metadataEditor: metadataeditorview()
                         case .symbolicLinks: symboliclinkview()
+                        case .diskVerification: diskverificationview()
                         }
                     } else {
                         VStack {
