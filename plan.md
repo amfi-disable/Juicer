@@ -80,7 +80,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 69. [x] Port Scanner – Scan localhost or remote host for open TCP/UDP ports with service guesswork.
 70. [x] LAN Device Discovery – Bonjour/mDNS browser showing all services (_http, _ssh, _afpovertcp, _smb, _ipp, etc.).
 71. [x] Wi‑Fi Survey Tool – Show SSID, signal strength, channel, security, and recommend least‑crowded channel.
-72. Network‑Profile Switcher – Switch between predefined network configurations (static IP, DNS, proxies, proxies‑exceptions).
+72. [x] Network‑Profile Switcher – Switch between predefined network configurations (static IP, DNS, proxies, proxies‑exceptions).
 73. VPN Auto‑Connect – Auto‑connect a preferred VPN on specific Wi‑Fi SSIDs or when launching certain apps.
 74. Public IP & Geoloc Lookup – Show your current public IP, ISP, and approximate location.
 75. Speed Test Tool – One‑click download/upload/ping test using `speedtest‑cli` or native URLSession to a known endpoint.

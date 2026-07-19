@@ -240,6 +240,7 @@ struct mainsidebarview: View {
                         case .portScanner: portscannerview()
                         case .lanDiscovery: landiscoveryview()
                         case .wifiSurvey: wifisurveyview()
+                        case .networkProfileSwitcher: networkprofileswitcherview()
                         }
                     } else {
                         VStack {

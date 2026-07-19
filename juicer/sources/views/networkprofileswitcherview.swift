@@ -1,0 +1,6 @@
+import SwiftUI
+
+struct networkprofileswitcherview: View { @State private var profiles: [String] = []; @State private var selected = ""; @State private var message = ""; var body: some View { VStack(alignment: .leading, spacing: 16) { JuicerFeatureHeader(title: "Network-Profile Switcher", subtitle: "List and switch macOS network locations.", icon: "network", refreshing: false, action: refresh); HStack { Picker("Location", selection: $selected) { ForEach(profiles, id: \.self) { Text($0).tag($0) } }.frame(width: 260); Button("Switch") { switchProfile() }.buttonStyle(.borderedProminent) }; Text(message).font(.caption).foregroundStyle(.secondary); Spacer() }.padding(24).onAppear(perform: refresh) }
+    private func refresh() { let output = SystemMetricsSupport.run("/usr/sbin/networksetup", ["-listlocations"]) ?? ""; profiles = output.components(separatedBy: .newlines).filter { !$0.isEmpty && !$0.contains("Locations") }; selected = profiles.first ?? "" }
+    private func switchProfile() { let result = SystemMetricsSupport.run("/usr/sbin/networksetup", ["-switchtolocation", selected]) ?? "Unable to switch network location."; message = result.isEmpty ? "Switched to \(selected)." : result }
+}
