@@ -69,3 +69,7 @@ The following repositories were temporarily cloned to a disposable directory whi
 ## second benchmark implementation
 
 The Workflow Center adds a native, read-only implementation of the compatible patterns: queued diagnostics, sequential execution, pause/resume, cancellation, retry, persistent run history, bounded history retention, dry-run previews, completion notifications, custom path scope, stable presets, copyable output, plain-text report export, Finder reveal, error state visibility, status timestamps, keyboard-friendly buttons, and safe cleanup of finished tasks.
+
+## 100-recipe feature pack
+
+The second expansion adds exactly 100 runnable recipes across ten groups: System, Processes, Disk, Network, Security, Developer, Logs, Files, Power, and Applications. Every recipe is local, read-only, searchable, category-filterable, favorite-able, queueable, previewable, and included in the existing report history.
