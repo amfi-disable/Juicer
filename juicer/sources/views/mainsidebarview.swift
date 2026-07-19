@@ -245,6 +245,7 @@ struct mainsidebarview: View {
                         case .publicIP: publicipview()
                         case .speedTest: speedtestview()
                         case .dnsDiagnostics: dnsdiagnosticsview()
+                        case .hostsFile: hostsfileview()
                         }
                     } else {
                         VStack {
