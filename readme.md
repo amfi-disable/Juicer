@@ -1,7 +1,7 @@
 # Juicer
 
 <p align="center">
-  <img src="juicer/sources/resources/assets.xcassets/AppIcon.appiconset/icon_128x128.png" width="128" height="128" alt="Juicer App Icon" />
+  <img src="juicer/sources/resources/assets.xcassets/appicon.appiconset/icon_128x128.png" width="128" height="128" alt="Juicer App Icon" />
 </p>
 
 <p align="center">
