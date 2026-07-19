@@ -31,7 +31,7 @@ This document lists 100 additional feature ideas for the Juicer macOS utility ap
 24. [x] Temporary Files Cleaner – Clean `/tmp`, `~/Library/Caches`, `/Library/Caches`, and app‑specific temp folders.
 25. [x] Download Folder Organizer – Auto‑sort downloaded files into subfolders by type/date with rule‑based engine.
 26. [x] Archive Extractor/Creator – Zip, tar, gzip, bzip2, xz, 7z extraction & creation with drag‑and‑drop.
-27. Disk Image Manager – Create, mount, verify, convert, and encrypt `.dmg`, `.iso`, `.sparsebundle`.
+27. [x] Disk Image Manager – Create, mount, verify, convert, and encrypt `.dmg`, `.iso`, `.sparsebundle`.
 28. File Permissions Repair – Repair permissions on home folder, Applications, Library, or custom paths.
 29. Extended Attributes Viewer/Editor – View/edit `com.apple.*`, `com.dropbox.*`, etc., attributes.
 30. Hidden File Visibility Toggle – Quick toggle to show/hide hidden files in Finder via a menu‑bar toggle.
