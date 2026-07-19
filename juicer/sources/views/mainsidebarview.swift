@@ -193,6 +193,7 @@ struct mainsidebarview: View {
                         case .bluetoothDevices: bluetoothdeviceview()
                         case .airDropQuickSend: airdropquicksendview()
                         case .duplicateFiles:  duplicatefileview()
+                        case .emptyFolders:   emptyfolderview()
                         }
                     } else {
                         VStack {
