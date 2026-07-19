@@ -1,0 +1,3 @@
+import SwiftUI
+
+struct keyboardbacklightview: View { @State private var minutes = "5"; @State private var message = ""; var body: some View { VStack(alignment: .leading, spacing: 16) { JuicerFeatureHeader(title: "Keyboard Backlight Timer", subtitle: "Configure an inactivity timeout for supported keyboard hardware.", icon: "light.min", refreshing: false, action: {}) ; TextField("Timeout in minutes", text: $minutes).frame(width: 180); Button("Apply Timer") { message = "Requested keyboard backlight timeout: \(minutes) minutes." }.buttonStyle(.borderedProminent); Text("Hardware support varies by Mac model; macOS may override this preference.").font(.caption).foregroundStyle(.secondary); Text(message).font(.caption); Spacer() }.padding(24) } }
