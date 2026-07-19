@@ -190,6 +190,7 @@ struct mainsidebarview: View {
                         case .swapManager:     swapmanagerview()
                         case .vpnProfiles:     vpnprofileview()
                         case .networkLocations: networklocationview()
+                        case .bluetoothDevices: bluetoothdeviceview()
                         }
                     } else {
                         VStack {
