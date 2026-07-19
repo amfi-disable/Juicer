@@ -25,6 +25,10 @@ Juicer is the ultimate all-in-one companion utility for **macOS developers and p
 - **Space Lens (Disk Visualizer) 🔍**: Visualize your storage layout using proportional squarified Treemaps or Canvas-drawn hierarchical Sunburst charts. Includes split details panels, path copying, Quick Look integrations, and a staged Discard Pile for batch deletions.
 - **App Uninstaller 🧹**: Drag and drop any `.app` to harvest and delete its hidden leftover files (caches, app support, plist, logs, containers, `ByHost Preferences`, and privileged helper tools).
 - **Orphan Finder**: Scan `~/Library` and sweep away directories left behind by long-deleted apps.
+- **Clipboard History Manager 📋**: Local-first text clipboard history cache supporting pinned items, search filtering, duplicate prevention, formatting stripping, and quick-action paste triggers.
+- **BetterCmdTab (App Switcher) 🔄**: Swaps standard app switching behavior with a custom material overlay showing running tasks and live window previews/thumbnails.
+- **Status Menu Bar Monitor 📈**: Live system disk and physical memory utilization widget embedded directly in the macOS menu bar.
+- **Trusted Script Plugins 🧩**: Extensions interface that watches a user-defined folder, lists executable shell scripts (`.sh`, `.command`, `.zsh`), and runs custom developer automation workflows securely with real-time log output.
 - **DNS Profile Manager & Ad-Blocker 🛡️**: Save and switch between local DNS profiles. Instantly download, parse, and apply public ad-blocking/malware hosts filters (like StevenBlack's hosts filter) to your `/etc/hosts` file.
 - **Service Manager**: Load, unload, inspect, edit, and create user and system launch daemons/agents.
 - **Developer Cache Pruner**: Reclaim space by pruning DerivedData, simulator support, package manager caches (npm, yarn, bun, cargo, homebrew), and unused Docker assets.
@@ -33,6 +37,7 @@ Juicer is the ultimate all-in-one companion utility for **macOS developers and p
 - **File Association Override**: Batch-assign file types to open with preferred editors or IDEs.
 
 ---
+
 
 ## Installation
 
