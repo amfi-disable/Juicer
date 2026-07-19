@@ -50,7 +50,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     case undoHistory
     case appUpdates
     case tccViewer
-    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera, antiKeylogger, secureNotes, clipboardManager, snippetExpander, menuBarCustomizer, desktopIcons, hotCorners, keyboardShortcuts, textCaseConverter, characterCounter
+    case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera, antiKeylogger, secureNotes, clipboardManager, snippetExpander, menuBarCustomizer, desktopIcons, hotCorners, keyboardShortcuts, textCaseConverter, characterCounter, qrCode
     
     var id: NavigationItem { self }
     
@@ -64,7 +64,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return .disk
         case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor, .privacyScanner, .passwordAudit, .quarantinedFiles, .sandboxInspector, .antiKeylogger, .secureNotes:
             return .configs
-        case .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter:
+        case .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode:
             return .utilities
         }
     }
@@ -152,6 +152,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .keyboardShortcuts: return "Keyboard Shortcut Manager"
         case .textCaseConverter: return "Text Case Converter"
         case .characterCounter: return "Character & Word Counter"
+        case .qrCode: return "QR Code Generator"
         }
     }
     
@@ -238,6 +239,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .keyboardShortcuts: return "keyboard"
         case .textCaseConverter: return "textformat"
         case .characterCounter: return "number"
+        case .qrCode: return "qrcode"
         }
     }
 }
