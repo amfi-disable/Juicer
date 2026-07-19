@@ -222,6 +222,7 @@ struct mainsidebarview: View {
                         case .clipboardManager: clipboardmanagerview()
                         case .snippetExpander: snippetexpanderview()
                         case .menuBarCustomizer: menubarcustomizerview()
+                        case .desktopIcons: desktopiconstoggleview()
                         }
                     } else {
                         VStack {
