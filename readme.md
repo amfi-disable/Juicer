@@ -92,6 +92,8 @@ This project uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to define th
    ```
 3. Open `juicer.xcodeproj` and build!
 
+For the release validation and packaging commands, see the [V1.0.1 release checklist](docs/release-checklist.md).
+
 ---
 
 ## License & Code of Conduct

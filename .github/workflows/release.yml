@@ -1,0 +1,54 @@
+name: package release
+
+on:
+  push:
+    tags:
+      - 'V*.*.*'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  package:
+    name: package macos release
+    runs-on: macos-14
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: select xcode version
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer || sudo xcode-select -s $(ls -d /Applications/Xcode*.app | sort -r | head -1)/Contents/Developer
+
+      - name: install xcodegen
+        run: brew install xcodegen
+
+      - name: generate xcode project
+        run: xcodegen generate
+
+      - name: build release app
+        run: |
+          xcodebuild build \
+            -project juicer.xcodeproj \
+            -scheme juicer \
+            -configuration Release \
+            -sdk macosx \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY='' \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: create archive
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$HOME/Library/Developer/Xcode/DerivedData/juicer-"*/Build/Products/Release/Juicer.app \
+            juicer.zip
+          shasum -a 256 juicer.zip | tee juicer.zip.sha256
+
+      - name: publish github release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" juicer.zip juicer.zip.sha256 \
+            --title "Juicer ${GITHUB_REF_NAME}" \
+            --generate-notes
