@@ -1,13 +1,35 @@
+# macos and editor noise
 .DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+*.swo
+
+# xcode generated projects and build output
 build/
 DerivedData/
-*.xcodeproj
-*.xcworkspace
+*.xcodeproj/
+*.xcworkspace/
 *.xcuserstate
+*.xcscmblueprint
+
+# local-only app data and archives
 userdata/
-galleries/
+*.zip
+*.dmg
+*.pkg
+*.app
+
+# local agent, automation, and editor configuration
+.claude/
+.codex/
+codex.md
+opencode.json
+
+# private or unrelated workspace material
 my-clean-crew/
 my_clean_crew/
-opencode.json
-open-source-feature-audit.md
-ui-improvements.md
+galleries/
+
+# keep public documentation under docs/
+# keep project.yml, source files, legal files, and readme.md tracked
