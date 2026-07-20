@@ -4,9 +4,13 @@ on:
   release:
     types: [published]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   update-cask:
     name: Update Cask in homebrew-juicer
+    if: ${{ !github.event.release.prerelease }}
     runs-on: ubuntu-latest
 
     steps:
@@ -42,14 +46,14 @@ jobs:
           SHA256="${{ steps.calc_hash.outputs.sha256 }}"
           DOWNLOAD_URL="${{ steps.calc_hash.outputs.download_url }}"
           
-          # Replace version, sha256, and url in juicer.rb
-          sed -i "s|version \".*\"|version \"${VERSION}\"|g" Casks/juicer.rb
-          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|g" Casks/juicer.rb
-          sed -i "s|url \".*\"|url \"${DOWNLOAD_URL}\"|g" Casks/juicer.rb
+          # Replace version, sha256, and url in casks/juicer.rb
+          sed -i "s|version \".*\"|version \"${VERSION}\"|g" casks/juicer.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|g" casks/juicer.rb
+          sed -i "s|url \".*\"|url \"${DOWNLOAD_URL}\"|g" casks/juicer.rb
           
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Casks/juicer.rb
+          git add casks/juicer.rb
           
           # Commit and push changes if updated
           if git diff --staged --quiet; then
