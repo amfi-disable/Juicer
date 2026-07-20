@@ -22,6 +22,8 @@ struct additionalfeaturecatalogview: View {
     @State private var message = ""
     @State private var favoritesOnly = false
     @AppStorage("juicer.additionalFeatures.favorites") private var favoriteIDs = ""
+    @AppStorage("juicer.additionalFeatures.layout") private var layout = "list"
+    @AppStorage("juicer.additionalFeatures.showDetails") private var showDetails = true
 
     private let categories = ["All", "System", "Privacy", "Developer", "Files", "Network", "Accessibility", "Hardware"]
     private let features = additionalfeaturecatalogview.catalog
@@ -47,44 +49,69 @@ struct additionalfeaturecatalogview: View {
                 .frame(width: 150)
                 Toggle("Favorites only", isOn: $favoritesOnly)
                     .toggleStyle(.checkbox)
+                Picker("Layout", selection: $layout) {
+                    Image(systemName: "list.bullet").tag("list")
+                    Image(systemName: "square.grid.2x2").tag("grid")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 92)
+                Toggle("Details", isOn: $showDetails)
+                    .toggleStyle(.checkbox)
             }
 
             Text("\(filtered.count) available features")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            List(filtered) { feature in
-                Button { perform(feature) } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: feature.icon)
-                            .foregroundStyle(.tint)
-                            .frame(width: 28, height: 28)
-                            .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(feature.title).font(.headline)
-                            Text(feature.detail).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-                        }
-                        Spacer()
-                        Button {
-                            toggleFavorite(feature.id)
-                        } label: {
-                            Image(systemName: favoriteSet.contains(feature.id) ? "star.fill" : "star")
-                                .foregroundStyle(favoriteSet.contains(feature.id) ? .yellow : .secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .help("Favorite this feature")
-                        Image(systemName: "arrow.up.forward.app").font(.caption).foregroundStyle(.secondary)
-                    }
-                    .contentShape(Rectangle())
+            if layout == "grid" {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)], spacing: 12) {
+                    ForEach(filtered) { feature in featureCard(feature) }
                 }
-                .buttonStyle(.plain)
-                .padding(.vertical, 4)
+            } else {
+                LazyVStack(spacing: 0) {
+                    ForEach(filtered) { feature in
+                        featureCard(feature)
+                        Divider()
+                    }
+                }
             }
-            .listStyle(.inset)
 
             if !message.isEmpty { Text(message).font(.caption).foregroundStyle(.secondary) }
         }
         .padding(24)
+    }
+
+    @ViewBuilder
+    private func featureCard(_ feature: additionalfeature) -> some View {
+        HStack(spacing: 12) {
+            Button { perform(feature) } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: feature.icon)
+                        .foregroundStyle(.tint)
+                        .frame(width: 28, height: 28)
+                        .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(feature.title).font(.headline)
+                        if showDetails {
+                            Text(feature.detail).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                        }
+                    }
+                    Spacer(minLength: 4)
+                    Image(systemName: "arrow.up.forward.app").font(.caption).foregroundStyle(.secondary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            Button { toggleFavorite(feature.id) } label: {
+                Image(systemName: favoriteSet.contains(feature.id) ? "star.fill" : "star")
+                    .foregroundStyle(favoriteSet.contains(feature.id) ? .yellow : .secondary)
+            }
+            .buttonStyle(.plain)
+            .help(favoriteSet.contains(feature.id) ? "Remove from favorites" : "Favorite this feature")
+        }
+        .padding(layout == "grid" ? 12 : 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(layout == "grid" ? Color(NSColor.controlBackgroundColor).opacity(0.45) : Color.clear, in: RoundedRectangle(cornerRadius: 10))
     }
 
     private func perform(_ feature: additionalfeature) {

@@ -45,8 +45,12 @@ struct mainsidebarview: View {
     @AppStorage("juicer.settings.sidebarWidth") private var sidebarWidth = 240
     @AppStorage("juicer.settings.appearance") private var appearance = "system"
     @AppStorage("juicer.settings.accentColor") private var accentColor = "orange"
+    @AppStorage("juicer.settings.compactNavigation") private var compactNavigation = false
+    @AppStorage("juicer.settings.hideRecentNavigation") private var hideRecentNavigation = false
+    @AppStorage("juicer.settings.hubDensity") private var hubDensity = "comfortable"
     @StateObject private var navigationPreferences = navigationpreferences.shared
     @State private var hasAppeared = false
+    @State private var sidebarScope = "all"
     
     var body: some View {
         VStack(spacing: 0) {
@@ -142,10 +146,24 @@ struct mainsidebarview: View {
                         .buttonStyle(.plain)
                         
                         Divider().padding(.vertical, 4)
+
+                        Picker("Tool scope", selection: $sidebarScope) {
+                            Label("All", systemImage: "square.grid.2x2").tag("all")
+                            Label("Favorites", systemImage: "star").tag("favorites")
+                            Label("Recent", systemImage: "clock").tag("recent")
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal, 4)
                         
                         // Dynamically filtered workspace sections
                         let items = NavigationItem.allCases.filter { item in
-                            item.workspace == currentWorkspace && (sidebarSearch.isEmpty || item.title.localizedCaseInsensitiveContains(sidebarSearch))
+                            let matchesScope: Bool
+                            switch sidebarScope {
+                            case "favorites": matchesScope = navigationPreferences.isFavorite(item)
+                            case "recent": matchesScope = navigationPreferences.recent.contains(item)
+                            default: matchesScope = true
+                            }
+                            return item.workspace == currentWorkspace && matchesScope && (sidebarSearch.isEmpty || item.title.localizedCaseInsensitiveContains(sidebarSearch))
                         }
                         Section(currentWorkspace.title) {
                             if !navigationPreferences.favorites.filter({ $0.workspace == currentWorkspace }).isEmpty {
@@ -161,7 +179,7 @@ struct mainsidebarview: View {
                             }
                         }
 
-                        if !navigationPreferences.recent.isEmpty {
+                        if !hideRecentNavigation && !compactNavigation && sidebarScope == "all" && !navigationPreferences.recent.isEmpty {
                             Section("Recent") {
                                 ForEach(navigationPreferences.recent) { item in
                                     sidebarLink(for: item)
@@ -173,7 +191,7 @@ struct mainsidebarview: View {
                         }
                     }
                     .listStyle(.sidebar)
-                    .searchable(text: $sidebarSearch, placement: .sidebar, prompt: "Search tools")
+                    .searchable(text: $sidebarSearch, placement: .sidebar, prompt: compactNavigation ? "Search all tools" : "Search tools")
                     .navigationSplitViewColumnWidth(min: 200, ideal: CGFloat(sidebarWidth), max: 340)
                 } detail: {
                     if let item = selectedItem {
@@ -485,7 +503,7 @@ struct mainsidebarview: View {
             .padding(.bottom, 20)
             
             // Startup App Grid (No Icons)
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)], spacing: 20) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: hubDensity == "compact" ? 220 : 280), spacing: 20)], spacing: 20) {
                 hubAppCard(workspace: .store, defaultItem: .appStore)
                 hubAppCard(workspace: .system, defaultItem: .dashboard)
                 hubAppCard(workspace: .disk, defaultItem: .diskExplorer)
@@ -529,7 +547,7 @@ struct mainsidebarview: View {
                 }
             }
             .padding(24)
-            .frame(height: 150)
+            .frame(height: hubDensity == "compact" ? 118 : 150)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
             .cornerRadius(16)
@@ -545,15 +563,17 @@ struct mainsidebarview: View {
     @ViewBuilder
     private func sidebarLink(for item: NavigationItem) -> some View {
         NavigationLink(value: item) {
-            HStack(spacing: 10) {
+            HStack(spacing: compactNavigation ? 0 : 10) {
                 Image(systemName: item.iconName)
                     .font(.body)
                     .frame(width: 18, alignment: .center)
-                Text(item.title)
-                    .font(.body)
+                if !compactNavigation || !sidebarSearch.isEmpty {
+                    Text(item.title).font(.body)
+                }
             }
         }
         .padding(.vertical, 4)
+        .help(compactNavigation ? item.title : "")
         .contextMenu {
             Button(navigationPreferences.isFavorite(item) ? "Remove from Favorites" : "Add to Favorites") {
                 navigationPreferences.toggleFavorite(item)

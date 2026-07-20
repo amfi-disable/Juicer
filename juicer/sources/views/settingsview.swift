@@ -122,6 +122,11 @@ class SettingsManager: ObservableObject {
         UserDefaults.standard.set(true, forKey: "juicer.workflow.notifications")
         UserDefaults.standard.set("", forKey: "juicer.workflow.customPaths")
         UserDefaults.standard.set("", forKey: "juicer.workflow.favoriteRecipes")
+        UserDefaults.standard.set(false, forKey: "juicer.settings.compactNavigation")
+        UserDefaults.standard.set(false, forKey: "juicer.settings.hideRecentNavigation")
+        UserDefaults.standard.set("comfortable", forKey: "juicer.settings.hubDensity")
+        UserDefaults.standard.set("list", forKey: "juicer.additionalFeatures.layout")
+        UserDefaults.standard.set(true, forKey: "juicer.additionalFeatures.showDetails")
         
         // Lists defaults
         self.ignoredPaths = ["/System/Library", "/Library/Updates", "/private/var"]

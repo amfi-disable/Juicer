@@ -14,6 +14,11 @@ struct controlcenterview: View {
     @AppStorage("juicer.settings.appearance") private var appearance = "system"
     @AppStorage("juicer.settings.accentColor") private var accentColor = "orange"
     @AppStorage("juicer.settings.sidebarWidth") private var sidebarWidth = 240
+    @AppStorage("juicer.settings.compactNavigation") private var compactNavigation = false
+    @AppStorage("juicer.settings.hideRecentNavigation") private var hideRecentNavigation = false
+    @AppStorage("juicer.settings.hubDensity") private var hubDensity = "comfortable"
+    @AppStorage("juicer.additionalFeatures.layout") private var catalogLayout = "list"
+    @AppStorage("juicer.additionalFeatures.showDetails") private var catalogDetails = true
     @AppStorage("juicer.dashboard.showVitals") private var showVitals = true
     @AppStorage("juicer.dashboard.showCuratedTools") private var showCuratedTools = true
     @AppStorage("juicer.dashboard.showBookmarks") private var showBookmarks = true
@@ -89,6 +94,19 @@ struct controlcenterview: View {
                 Text("Wide").tag(290)
             }
             .pickerStyle(.segmented)
+            Toggle("Compact navigation (icons until searched)", isOn: $compactNavigation)
+            Toggle("Hide recent tools from the sidebar", isOn: $hideRecentNavigation)
+            Picker("Hub card density", selection: $hubDensity) {
+                Text("Comfortable").tag("comfortable")
+                Text("Compact").tag("compact")
+            }
+            .pickerStyle(.segmented)
+            Picker("Feature catalog layout", selection: $catalogLayout) {
+                Text("List").tag("list")
+                Text("Grid").tag("grid")
+            }
+            .pickerStyle(.segmented)
+            Toggle("Show catalog descriptions", isOn: $catalogDetails)
         }
     }
 
