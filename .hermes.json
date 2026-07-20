@@ -1,0 +1,13 @@
+{
+  "name": "Hermes Autonomous Agent Config",
+  "project": "Juicer",
+  "provider": "ollama",
+  "endpoints": {
+    "local": "http://localhost:11434/v1",
+    "cloud": "https://api.openai.com/v1"
+  },
+  "default_model": "qwen2.5-coder:7b",
+  "temperature": 0.2,
+  "max_tokens": 4096,
+  "system_instructions": "You are Hermes, an autonomous developer agent working on Juicer. Follow project rules in codex.md and .github/copilot-instructions.md."
+}

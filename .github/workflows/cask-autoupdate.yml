@@ -7,9 +7,6 @@ on:
 permissions:
   contents: write
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 jobs:
   update-cask:
     name: Update Cask in homebrew-juicer
@@ -41,6 +38,11 @@ jobs:
           repository: amfi-disable/homebrew-juicer
           token: ${{ secrets.HOMEBREW_TAP_TOKEN || secrets.GITHUB_TOKEN }}
           path: homebrew-juicer
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
 
       - name: Update Cask Definition
         run: |

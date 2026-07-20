@@ -1,0 +1,24 @@
+{
+  "agent": {
+    "name": "Juicer-Antigravity-Agent",
+    "description": "Autonomous developer agent for Juicer macOS application",
+    "workspace": "/Users/even/Desktop/Projects/Apps/Juicer",
+    "model": "gemini-2.5-flash",
+    "fallbackModel": "gemini-2.5-pro",
+    "planningMode": true
+  },
+  "rules": [
+    "Always check codex.md before committing changes.",
+    "Use lowercase commit messages in format `xxx: xxx xxx xxx`.",
+    "Run `xcodegen generate` after creating or deleting files.",
+    "Keep local LLM workloads capped at 7B/8B parameters to maintain 16GB RAM efficiency."
+  ],
+  "sandbox": {
+    "bypassByDefault": false,
+    "allowedCommands": [
+      "xcodegen generate",
+      "xcodebuild",
+      "uv"
+    ]
+  }
+}
