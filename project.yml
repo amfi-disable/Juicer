@@ -23,4 +23,13 @@ targets:
       PRODUCT_NAME: Juicer
       MACOSX_DEPLOYMENT_TARGET: "14.0"
       ENABLE_HARDENED_RUNTIME: YES
+schemes:
+  juicer:
+    build:
+      targets:
+        juicer: all
+    run:
+      environmentVariables:
+        OS_ACTIVITY_MODE: disable
+
 

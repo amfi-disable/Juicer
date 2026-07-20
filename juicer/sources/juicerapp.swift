@@ -8,6 +8,7 @@ struct juicerapp: App {
     @AppStorage("juicer.settings.menuBarLabelStyle") private var menuBarLabelStyle = "label"
 
     init() {
+        setenv("OS_ACTIVITY_MODE", "disable", 1)
         if UserDefaults.standard.object(forKey: "juicer.settings.enableNotifications") as? Bool ?? true {
             NotificationManager.shared.requestAuthorization()
         }
