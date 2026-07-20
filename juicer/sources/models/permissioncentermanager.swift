@@ -143,7 +143,8 @@ final class permissioncentermanager: NSObject, ObservableObject, CLLocationManag
     }
 
     func openPrivacySettings() {
-        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy")!)
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy") else { return }
+        NSWorkspace.shared.open(url)
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {

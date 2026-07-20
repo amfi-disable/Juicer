@@ -72,7 +72,8 @@ struct DiagnosticSnapshot: Identifiable, Codable {
     
     private static var snapshotsDir: URL {
         let fm = FileManager.default
-        let supportDir = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let supportDir = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? fm.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support", isDirectory: true)
         let dir = supportDir.appendingPathComponent("com.even.juicer/snapshots")
         try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir

@@ -17,20 +17,26 @@ struct systemtweakerview: View {
                     
                     // Quick Links to Apple's Native System Settings Panes
                     HStack(spacing: 12) {
-                        Link(destination: URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension")!) {
-                            Label("Login Items", systemImage: "arrow.up.forward.app.fill")
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension") {
+                            Link(destination: url) {
+                                Label("Login Items", systemImage: "arrow.up.forward.app.fill")
+                            }
+                            .buttonStyle(.bordered)
                         }
-                        .buttonStyle(.bordered)
-                        
-                        Link(destination: URL(string: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension")!) {
-                            Label("Keyboard Shortcuts", systemImage: "keyboard")
+
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension") {
+                            Link(destination: url) {
+                                Label("Keyboard Shortcuts", systemImage: "keyboard")
+                            }
+                            .buttonStyle(.bordered)
                         }
-                        .buttonStyle(.bordered)
-                        
-                        Link(destination: URL(string: "x-apple.systempreferences:com.apple.ScreenSaver-Settings.extension")!) {
-                            Label("Lock Screen", systemImage: "lock.laptopcomputer")
+
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.ScreenSaver-Settings.extension") {
+                            Link(destination: url) {
+                                Label("Lock Screen", systemImage: "lock.laptopcomputer")
+                            }
+                            .buttonStyle(.bordered)
                         }
-                        .buttonStyle(.bordered)
                     }
                     .padding(.top, 10)
                 }

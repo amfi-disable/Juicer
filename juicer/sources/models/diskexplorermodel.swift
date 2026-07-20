@@ -248,8 +248,11 @@ class DiskExplorerManager: ObservableObject {
             return
         }
         
-        let oldest = storageHistory.first!
-        let newest = storageHistory.last!
+        guard let oldest = storageHistory.first, let newest = storageHistory.last else {
+            predictedDaysUntilFull = nil
+            dailyGrowthRate = 0
+            return
+        }
         
         let timeDiffSec = newest.timestamp.timeIntervalSince(oldest.timestamp)
         let timeDiffDays = max(timeDiffSec / 86400.0, 0.1)

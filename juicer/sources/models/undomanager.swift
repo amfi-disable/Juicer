@@ -18,7 +18,8 @@ class DeletionUndoManager: ObservableObject {
     private let fm = FileManager.default
     
     private var backupsDir: URL {
-        let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? fm.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support", isDirectory: true)
         let path = appSupport.appendingPathComponent("Juicer/Backups", isDirectory: true)
         try? fm.createDirectory(at: path, withIntermediateDirectories: true)
         return path

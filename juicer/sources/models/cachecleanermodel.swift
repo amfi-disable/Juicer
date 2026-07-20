@@ -94,7 +94,8 @@ class CacheCleanerManager: ObservableObject {
     private let fm = FileManager.default
 
     private var backupsDir: URL {
-        let caches = fm.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        let caches = fm.urls(for: .cachesDirectory, in: .userDomainMask).first
+            ?? fm.homeDirectoryForCurrentUser.appendingPathComponent("Library/Caches", isDirectory: true)
         let dir = caches.appendingPathComponent("com.even.juicer/backups")
         try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir

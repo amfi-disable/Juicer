@@ -477,11 +477,12 @@ struct storeview: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Links")
                                 .font(.headline)
-                            let targetURL = URL(string: app.homepage) ?? URL(string: "https://formulae.brew.sh")!
-                            Link(destination: targetURL) {
-                                HStack {
-                                    Image(systemName: "link")
-                                    Text("Visit Official Homepage")
+                            if let targetURL = URL(string: app.homepage) {
+                                Link(destination: targetURL) {
+                                    HStack {
+                                        Image(systemName: "link")
+                                        Text("Visit Official Homepage")
+                                    }
                                 }
                             }
                         }

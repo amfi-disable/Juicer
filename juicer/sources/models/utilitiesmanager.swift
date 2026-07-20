@@ -158,13 +158,14 @@ class UtilitiesManager: ObservableObject {
         
         var temp: AnyObject?
         let err = AXUIElementCopyAttributeValue(appRef, kAXFocusedWindowAttribute as CFString, &temp)
-        guard err == .success, let windowRef = temp as! AXUIElement? else { return }
+        guard err == .success, let windowRef = temp as? AXUIElement else { return }
         
         var currentPosition = CGPoint.zero
         var positionValue: AnyObject?
         if AXUIElementCopyAttributeValue(windowRef, kAXPositionAttribute as CFString, &positionValue) == .success,
            let positionValue,
-           AXValueGetValue(positionValue as! AXValue, .cgPoint, &currentPosition) {
+           let axPosition = positionValue as? AXValue,
+           AXValueGetValue(axPosition, .cgPoint, &currentPosition) {
             let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
             let globalPoint = NSPoint(x: currentPosition.x, y: primaryHeight - currentPosition.y)
             let screen = NSScreen.screens.first(where: { $0.frame.contains(globalPoint) }) ?? NSScreen.main
