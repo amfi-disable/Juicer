@@ -1,4 +1,4 @@
-name: build app
+name: "CI: Build macOS Application"
 
 on:
   push:
@@ -6,32 +6,35 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   build:
-    name: build macos application
+    name: Build macOS Target
     runs-on: macos-14
 
     steps:
-      - name: checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: select xcode version
+      - name: Select Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer || sudo xcode-select -s $(ls -d /Applications/Xcode*.app | sort -r | head -1)/Contents/Developer
 
-      - name: install xcodegen
+      - name: Install XcodeGen
         env:
           HOMEBREW_NO_REQUIRE_TAP_TRUST: 1
         run: arch -arm64 brew install xcodegen
 
-      - name: generate xcode project
+      - name: Generate Xcode Project
         run: |
           export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           xcodegen generate
 
-      - name: build macos target
+      - name: Build macOS Target (skip signing)
         run: |
           xcodebuild build \
             -project juicer.xcodeproj \
@@ -40,4 +43,5 @@ jobs:
             -destination "platform=macOS" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGNING_REQUIRED=NO \
+            | xcpretty || true

@@ -1,32 +1,35 @@
-name: package release
+name: "Release: Package & Publish GitHub Release"
 
 on:
   push:
     tags:
       - 'V*.*.*'
 
+permissions:
+  contents: write
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   package:
-    name: package macos release
+    name: Package macOS Release
     runs-on: macos-14
 
     steps:
-      - name: checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: select xcode version
+      - name: Select Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer || sudo xcode-select -s $(ls -d /Applications/Xcode*.app | sort -r | head -1)/Contents/Developer
 
-      - name: install xcodegen
+      - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: generate xcode project
+      - name: Generate Xcode Project
         run: xcodegen generate
 
-      - name: build release app
+      - name: Build Release App
         run: |
           xcodebuild build \
             -project juicer.xcodeproj \
@@ -38,17 +41,17 @@ jobs:
             CODE_SIGN_IDENTITY='' \
             CODE_SIGNING_REQUIRED=NO
 
-      - name: create archive
+      - name: Create Archive
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
             "$HOME/Library/Developer/Xcode/DerivedData/juicer-"*/Build/Products/Release/Juicer.app \
             juicer.zip
           shasum -a 256 juicer.zip | tee juicer.zip.sha256
 
-      - name: publish github release
+      - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${GITHUB_REF_NAME}" juicer.zip juicer.zip.sha256 \
             --title "Juicer ${GITHUB_REF_NAME}" \
-            --generate-notes
+            --generate-notes || gh release upload "${GITHUB_REF_NAME}" juicer.zip juicer.zip.sha256 --clobber

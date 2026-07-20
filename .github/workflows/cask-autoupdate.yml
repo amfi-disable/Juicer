@@ -1,8 +1,11 @@
-name: Auto-Update Homebrew Cask
+name: "Cask: Auto-Update Homebrew Cask"
 
 on:
   release:
     types: [published]
+
+permissions:
+  contents: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
