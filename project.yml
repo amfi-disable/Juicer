@@ -12,7 +12,7 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - path: juicer/sources
-      - path: juicer/sources/resources/AppIcon.icns
+      - path: juicer/sources/resources/appicon.icns
     dependencies:
       - package: Sparkle
         codeSignOnCopy: true
@@ -31,5 +31,4 @@ schemes:
     run:
       environmentVariables:
         OS_ACTIVITY_MODE: disable
-
 

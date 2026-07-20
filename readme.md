@@ -72,9 +72,9 @@ To open the app:
 ## Technical Architecture
 
 - **Platform**: macOS 14.0+
-- **Language**: Swift 6.0 / SwiftUI
+- **Language**: Swift / SwiftUI
 - **Security**: Runs unsandboxed to perform low-level system directory scanning and service operations. Deletions are sent to the system Trash using the native `FileManager` API for safety.
-- **Dependencies**: None (100% native).
+- **Dependencies**: [Sparkle](https://github.com/sparkle-project/Sparkle) for update delivery; the application remains native SwiftUI.
 
 ---
 

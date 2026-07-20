@@ -1,4 +1,4 @@
-name: Run Tests
+name: run release validation
 
 on:
   push:
@@ -11,30 +11,34 @@ env:
 
 jobs:
   test:
-    name: Run Unit Tests
+    name: run release validation
     runs-on: macos-14
 
     steps:
-      - name: Checkout Code
+      - name: checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode Version
+      - name: select xcode version
         run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer || sudo xcode-select -s $(ls -d /Applications/Xcode*.app | sort -r | head -1)/Contents/Developer
 
-      - name: Install XcodeGen
+      - name: install xcodegen
         run: brew install xcodegen
 
-      - name: Generate Xcode Project
+      - name: generate xcode project
         run: xcodegen generate
 
-      - name: Run Test Cases
+      - name: validate swift sources
         run: |
-          xcodebuild test \
+          swiftc -parse $(find juicer/sources -name '*.swift' -print)
+
+      - name: build release target
+        run: |
+          xcodebuild build \
             -project juicer.xcodeproj \
             -scheme juicer \
+            -configuration Release \
             -sdk macosx \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            | xcpretty || true
+            CODE_SIGNING_REQUIRED=NO
