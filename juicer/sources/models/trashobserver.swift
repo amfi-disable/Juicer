@@ -14,7 +14,7 @@ class TrashObserver: ObservableObject {
     }
     
     func startObserving() {
-        // Initial scan
+        stopObserving()
         knownAppsInTrash = scanAppsInTrash()
         
         // Start polling every 3 seconds

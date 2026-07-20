@@ -46,6 +46,7 @@ struct mainsidebarview: View {
     @AppStorage("juicer.settings.appearance") private var appearance = "system"
     @AppStorage("juicer.settings.accentColor") private var accentColor = "orange"
     @StateObject private var navigationPreferences = navigationpreferences.shared
+    @State private var hasAppeared = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -412,11 +413,18 @@ struct mainsidebarview: View {
         }
         
         .onAppear {
+            guard !hasAppeared else { return }
+            hasAppeared = true
             TrashObserver.shared.startObserving()
             if restoreMainWindow {
                 NSApp.activate(ignoringOtherApps: true)
                 NSApp.windows.first(where: { $0.canBecomeKey && $0.title != "" })?.makeKeyAndOrderFront(nil)
             }
+        }
+        
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.action.refresh"))) { _ in
+            AppLogger.shared.log("Cmd + R Refresh triggered.")
+            NotificationCenter.default.post(name: NSNotification.Name("juicer.tool.refreshActive"), object: nil)
         }
         
         // Help & Guide triggers

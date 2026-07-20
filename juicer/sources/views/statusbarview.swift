@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct statusbarview: View {
     @ObservedObject var logger = AppLogger.shared

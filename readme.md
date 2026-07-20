@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/amfi-disable/Juicer/releases"><img src="https://img.shields.io/badge/Version-V1.0.0-blue" alt="Version" /></a>
+  <a href="https://github.com/amfi-disable/Juicer/releases"><img src="https://img.shields.io/badge/Version-V1.0.1-blue" alt="Version" /></a>
   <a href="license"><img src="https://img.shields.io/badge/License-MIT-green" alt="License" /></a>
   <a href="https://developer.apple.com/macos"><img src="https://img.shields.io/badge/Platform-macOS%2014.0%2B-lightgrey?logo=apple" alt="Platform" /></a>
   <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6.0-orange?logo=swift" alt="Swift" /></a>
@@ -58,7 +58,7 @@ brew install --cask juicer
 Because Juicer is compiled locally and not signed with an Apple Developer ID, macOS Gatekeeper may show a *"damaged and can't be opened"* warning when downloaded manually.
 
 To open the app:
-1. Download `Juicer.zip` from our latest [GitHub Release](https://github.com/amfi-disable/Juicer/releases/tag/V1.0.0).
+1. Download `Juicer.zip` from our latest [GitHub Release](https://github.com/amfi-disable/Juicer/releases/tag/V1.0.1).
 2. Extract the archive and drag `Juicer.app` to your `/Applications` directory.
 3. Open Terminal and strip the quarantine flag:
    ```bash
