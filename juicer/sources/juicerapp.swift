@@ -2,17 +2,12 @@ import SwiftUI
 
 @main
 struct juicerapp: App {
-    @State private var hasAccess: Bool = onboardingview.checkFullDiskAccess()
-    @AppStorage("juicer.settings.showStatusMenuBar") private var showStatusMenuBar = true
-    @AppStorage("juicer.settings.showQuickSendMenuBar") private var showQuickSendMenuBar = true
-    @AppStorage("juicer.settings.menuBarLabelStyle") private var menuBarLabelStyle = "label"
+    @State private var hasAccess = false
+    @State private var isCheckingAccess = true
+    @State private var didStartServices = false
 
     init() {
         setenv("OS_ACTIVITY_MODE", "disable", 1)
-        if UserDefaults.standard.object(forKey: "juicer.settings.enableNotifications") as? Bool ?? true {
-            NotificationManager.shared.requestAuthorization()
-        }
-        setupBackgroundScheduler()
     }
     
     private func setupBackgroundScheduler() {
@@ -67,12 +62,31 @@ struct juicerapp: App {
     
     var body: some Scene {
         WindowGroup {
-            if hasAccess {
+            Group {
+                if isCheckingAccess {
+                    ProgressView("Preparing Juicer…")
+                        .frame(minWidth: 500, minHeight: 300)
+                } else if hasAccess {
                 mainsidebarview()
                     .frame(minWidth: 950, minHeight: 650)
-            } else {
+                } else {
                 onboardingview(isAccessGranted: $hasAccess)
                     .frame(width: 800, height: 600)
+                }
+            }
+            .task {
+                let access = await Task.detached(priority: .userInitiated) {
+                    onboardingview.checkFullDiskAccess()
+                }.value
+                hasAccess = access
+                isCheckingAccess = false
+
+                guard !didStartServices else { return }
+                didStartServices = true
+                if UserDefaults.standard.object(forKey: "juicer.settings.enableNotifications") as? Bool ?? true {
+                    NotificationManager.shared.requestAuthorization()
+                }
+                setupBackgroundScheduler()
             }
         }
         .windowStyle(.hiddenTitleBar)
@@ -205,28 +219,6 @@ struct juicerapp: App {
             settingsview()
         }
 
-        MenuBarExtra(isInserted: $showQuickSendMenuBar) {
-            airdropquicksendview()
-                .frame(width: 360, height: 430)
-        } label: {
-            menuBarLabel(title: "AirDrop Quick-Send", icon: "airplayaudio")
-        }
-        .menuBarExtraStyle(.window)
-
-        MenuBarExtra(isInserted: $showStatusMenuBar) {
-            menubarmonitorview()
-        } label: {
-            menuBarLabel(title: "Juicer Status", icon: "waveform.path.ecg")
-        }
-        .menuBarExtraStyle(.window)
     }
 
-    @ViewBuilder
-    private func menuBarLabel(title: String, icon: String) -> some View {
-        if menuBarLabelStyle == "icon" {
-            Image(systemName: icon)
-        } else {
-            Label(title, systemImage: icon)
-        }
-    }
 }
