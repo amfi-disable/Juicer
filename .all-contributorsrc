@@ -1,0 +1,25 @@
+{
+  "projectName": "Juicer",
+  "projectOwner": "amfi-disable",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": ["README.md"],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "coderabbitai[bot]",
+      "name": "CodeRabbit AI",
+      "avatar_url": "https://avatars.githubusercontent.com/u/142981664?v=4",
+      "profile": "https://coderabbit.ai",
+      "contributions": ["review", "security"]
+    },
+    {
+      "login": "dependabot[bot]",
+      "name": "Dependabot",
+      "avatar_url": "https://avatars.githubusercontent.com/u/27347476?v=4",
+      "profile": "https://github.com/dependabot",
+      "contributions": ["maintenance"]
+    }
+  ]
+}

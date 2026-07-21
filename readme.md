@@ -96,6 +96,17 @@ For the release validation and packaging commands, see the [V1.0.1 release check
 
 ---
 
+## Automated Contributors & AI Reviewers 🤖
+
+Juicer is continuously audited, linted, and reviewed by automated AI agents and workflow bots:
+
+- 🐰 **[CodeRabbit](https://coderabbit.ai)** (`@coderabbitai`) - Context-aware AI PR reviewer & security auditor.
+- 🛡️ **[CodeQL](https://codeql.github.com)** (`github-advanced-security`) - Continuous static application security testing (SAST).
+- 📦 **[Dependabot](https://github.com/dependabot)** (`@dependabot[bot]`) - Automated dependency updates.
+- 🧹 **[Stale Bot](https://github.com/actions/stale)** (`@actions/stale[bot]`) - Issue triage & PR maintenance.
+
+---
+
 ## License & Code of Conduct
 
 This project is licensed under the [MIT License](license).
