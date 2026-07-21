@@ -60,22 +60,12 @@ struct mainsidebarview: View {
                 NavigationSplitView {
                     List(selection: $selectedStoreItem) {
                         // Return to App Hub button
-                        Button(action: {
-                            withAnimation {
+                        JuicerBackToHubButton {
+                            withAnimation(.easeInOut(duration: 0.2)) {
                                 currentWorkspace = .hub
                                 selectedItem = nil
                             }
-                        }) {
-                            HStack {
-                                Image(systemName: "arrow.left.circle.fill")
-                                    .font(.title3)
-                                Text("Back to App Hub")
-                                    .font(.headline)
-                            }
-                            .foregroundColor(.accentColor)
-                            .padding(.vertical, 4)
                         }
-                        .buttonStyle(.plain)
                         
                         Divider().padding(.vertical, 4)
                         
@@ -128,22 +118,12 @@ struct mainsidebarview: View {
                 NavigationSplitView {
                     List(selection: $selectedItem) {
                         // Return to App Hub button
-                        Button(action: {
-                            withAnimation {
+                        JuicerBackToHubButton {
+                            withAnimation(.easeInOut(duration: 0.2)) {
                                 currentWorkspace = .hub
                                 selectedItem = nil
                             }
-                        }) {
-                            HStack {
-                                Image(systemName: "arrow.left.circle.fill")
-                                    .font(.title3)
-                                Text("Back to App Hub")
-                                    .font(.headline)
-                            }
-                            .foregroundColor(.accentColor)
-                            .padding(.vertical, 4)
                         }
-                        .buttonStyle(.plain)
                         
                         Divider().padding(.vertical, 4)
 
@@ -508,15 +488,18 @@ struct mainsidebarview: View {
             }
             .padding(.bottom, 20)
             
-            // Startup App Grid (No Icons)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: hubDensity == "compact" ? 220 : 280), spacing: 20)], spacing: 20) {
+            // Startup App Grid (8 Workspace Apps)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: hubDensity == "compact" ? 220 : 250), spacing: 16)], spacing: 16) {
                 hubAppCard(workspace: .store, defaultItem: .appStore)
                 hubAppCard(workspace: .system, defaultItem: .dashboard)
+                hubAppCard(workspace: .network, defaultItem: .speedTest)
+                hubAppCard(workspace: .security, defaultItem: .tccViewer)
                 hubAppCard(workspace: .disk, defaultItem: .diskExplorer)
+                hubAppCard(workspace: .developer, defaultItem: .sdkSwitcher)
                 hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
                 hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
             }
-            .frame(maxWidth: 880)
+            .frame(maxWidth: 1040)
             
             Spacer(minLength: 16)
             }
@@ -529,38 +512,50 @@ struct mainsidebarview: View {
     @ViewBuilder
     private func hubAppCard(workspace: JuicerWorkspace, defaultItem: NavigationItem) -> some View {
         Button(action: {
-            withAnimation {
+            withAnimation(.easeInOut(duration: 0.2)) {
                 currentWorkspace = workspace
                 selectedItem = defaultItem
             }
         }) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(workspace.title)
-                    .font(.title3).bold()
-                    .foregroundColor(.primary)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 10) {
+                    Image(systemName: workspace.iconName)
+                        .font(.title3)
+                        .foregroundColor(.accentColor)
+                        .frame(width: 32, height: 32)
+                        .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                    
+                    Text(workspace.title)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                }
+                
                 Text(workspace.description)
-                    .font(.subheadline)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.leading)
-                    .lineLimit(3)
+                    .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
-                Spacer()
+                
+                Spacer(minLength: 4)
+                
                 HStack {
                     Spacer()
-                    Text("Launch Workspace →")
-                        .font(.caption2).bold()
+                    Text("Open App →")
+                        .font(.caption2.bold())
                         .foregroundColor(.accentColor)
                 }
             }
-            .padding(24)
-            .frame(height: hubDensity == "compact" ? 118 : 150)
+            .padding(16)
+            .frame(height: hubDensity == "compact" ? 122 : 138)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
-            .cornerRadius(16)
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
+            .cornerRadius(14)
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
         }
         .buttonStyle(.plain)
-        .contentShape(RoundedRectangle(cornerRadius: 16))
+        .contentShape(RoundedRectangle(cornerRadius: 14))
         .onHover { hovering in
             if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
         }

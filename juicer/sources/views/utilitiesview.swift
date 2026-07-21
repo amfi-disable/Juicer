@@ -157,10 +157,10 @@ struct utilitiesview: View {
     // MARK: - Card Component
     @ViewBuilder
     private func utilityCard(title: String, description: String, isEnabled: Binding<Bool>, hotkey: String) -> some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
-                    Text(title).font(.headline)
+                    Text(title).font(.headline).lineLimit(1)
                     Text(hotkey)
                         .font(.caption2).bold()
                         .padding(.horizontal, 6).padding(.vertical, 2)
@@ -170,12 +170,14 @@ struct utilitiesview: View {
                 }
                 Text(description)
                     .font(.subheadline).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Spacer()
-            Toggle("Enable (title)", isOn: isEnabled)
+            .layoutPriority(1)
+            Spacer(minLength: 12)
+            Toggle("Enable \(title)", isOn: isEnabled)
                 .toggleStyle(.switch)
                 .labelsHidden()
-                .help(isEnabled.wrappedValue ? "Disable (title)" : "Enable (title)")
+                .help(isEnabled.wrappedValue ? "Disable \(title)" : "Enable \(title)")
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor).opacity(0.2))

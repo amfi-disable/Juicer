@@ -1,23 +1,43 @@
 enum JuicerWorkspace: String, CaseIterable, Identifiable {
     case hub = "Juicer Hub"
     case store = "Juicer Store"
-    case system = "Juicer System"
-    case disk = "Juicer Disk"
-    case configs = "Juicer Configs"
-    case utilities = "Juicer Utilities"
+    case system = "System & Hardware"
+    case network = "Network & Ports"
+    case security = "Security & Privacy"
+    case disk = "Disk & Storage"
+    case developer = "Developer Suite"
+    case configs = "System Configs"
+    case utilities = "Utilities & Desktop"
     
     var id: String { rawValue }
     
     var title: String { rawValue }
     
+    var iconName: String {
+        switch self {
+        case .hub: return "square.grid.2x2.fill"
+        case .store: return "shippingbox.fill"
+        case .system: return "cpu.fill"
+        case .network: return "network"
+        case .security: return "lock.shield.fill"
+        case .disk: return "internaldrive.fill"
+        case .developer: return "terminal.fill"
+        case .configs: return "slider.horizontal.3"
+        case .utilities: return "wrench.and.screwdriver.fill"
+        }
+    }
+    
     var description: String {
         switch self {
-        case .hub: return "The home launcher dashboard."
-        case .store: return "Browse Homebrew casks and formulae repositories, install applications, and trigger software updates."
-        case .system: return "Inspect system metrics, manage active processes, trace DNS configs, and run shell automations."
-        case .disk: return "Drill down drive directories, clean developer/app caches, and manage rollback history."
-        case .configs: return "Uninstall applications, find orphaned folders, edit launch agents, and toggle hidden macOS settings."
-        case .utilities: return "Enable active window switchers, clipboard tracking lists, window snaps, color loupes, and note pads."
+        case .hub: return "Central launcher and active workspace dashboard."
+        case .store: return "Browse Homebrew casks, formula repositories, and software updates."
+        case .system: return "Inspect CPU/GPU gauges, memory pressure, battery, power, and thermal sensors."
+        case .network: return "Monitor network speed, Wi-Fi surveys, open ports, DNS, and active VPNs."
+        case .security: return "Audit TCC permissions, privacy settings, quarantine, FileVault, and app locks."
+        case .disk: return "Drill down drive directories, clean developer caches, and locate duplicate/large files."
+        case .developer: return "Manage SDK runtimes, script plugins, local web servers, and code snippets."
+        case .configs: return "Uninstall apps, find orphaned folders, edit launch agents, and tweak macOS defaults."
+        case .utilities: return "Window tiler, clipboard historian, hot corners, color loupe, and desktop helpers."
         }
     }
 }
@@ -68,13 +88,19 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         switch self {
         case .appStore, .brewExplorer, .appUpdates:
             return .store
-        case .dashboard, .workflowCenter, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .vpnProfiles, .networkLocations, .bluetoothDevices, .airDropQuickSend, .fileVault, .firewall, .networkExposure, .usbDeviceGuard, .screenRecording, .clipboardAccess, .locationServices, .microphoneCamera, .logStream:
+        case .dashboard, .workflowCenter, .statusMonitor, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .batteryHealth, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .batterySaver, .kextManager, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .systemServices:
             return .system
-        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders, .downloadOrganizer, .archiveUtility, .diskImages, .fileTypeConverter, .symbolicLinks, .diskVerification, .storageSnapshots, .secureDelete, .appLanguageStripper:
+        case .networkTraffic, .portListener, .vpnProfiles, .networkLocations, .bluetoothDevices, .airDropQuickSend, .portScanner, .lanDiscovery, .wifiSurvey, .networkProfileSwitcher, .vpnAutoConnect, .publicIP, .speedTest, .dnsDiagnostics, .hostsFile, .blocklistUpdater, .firewall, .networkExposure, .networkLimiter:
+            return .network
+        case .tccViewer, .fileVault, .privacyScanner, .passwordAudit, .secureDelete, .quarantinedFiles, .sandboxInspector, .usbDeviceGuard, .screenRecording, .clipboardAccess, .locationServices, .microphoneCamera, .antiKeylogger, .secureNotes, .appLocker, .fileVaultAutoLock, .permissionCenter:
+            return .security
+        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders, .downloadOrganizer, .archiveUtility, .diskImages, .fileTypeConverter, .symbolicLinks, .diskVerification, .storageSnapshots, .diskSpacePredictor, .backupTrigger, .diskImageMounter:
             return .disk
-        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor, .privacyScanner, .passwordAudit, .quarantinedFiles, .sandboxInspector, .antiKeylogger, .secureNotes, .envProfiles:
+        case .sdkSwitcher, .scriptPlugins, .envProfiles, .appLanguageStripper, .ocrScreenGrabber, .logStream, .nlToCommand, .imageConverter, .scriptConsole, .codeSnippets, .localWebServer:
+            return .developer
+        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .systemOptimizer, .permissionRepair, .extendedAttributes, .metadataEditor, .autoUpdateChecker, .logRotator:
             return .configs
-        case .featureCatalog, .actionHistory, .permissionCenter, .scriptPlugins, .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .batterySaver, .printerQueue, .pdfToolbox, .markdownPreviewer, .codeSnippets, .localWebServer, .portScanner, .lanDiscovery, .wifiSurvey, .networkProfileSwitcher, .vpnAutoConnect, .publicIP, .speedTest, .dnsDiagnostics, .hostsFile, .blocklistUpdater, .appLocker, .fileVaultAutoLock, .japaneseKana, .emojiPicker, .unicodeInspector, .screenshotAnnotation, .windowSnapping, .displayProfiles, .nightShift, .keyboardBacklight, .trackpadGestures, .shortcutRunner, .systemInfoExporter, .softwareInventory, .autoUpdateChecker, .logRotator, .systemServices, .diskSpacePredictor, .backupTrigger, .networkLimiter, .diskImageMounter, .soundVolumeMixer, .ocrScreenGrabber, .nlToCommand, .imageConverter:
+        case .featureCatalog, .actionHistory, .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .printerQueue, .pdfToolbox, .markdownPreviewer, .japaneseKana, .emojiPicker, .unicodeInspector, .screenshotAnnotation, .windowSnapping, .displayProfiles, .nightShift, .keyboardBacklight, .trackpadGestures, .shortcutRunner, .systemInfoExporter, .softwareInventory, .snapshots, .soundVolumeMixer:
             return .utilities
         }
     }

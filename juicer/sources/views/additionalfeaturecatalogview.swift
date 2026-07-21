@@ -40,23 +40,33 @@ struct additionalfeaturecatalogview: View {
         VStack(alignment: .leading, spacing: 16) {
             JuicerFeatureHeader(title: "Additional Features", subtitle: "One-click shortcuts for common macOS inspection and setup tasks.", icon: "square.grid.2x2", refreshing: false, action: {})
 
-            HStack(spacing: 10) {
-                TextField("Search 100 features", text: $query)
-                    .textFieldStyle(.roundedBorder)
-                Picker("Category", selection: $category) {
-                    ForEach(categories, id: \.self) { Text($0).tag($0) }
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 10) {
+                    TextField("Search 100 features...", text: $query)
+                        .textFieldStyle(.roundedBorder)
+                    
+                    Picker("Category", selection: $category) {
+                        ForEach(categories, id: \.self) { Text($0).tag($0) }
+                    }
+                    .frame(width: 140)
                 }
-                .frame(width: 150)
-                Toggle("Favorites only", isOn: $favoritesOnly)
-                    .toggleStyle(.checkbox)
-                Picker("Layout", selection: $layout) {
-                    Image(systemName: "list.bullet").tag("list")
-                    Image(systemName: "square.grid.2x2").tag("grid")
+                
+                HStack(spacing: 14) {
+                    Toggle("Favorites only", isOn: $favoritesOnly)
+                        .toggleStyle(.checkbox)
+                    
+                    Toggle("Details", isOn: $showDetails)
+                        .toggleStyle(.checkbox)
+                    
+                    Spacer()
+                    
+                    Picker("Layout", selection: $layout) {
+                        Image(systemName: "list.bullet").tag("list")
+                        Image(systemName: "square.grid.2x2").tag("grid")
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 80)
                 }
-                .pickerStyle(.segmented)
-                .frame(width: 92)
-                Toggle("Details", isOn: $showDetails)
-                    .toggleStyle(.checkbox)
             }
 
             Text("\(filtered.count) available features")
