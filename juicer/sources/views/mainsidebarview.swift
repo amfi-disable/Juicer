@@ -48,6 +48,7 @@ struct mainsidebarview: View {
     @AppStorage("juicer.settings.compactNavigation") private var compactNavigation = false
     @AppStorage("juicer.settings.hideRecentNavigation") private var hideRecentNavigation = false
     @AppStorage("juicer.settings.hubDensity") private var hubDensity = "comfortable"
+    @AppStorage("juicer.settings.skipHomeScreen") private var skipHomeScreen = false
     @StateObject private var navigationPreferences = navigationpreferences.shared
     @State private var hasAppeared = false
     @State private var sidebarScope = "all"
@@ -58,6 +59,7 @@ struct mainsidebarview: View {
     @State private var hubOffset: CGSize = .zero
     @State private var lastHubOffset: CGSize = .zero
     @State private var isFullScreenCanvas: Bool = true
+    @State private var isDragPanEnabled: Bool = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -427,6 +429,10 @@ struct mainsidebarview: View {
             guard !hasAppeared else { return }
             hasAppeared = true
             TrashObserver.shared.startObserving()
+            if skipHomeScreen {
+                currentWorkspace = .system
+                selectedItem = .dashboard
+            }
             if restoreMainWindow {
                 NSApp.activate(ignoringOtherApps: true)
                 NSApp.windows.first(where: { $0.canBecomeKey && $0.title != "" })?.makeKeyAndOrderFront(nil)
@@ -474,7 +480,7 @@ struct mainsidebarview: View {
     // MARK: - Startup Hub Launchpad View (Interactive Drag & Zoom Whole Screen Canvas)
     @ViewBuilder
     private func hubLaunchpadView() -> some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack(alignment: .top) {
             ScrollView([.horizontal, .vertical], showsIndicators: false) {
                 VStack(spacing: 24) {
                     Spacer(minLength: 24)
@@ -514,7 +520,8 @@ struct mainsidebarview: View {
                 .padding(32)
                 .scaleEffect(hubScale)
                 .offset(hubOffset)
-                .gesture(
+                .simultaneousGesture(
+                    isDragPanEnabled ?
                     DragGesture()
                         .onChanged { value in
                             hubOffset = CGSize(
@@ -525,6 +532,7 @@ struct mainsidebarview: View {
                         .onEnded { _ in
                             lastHubOffset = hubOffset
                         }
+                    : nil
                 )
                 .simultaneousGesture(
                     MagnificationGesture()
@@ -539,68 +547,114 @@ struct mainsidebarview: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             
-            // Floating Canvas Drag & Zoom Control Bar
-            HStack(spacing: 8) {
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        hubScale = max(0.5, hubScale - 0.15)
-                        lastHubScale = hubScale
+            // Top Action Bar Overlay
+            HStack {
+                // Top-Left Direct Bypass & Settings Controls
+                HStack(spacing: 12) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            currentWorkspace = .system
+                            selectedItem = .dashboard
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Text("Bypass Home Screen")
+                                .font(.subheadline.weight(.semibold))
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.subheadline)
+                        }
                     }
-                }) {
-                    Image(systemName: "minus.magnifyingglass")
-                        .font(.body)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.orange)
+                    .help("Skip home screen and enter System Dashboard immediately")
+                    
+                    Toggle("Auto-bypass on launch", isOn: $skipHomeScreen)
+                        .toggleStyle(.checkbox)
+                        .font(.caption.weight(.medium))
+                        .help("Always skip home screen on app launch if permission checks pass")
                 }
-                .buttonStyle(.bordered)
-                .help("Zoom Out (Current: \(Int(hubScale * 100))%)")
+                .padding(8)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
                 
-                Text("\(Int(hubScale * 100))%")
-                    .font(.caption.bold().monospacedDigit())
-                    .frame(width: 44)
+                Spacer()
                 
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        hubScale = min(2.5, hubScale + 0.15)
-                        lastHubScale = hubScale
+                // Top-Right Floating Canvas Control Bar
+                HStack(spacing: 8) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            isDragPanEnabled.toggle()
+                        }
+                    }) {
+                        Image(systemName: isDragPanEnabled ? "hand.draw.fill" : "hand.draw")
+                            .font(.body)
                     }
-                }) {
-                    Image(systemName: "plus.magnifyingglass")
-                        .font(.body)
-                }
-                .buttonStyle(.bordered)
-                .help("Zoom In (Current: \(Int(hubScale * 100))%)")
-                
-                Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        hubScale = 1.0
-                        lastHubScale = 1.0
-                        hubOffset = .zero
-                        lastHubOffset = .zero
+                    .buttonStyle(.borderedProminent)
+                    .tint(isDragPanEnabled ? .accentColor : .gray)
+                    .help(isDragPanEnabled ? "Disable Canvas Dragging" : "Enable Canvas Dragging (Pan Mode)")
+                    
+                    Divider().frame(height: 16)
+                    
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            hubScale = max(0.5, hubScale - 0.15)
+                            lastHubScale = hubScale
+                        }
+                    }) {
+                        Image(systemName: "minus.magnifyingglass")
+                            .font(.body)
                     }
-                }) {
-                    Image(systemName: "arrow.counterclockwise")
-                        .font(.body)
-                }
-                .buttonStyle(.bordered)
-                .help("Reset Canvas Offset & Zoom")
-                
-                Divider().frame(height: 16)
-                
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        isFullScreenCanvas.toggle()
+                    .buttonStyle(.bordered)
+                    .help("Zoom Out (Current: \(Int(hubScale * 100))%)")
+                    
+                    Text("\(Int(hubScale * 100))%")
+                        .font(.caption.bold().monospacedDigit())
+                        .frame(width: 42)
+                    
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            hubScale = min(2.5, hubScale + 0.15)
+                            lastHubScale = hubScale
+                        }
+                    }) {
+                        Image(systemName: "plus.magnifyingglass")
+                            .font(.body)
                     }
-                }) {
-                    Image(systemName: isFullScreenCanvas ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
-                        .font(.body)
+                    .buttonStyle(.bordered)
+                    .help("Zoom In (Current: \(Int(hubScale * 100))%)")
+                    
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            hubScale = 1.0
+                            lastHubScale = 1.0
+                            hubOffset = .zero
+                            lastHubOffset = .zero
+                        }
+                    }) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.body)
+                    }
+                    .buttonStyle(.bordered)
+                    .help("Reset Canvas Offset & Zoom")
+                    
+                    Divider().frame(height: 16)
+                    
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isFullScreenCanvas.toggle()
+                        }
+                    }) {
+                        Image(systemName: isFullScreenCanvas ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                            .font(.body)
+                    }
+                    .buttonStyle(.bordered)
+                    .help(isFullScreenCanvas ? "Fit Window Width" : "Expand to Whole Screen Width")
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(isFullScreenCanvas ? .accentColor : .gray)
-                .help(isFullScreenCanvas ? "Fit Window Width" : "Expand to Whole Screen Width")
+                .padding(8)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             }
-            .padding(10)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
-            .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
-            .padding(20)
+            .padding(16)
         }
         .background(Color(NSColor.windowBackgroundColor))
     }
