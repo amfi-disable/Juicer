@@ -1,0 +1,23 @@
+{
+  "name": "Juicer Swift & Python Environment",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "swiftlang.swift-vscode",
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-python.python"
+      ]
+    }
+  },
+  "postCreateCommand": "pip install uv && xcodegen --version || true"
+}

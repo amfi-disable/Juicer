@@ -47,6 +47,12 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     case statusMonitor
     case cacheCleaner
     case appStore
+    case envProfiles
+    case appLanguageStripper
+    case ocrScreenGrabber
+    case logStream
+    case nlToCommand
+    case imageConverter
     case snapshots
     case scriptConsole
     case utilitiesView
@@ -62,13 +68,13 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         switch self {
         case .appStore, .brewExplorer, .appUpdates:
             return .store
-        case .dashboard, .workflowCenter, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .vpnProfiles, .networkLocations, .bluetoothDevices, .airDropQuickSend, .fileVault, .firewall, .networkExposure, .usbDeviceGuard, .screenRecording, .clipboardAccess, .locationServices, .microphoneCamera:
+        case .dashboard, .workflowCenter, .statusMonitor, .portListener, .scriptConsole, .snapshots, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .networkTraffic, .batteryHealth, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .kextManager, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .vpnProfiles, .networkLocations, .bluetoothDevices, .airDropQuickSend, .fileVault, .firewall, .networkExposure, .usbDeviceGuard, .screenRecording, .clipboardAccess, .locationServices, .microphoneCamera, .logStream:
             return .system
-        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders, .downloadOrganizer, .archiveUtility, .diskImages, .fileTypeConverter, .symbolicLinks, .diskVerification, .storageSnapshots, .secureDelete:
+        case .diskExplorer, .cacheCleaner, .devCaches, .largeFiles, .hiddenFiles, .diskVisualizer, .undoHistory, .duplicateFiles, .emptyFolders, .downloadOrganizer, .archiveUtility, .diskImages, .fileTypeConverter, .symbolicLinks, .diskVerification, .storageSnapshots, .secureDelete, .appLanguageStripper:
             return .disk
-        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor, .privacyScanner, .passwordAudit, .quarantinedFiles, .sandboxInspector, .antiKeylogger, .secureNotes:
+        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .sdkSwitcher, .systemOptimizer, .tccViewer, .permissionRepair, .extendedAttributes, .metadataEditor, .privacyScanner, .passwordAudit, .quarantinedFiles, .sandboxInspector, .antiKeylogger, .secureNotes, .envProfiles:
             return .configs
-        case .featureCatalog, .actionHistory, .permissionCenter, .scriptPlugins, .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .batterySaver, .printerQueue, .pdfToolbox, .markdownPreviewer, .codeSnippets, .localWebServer, .portScanner, .lanDiscovery, .wifiSurvey, .networkProfileSwitcher, .vpnAutoConnect, .publicIP, .speedTest, .dnsDiagnostics, .hostsFile, .blocklistUpdater, .appLocker, .fileVaultAutoLock, .japaneseKana, .emojiPicker, .unicodeInspector, .screenshotAnnotation, .windowSnapping, .displayProfiles, .nightShift, .keyboardBacklight, .trackpadGestures, .shortcutRunner, .systemInfoExporter, .softwareInventory, .autoUpdateChecker, .logRotator, .systemServices, .diskSpacePredictor, .backupTrigger, .networkLimiter, .diskImageMounter, .soundVolumeMixer:
+        case .featureCatalog, .actionHistory, .permissionCenter, .scriptPlugins, .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .batterySaver, .printerQueue, .pdfToolbox, .markdownPreviewer, .codeSnippets, .localWebServer, .portScanner, .lanDiscovery, .wifiSurvey, .networkProfileSwitcher, .vpnAutoConnect, .publicIP, .speedTest, .dnsDiagnostics, .hostsFile, .blocklistUpdater, .appLocker, .fileVaultAutoLock, .japaneseKana, .emojiPicker, .unicodeInspector, .screenshotAnnotation, .windowSnapping, .displayProfiles, .nightShift, .keyboardBacklight, .trackpadGestures, .shortcutRunner, .systemInfoExporter, .softwareInventory, .autoUpdateChecker, .logRotator, .systemServices, .diskSpacePredictor, .backupTrigger, .networkLimiter, .diskImageMounter, .soundVolumeMixer, .ocrScreenGrabber, .nlToCommand, .imageConverter:
             return .utilities
         }
     }
@@ -100,6 +106,12 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .statusMonitor: return "Live Status"
         case .cacheCleaner: return "Cache Cleaner"
         case .appStore: return "Software Center"
+        case .envProfiles: return "Env Profiles & Secrets"
+        case .appLanguageStripper: return "App Language Stripper"
+        case .ocrScreenGrabber: return "OCR Screen Grabber"
+        case .logStream: return "Unified Log Stream"
+        case .nlToCommand: return "Natural Language Command Generator"
+        case .imageConverter: return "Batch Image Converter"
         case .snapshots: return "Diagnostic Snapshots"
         case .scriptConsole: return "Script Console"
         case .utilitiesView: return "Utilities Settings"
@@ -233,6 +245,12 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .statusMonitor: return "waveform.path.ecg"
         case .cacheCleaner: return "sparkle.magnifyingglass"
         case .appStore: return "square.grid.3x3.fill"
+        case .envProfiles: return "slider.horizontal.3"
+        case .appLanguageStripper: return "globe"
+        case .ocrScreenGrabber: return "viewfinder"
+        case .logStream: return "doc.text.magnifyingglass"
+        case .nlToCommand: return "terminal"
+        case .imageConverter: return "photo.stack"
         case .snapshots: return "camera.viewfinder"
         case .scriptConsole: return "terminal.fill"
         case .utilitiesView: return "wrench.and.screwdriver.fill"

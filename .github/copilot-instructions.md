@@ -13,10 +13,11 @@ These rules apply to all AI coding agents (GitHub Copilot Agent, Claude Code, An
   xcodegen generate
   ```
 
-## 3. Core Task Priorities
-- Exercise features end to end.
-- Reproduce UI hangs and memory leak issues.
-- Fix any issues that require force-quitting the app.
+## 3. GitHub Automation & Templates
+- All workflow files use Node.js 24 (`actions/setup-node@v4` with `node-version: '24'`).
+- Issue templates are configured in `.github/ISSUE_TEMPLATE/` (`bug_report.yml`, `feature_request.yml`).
+- PRs must follow `.github/pull_request_template.md`.
+- Code owners are defined in `.github/CODEOWNERS`.
 
 ## 4. Hardware Memory Cap (16GB RAM)
 - When invoking local LLMs (via Ollama or local APIs), restrict model parameters to 7B or 8B (e.g. `qwen2.5-coder:7b` or `llama3.1:8b`). Do not attempt to run 32B/70B models locally.

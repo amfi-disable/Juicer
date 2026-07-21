@@ -1,17 +1,22 @@
-## Description
+## 📝 Summary of Changes
 
-Describe the proposed changes, improvements, or bug fixes implemented in this PR.
+Provide a clear description of the changes made in this Pull Request.
 
-## Linked Issues
+- Related Issue: Fixes #
 
-Fixes # (issue number)
+---
 
-## Type of Change
+## 🧪 Testing & Verification
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Refactor / Style cleanup
+Describe the test steps taken to verify these changes:
 
-## Verification Plan
+- [ ] Xcode project updated via `xcodegen generate`
+- [ ] Code builds cleanly with Xcode 16 / macOS 14.0+
+- [ ] Exercised feature end-to-end without hangs or memory leaks
+- [ ] All commit messages use lowercase format: `xxx: xxx xxx xxx`
 
-Describe how these changes were tested (e.g. manual steps, unit test commands).
+---
+
+## 🎨 UI & Screenshots (if applicable)
+
+If this PR modifies or adds SwiftUI components, include screenshots or screen recordings below.

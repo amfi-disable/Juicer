@@ -12,7 +12,7 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - path: juicer/sources
-      - path: juicer/sources/resources/appicon.icns
+      - path: juicer/sources/resources/AppIcon.icns
     dependencies:
       - package: Sparkle
         codeSignOnCopy: true
@@ -22,6 +22,7 @@ targets:
       PRODUCT_BUNDLE_IDENTIFIER: com.even.juicer
       PRODUCT_NAME: Juicer
       MACOSX_DEPLOYMENT_TARGET: "14.0"
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       ENABLE_HARDENED_RUNTIME: YES
 schemes:
   juicer:
