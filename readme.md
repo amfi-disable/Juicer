@@ -9,94 +9,86 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/amfi-disable/Juicer/releases"><img src="https://img.shields.io/badge/Version-V1.0.1-blue" alt="Version" /></a>
+  <a href="https://github.com/amfi-disable/Juicer/releases/tag/V1.0.1"><img src="https://img.shields.io/badge/Version-V1.0.1-blue" alt="Version" /></a>
   <a href="license"><img src="https://img.shields.io/badge/License-MIT-green" alt="License" /></a>
   <a href="https://developer.apple.com/macos"><img src="https://img.shields.io/badge/Platform-macOS%2014.0%2B-lightgrey?logo=apple" alt="Platform" /></a>
   <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6.0-orange?logo=swift" alt="Swift" /></a>
 </p>
 
-Juicer is the ultimate all-in-one companion utility for **macOS developers and power users**. It is a 100% free, open-source, local-first suite that consolidates package managers, disk analyzers, app uninstallers, launchd editors, developer cache pruners, hosts file editors, and hidden system tweaks into a high-performance native SwiftUI desktop app.
+Juicer is the ultimate open-source companion utility for **macOS developers and power users**. It is a 100% free, local-first suite that consolidates package managers, disk analyzers, app uninstallers, launchd editors, developer cache pruners, hosts file editors, and system tweaks into a high-performance native SwiftUI app.
 
 ---
 
-## Key Features
+## 🧭 Bundled Workspace Companion Suite (V1.0.1)
 
-- **App Store Software Center 🛍️**: Easily manage Homebrew Casks (GUI) and Formulae (CLI) in a modern App Store-like layout. Classifies packages by categories (*Productivity, Utilities, Development, Design, Entertainment, System*) and pricing models (*Free, Freemium, Paid*). Features high-speed, asynchronous list loading with background metadata resolution.
-- **Space Lens (Disk Visualizer) 🔍**: Visualize your storage layout using proportional squarified Treemaps or Canvas-drawn hierarchical Sunburst charts. Includes split details panels, path copying, Quick Look integrations, and a staged Discard Pile for batch deletions.
-- **App Uninstaller 🧹**: Drag and drop any `.app` to harvest and delete its hidden leftover files (caches, app support, plist, logs, containers, `ByHost Preferences`, and privileged helper tools).
-- **Orphan Finder**: Scan `~/Library` and sweep away directories left behind by long-deleted apps.
-- **Clipboard History Manager 📋**: Local-first text clipboard history cache supporting pinned items, search filtering, duplicate prevention, formatting stripping, and quick-action paste triggers.
-- **BetterCmdTab (App Switcher) 🔄**: Swaps standard app switching behavior with a custom material overlay showing running tasks and live window previews/thumbnails.
+Juicer organizes its extensive feature set across **9 specialized companion workspaces**:
+
+- 🚀 **Juicer Hub**: Central launcher and interactive launchpad canvas supporting Pan & Zoom gestures, edge-to-edge full screen modes, and launch bypass options.
+- 📦 **Juicer Store**: Modern Homebrew Cask (GUI) & Formula (CLI) package manager with background metadata resolution, tap manager, service controller, and Brewfile sync.
+- ⚡ **System & Hardware**: Real-time CPU/GPU gauges, memory pressure, battery health, power schedules, and thermal/fan sensors.
+- 🌐 **Network & Ports**: Wi-Fi survey tools, speed tester, open port listener, DNS diagnostics, active VPN profiles, and firewall rules.
+- 🛡️ **Security & Privacy**: TCC permission audit, privacy cabinet, FileVault inspector, quarantine stripper, anti-keylogger scanner, and app locker.
+- 💾 **Disk & Storage**: Space Lens disk visualizer (Treemaps & Sunburst charts), developer cache cleaner, large file locator, duplicate finder, and storage snapshot manager.
+- 🛠️ **Developer Suite**: SDK runtime switcher, trusted script plugins runner, local web server, code snippet expander, and environment profiles.
+- ⚙️ **System Configs**: App uninstaller, orphan finder, launch daemon editor, hidden macOS tweaks, log rotator, and system optimizer.
+- 🧰 **Utilities & Desktop**: Window tiler, clipboard manager, hot corners, color loupe, screen ruler, PDF toolbox, and desktop helper widgets.
+
+---
+
+## 🛠️ Key Capabilities
+
+- **App Store Software Center 🛍️**: Easily manage Homebrew Casks (GUI) and Formulae (CLI) in a modern layout with category and pricing classification.
+- **Space Lens (Disk Visualizer) 🔍**: Proportional squarified Treemaps and Canvas-drawn Sunburst charts with path copying and staged batch discard.
+- **Deep App Uninstaller 🧹**: Drag and drop any `.app` to remove caches, app support, plists, containers, `ByHost Preferences`, and helper tools.
+- **Orphan Directory Sweeper**: Locate and clean up orphaned files left behind by deleted applications.
+- **Clipboard History Manager 📋**: Local-first text clipboard cache with pinned items, search filtering, formatting stripping, and hotkeys.
 - **Status Menu Bar Monitor 📈**: Live system disk and physical memory utilization widget embedded directly in the macOS menu bar.
-- **Trusted Script Plugins 🧩**: Extensions interface that watches a user-defined folder, lists executable shell scripts (`.sh`, `.command`, `.zsh`), and runs custom developer automation workflows securely with real-time log output.
-- **DNS Profile Manager & Ad-Blocker 🛡️**: Save and switch between local DNS profiles. Instantly download, parse, and apply public ad-blocking/malware hosts filters (like StevenBlack's hosts filter) to your `/etc/hosts` file.
-- **Service Manager**: Load, unload, inspect, edit, and create user and system launch daemons/agents.
-- **Workflow Center 🧪**: Queue safe system, disk, network, Homebrew, and recent-error diagnostics with pause/resume, retry, cancellation, previews, persistent history, custom scan paths, copy, export, and completion notifications.
-- **100 Diagnostic Recipes**: Search and run one hundred local read-only checks across system state, processes, storage, networking, security, developer tools, logs, files, power, and applications. Favorite recipes and queue them as a reusable health workflow.
-- **Screen-Space Management**: Compact navigation, icon-first sidebar mode, recent-tool hiding, compact hub cards, and list/grid/detail controls keep the growing feature catalog usable in smaller windows.
-- **Developer Cache Pruner**: Reclaim space by pruning DerivedData, simulator support, package manager caches (npm, yarn, bun, cargo, homebrew), and unused Docker assets.
-- **System Tweaks**: Configure hidden macOS settings for Dock, Finder, Keyboard speed, and screenshot options.
-- **Quarantine Stripper**: Strip Gatekeeper quarantine tags from downloaded files and apps recursively.
-- **File Association Override**: Batch-assign file types to open with preferred editors or IDEs.
+- **Trusted Script Plugins 🧩**: Execute custom shell scripts (`.sh`, `.command`, `.zsh`) securely with real-time log output.
+- **DNS Profile Manager & Ad-Blocker 🛡️**: Switch local DNS profiles and apply StevenBlack's hosts filter to `/etc/hosts`.
 
 ---
 
+## 🍺 Installation
 
-## Installation
-
-### Method A: Install via Homebrew Tap (Recommended) 🍺
-You can install Juicer instantly using our custom Homebrew Tap:
+### Method A: Install via Homebrew Tap (Recommended)
+Install Juicer using our official Homebrew Tap:
 
 ```bash
-# Add our custom tap
+# Tap the repository
 brew tap amfi-disable/juicer
 
 # Install Juicer Cask
 brew install --cask juicer
 ```
 
-### Method B: Manual Download 📦
-Because Juicer is compiled locally and not signed with an Apple Developer ID, macOS Gatekeeper may show a *"damaged and can't be opened"* warning when downloaded manually.
-
-To open the app:
-1. Download `Juicer.zip` from our latest [GitHub Release](https://github.com/amfi-disable/Juicer/releases/tag/V1.0.1).
-2. Extract the archive and drag `Juicer.app` to your `/Applications` directory.
-3. Open Terminal and strip the quarantine flag:
+### Method B: Direct Release Download 📦
+1. Download `juicer.zip` from our latest [V1.0.1 GitHub Release](https://github.com/amfi-disable/Juicer/releases/tag/V1.0.1).
+2. Extract the archive and move `Juicer.app` to `/Applications`.
+3. If macOS Gatekeeper flags un-notarized ad-hoc binaries, run:
    ```bash
    xattr -cr /Applications/Juicer.app
    ```
-4. Open and launch the app!
+4. Launch Juicer!
 
 ---
 
-## Technical Architecture
+## 🏗️ Technical Architecture & Build Setup
 
 - **Platform**: macOS 14.0+
-- **Language**: Swift / SwiftUI
-- **Security**: Runs unsandboxed to perform low-level system directory scanning and service operations. Deletions are sent to the system Trash using the native `FileManager` API for safety.
-- **Dependencies**: [Sparkle](https://github.com/sparkle-project/Sparkle) for update delivery; the application remains native SwiftUI.
+- **Language**: Swift 6 / SwiftUI
+- **Code Signing**: Deep ad-hoc signed (`CODE_SIGN_IDENTITY: "-"`) with Sparkle framework re-signing to eliminate dyld Team ID launch errors.
+- **Project Generator**: Uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to build `juicer.xcodeproj` from `project.yml`.
+
+To build locally:
+```bash
+brew install xcodegen
+xcodegen generate
+xcodebuild build -project juicer.xcodeproj -scheme juicer -configuration Debug
+```
 
 ---
 
-## Development Setup
-
-This project uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to define the Xcode project file dynamically from `project.yml`.
-
-1. Install XcodeGen:
-   ```bash
-   brew install xcodegen
-   ```
-2. Generate the Xcode project:
-   ```bash
-   xcodegen generate
-   ```
-3. Open `juicer.xcodeproj` and build!
-
-For the release validation and packaging commands, see the [V1.0.1 release checklist](docs/release-checklist.md).
-
----
-
-## Automated Contributors & AI Reviewers 🤖
+## 🤖 Automated Contributors & AI Reviewers
 
 Juicer is continuously audited, linted, and reviewed by automated AI agents and workflow bots:
 
@@ -107,7 +99,7 @@ Juicer is continuously audited, linted, and reviewed by automated AI agents and 
 
 ---
 
-## License & Code of Conduct
+## 📜 License & Code of Conduct
 
 This project is licensed under the [MIT License](license).
 All contributors are expected to adhere to the [Code of Conduct](code_of_conduct.md).

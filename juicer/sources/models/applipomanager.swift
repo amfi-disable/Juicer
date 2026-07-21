@@ -80,10 +80,14 @@ class AppLipoManager: ObservableObject {
         // Find main executable
         let infoPlistURL = bundleURL.appendingPathComponent("Contents/Info.plist")
         guard let plist = NSDictionary(contentsOf: infoPlistURL),
-              let execName = plist["CFBundleExecutable"] as? String else { return }
+              let execName = plist["CFBundleExecutable"] as? String,
+              !execName.contains("/"),
+              !execName.contains("..") else { return }
         
-        let execURL = bundleURL.appendingPathComponent("Contents/MacOS").appendingPathComponent(execName)
-        guard fileManager.fileExists(atPath: execURL.path) else { return }
+        let macosDir = bundleURL.appendingPathComponent("Contents/MacOS").standardizedFileURL
+        let execURL = bundleURL.appendingPathComponent("Contents/MacOS").appendingPathComponent(execName).standardizedFileURL
+        guard execURL.path.hasPrefix(macosDir.path),
+              fileManager.fileExists(atPath: execURL.path) else { return }
         
         // Parse Mach-O header
         guard let fileHandle = try? FileHandle(forReadingFrom: execURL) else { return }
@@ -161,13 +165,21 @@ class AppLipoManager: ObservableObject {
         Task.detached(priority: .userInitiated) {
             let infoPlistURL = app.path.appendingPathComponent("Contents/Info.plist")
             guard let plist = NSDictionary(contentsOf: infoPlistURL),
-                  let execName = plist["CFBundleExecutable"] as? String else {
+                  let execName = plist["CFBundleExecutable"] as? String,
+                  !execName.contains("/"),
+                  !execName.contains("..") else {
                 await MainActor.run { self.isThinning = false }
                 completion(false)
                 return
             }
             
-            let execURL = app.path.appendingPathComponent("Contents/MacOS").appendingPathComponent(execName)
+            let macosDir = app.path.appendingPathComponent("Contents/MacOS").standardizedFileURL
+            let execURL = app.path.appendingPathComponent("Contents/MacOS").appendingPathComponent(execName).standardizedFileURL
+            guard execURL.path.hasPrefix(macosDir.path) else {
+                await MainActor.run { self.isThinning = false }
+                completion(false)
+                return
+            }
             guard let fileHandle = try? FileHandle(forReadingFrom: execURL) else {
                 await MainActor.run { self.isThinning = false }
                 completion(false)
