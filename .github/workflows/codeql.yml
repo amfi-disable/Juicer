@@ -16,7 +16,7 @@ permissions:
 jobs:
   analyze:
     name: CodeQL Scan
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - name: Checkout Code
@@ -30,7 +30,8 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: 'python' # Python subpackages
+          languages: 'swift'
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+
