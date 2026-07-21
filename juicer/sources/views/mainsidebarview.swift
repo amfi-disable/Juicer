@@ -52,6 +52,13 @@ struct mainsidebarview: View {
     @State private var hasAppeared = false
     @State private var sidebarScope = "all"
     
+    // Home Screen Canvas Drag & Zoom State
+    @State private var hubScale: CGFloat = 1.0
+    @State private var lastHubScale: CGFloat = 1.0
+    @State private var hubOffset: CGSize = .zero
+    @State private var lastHubOffset: CGSize = .zero
+    @State private var isFullScreenCanvas: Bool = true
+    
     var body: some View {
         VStack(spacing: 0) {
             if currentWorkspace == .hub {
@@ -464,48 +471,137 @@ struct mainsidebarview: View {
         }
     }
     
-    // MARK: - Startup Hub Launchpad View
+    // MARK: - Startup Hub Launchpad View (Interactive Drag & Zoom Whole Screen Canvas)
     @ViewBuilder
     private func hubLaunchpadView() -> some View {
-        ScrollView {
-            VStack(spacing: 30) {
-            Spacer(minLength: 16)
-            
-            // App Hub Header
-            VStack(spacing: 10) {
-                Text("Juicer App Hub")
-                    .font(.system(size: 38, weight: .black, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.orange, .red, .pink],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                Text("Select a specialized bundled workspace companion below to begin.")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
+        ZStack(alignment: .topTrailing) {
+            ScrollView([.horizontal, .vertical], showsIndicators: false) {
+                VStack(spacing: 24) {
+                    Spacer(minLength: 24)
+                    
+                    // App Hub Header
+                    VStack(spacing: 10) {
+                        Text("Juicer App Hub")
+                            .font(.system(size: 38, weight: .black, design: .rounded))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.orange, .red, .pink],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        Text("Select a specialized bundled workspace companion below to begin.")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.bottom, 10)
+                    
+                    // Startup App Grid (8 Workspace Apps)
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: hubDensity == "compact" ? 220 : 250), spacing: 16)], spacing: 16) {
+                        hubAppCard(workspace: .store, defaultItem: .appStore)
+                        hubAppCard(workspace: .system, defaultItem: .dashboard)
+                        hubAppCard(workspace: .network, defaultItem: .speedTest)
+                        hubAppCard(workspace: .security, defaultItem: .tccViewer)
+                        hubAppCard(workspace: .disk, defaultItem: .diskExplorer)
+                        hubAppCard(workspace: .developer, defaultItem: .sdkSwitcher)
+                        hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
+                        hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
+                    }
+                    .frame(maxWidth: isFullScreenCanvas ? .infinity : 1040)
+                    
+                    Spacer(minLength: 24)
+                }
+                .padding(32)
+                .scaleEffect(hubScale)
+                .offset(hubOffset)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            hubOffset = CGSize(
+                                width: lastHubOffset.width + value.translation.width,
+                                height: lastHubOffset.height + value.translation.height
+                            )
+                        }
+                        .onEnded { _ in
+                            lastHubOffset = hubOffset
+                        }
+                )
+                .simultaneousGesture(
+                    MagnificationGesture()
+                        .onChanged { value in
+                            let newScale = lastHubScale * value
+                            hubScale = min(max(newScale, 0.5), 2.5)
+                        }
+                        .onEnded { _ in
+                            lastHubScale = hubScale
+                        }
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .padding(.bottom, 20)
             
-            // Startup App Grid (8 Workspace Apps)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: hubDensity == "compact" ? 220 : 250), spacing: 16)], spacing: 16) {
-                hubAppCard(workspace: .store, defaultItem: .appStore)
-                hubAppCard(workspace: .system, defaultItem: .dashboard)
-                hubAppCard(workspace: .network, defaultItem: .speedTest)
-                hubAppCard(workspace: .security, defaultItem: .tccViewer)
-                hubAppCard(workspace: .disk, defaultItem: .diskExplorer)
-                hubAppCard(workspace: .developer, defaultItem: .sdkSwitcher)
-                hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
-                hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
+            // Floating Canvas Drag & Zoom Control Bar
+            HStack(spacing: 8) {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        hubScale = max(0.5, hubScale - 0.15)
+                        lastHubScale = hubScale
+                    }
+                }) {
+                    Image(systemName: "minus.magnifyingglass")
+                        .font(.body)
+                }
+                .buttonStyle(.bordered)
+                .help("Zoom Out (Current: \(Int(hubScale * 100))%)")
+                
+                Text("\(Int(hubScale * 100))%")
+                    .font(.caption.bold().monospacedDigit())
+                    .frame(width: 44)
+                
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        hubScale = min(2.5, hubScale + 0.15)
+                        lastHubScale = hubScale
+                    }
+                }) {
+                    Image(systemName: "plus.magnifyingglass")
+                        .font(.body)
+                }
+                .buttonStyle(.bordered)
+                .help("Zoom In (Current: \(Int(hubScale * 100))%)")
+                
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        hubScale = 1.0
+                        lastHubScale = 1.0
+                        hubOffset = .zero
+                        lastHubOffset = .zero
+                    }
+                }) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.body)
+                }
+                .buttonStyle(.bordered)
+                .help("Reset Canvas Offset & Zoom")
+                
+                Divider().frame(height: 16)
+                
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isFullScreenCanvas.toggle()
+                    }
+                }) {
+                    Image(systemName: isFullScreenCanvas ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                        .font(.body)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(isFullScreenCanvas ? .accentColor : .gray)
+                .help(isFullScreenCanvas ? "Fit Window Width" : "Expand to Whole Screen Width")
             }
-            .frame(maxWidth: 1040)
-            
-            Spacer(minLength: 16)
-            }
-            .frame(maxWidth: .infinity)
+            .padding(10)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+            .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
+            .padding(20)
         }
-        .padding(40)
         .background(Color(NSColor.windowBackgroundColor))
     }
     
