@@ -1,4 +1,4 @@
-# v1.0.1 release checklist
+## Release V1.0.1 Checklist
 
 ## automated checks
 
