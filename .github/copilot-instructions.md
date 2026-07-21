@@ -21,3 +21,8 @@ These rules apply to all AI coding agents (GitHub Copilot Agent, Claude Code, An
 
 ## 4. Hardware Memory Cap (16GB RAM)
 - When invoking local LLMs (via Ollama or local APIs), restrict model parameters to 7B or 8B (e.g. `qwen2.5-coder:7b` or `llama3.1:8b`). Do not attempt to run 32B/70B models locally.
+
+## 5. File Directory & Path Stability (CodeRabbit Enforcement)
+- **DO NOT modify, move, or rename existing file directories or path structures without explicit user approval.**
+- CodeRabbit and custom pre-merge checks monitor path patterns (`juicer/sources/views/**`, `juicer/sources/models/**`, `project.yml`).
+- Arbitrary file directory changes or renaming existing folders will break CodeRabbit path rules and trigger automated pre-merge check rejections.
