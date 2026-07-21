@@ -33,7 +33,7 @@ jobs:
           echo "download_url=${DOWNLOAD_URL}" >> $GITHUB_OUTPUT
 
       - name: Checkout homebrew-juicer Tap
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: amfi-disable/homebrew-juicer
           token: ${{ secrets.HOMEBREW_TAP_TOKEN || secrets.GITHUB_TOKEN }}
