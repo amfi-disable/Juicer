@@ -17,6 +17,8 @@ targets:
       - package: Sparkle
         codeSignOnCopy: true
     settings:
+      CODE_SIGN_IDENTITY: "-"
+      DEVELOPMENT_TEAM: ""
       CODE_SIGN_ENTITLEMENTS: juicer/sources/resources/juicer.entitlements
       INFOPLIST_FILE: juicer/sources/resources/info.plist
       PRODUCT_BUNDLE_IDENTIFIER: com.even.juicer
@@ -26,9 +28,12 @@ targets:
       ENABLE_HARDENED_RUNTIME: YES
       OTHER_CODE_SIGN_FLAGS: "--deep"
     postCompileScripts:
-      - name: Deep Re-sign Embedded Frameworks
+      - name: Deep Re-sign Embedded Frameworks and Dylibs
         script: |
-          codesign --force --deep --sign - --options runtime "${TARGET_BUILD_DIR}/${FULL_PRODUCT_NAME}"
+          if [ -d "${TARGET_BUILD_DIR}/${FULL_PRODUCT_NAME}" ]; then
+            find "${TARGET_BUILD_DIR}/${FULL_PRODUCT_NAME}" -name "*.dylib" -o -name "*.framework" | xargs -I {} codesign --force --sign - "{}"
+            codesign --force --deep --sign - "${TARGET_BUILD_DIR}/${FULL_PRODUCT_NAME}"
+          fi
 schemes:
   juicer:
     build:
