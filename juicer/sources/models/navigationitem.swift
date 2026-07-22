@@ -425,6 +425,10 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .undoHistory, .downloadOrganizer, .archiveUtility, .diskImages, .fileTypeConverter, .symbolicLinks, .diskSpacePredictor, .backupTrigger:
             return "File Utilities"
             
+        // Git Studio
+        case .juicerGit, .gitExtras:
+            return "Git Tools & Workbench"
+            
         // Developer Suite
         case .sdkSwitcher, .scriptPlugins, .scriptConsole, .localWebServer:
             return "Runtimes & Scripts"
