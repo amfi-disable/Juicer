@@ -51,6 +51,7 @@ struct mainsidebarview: View {
     @StateObject private var navigationPreferences = navigationpreferences.shared
     @State private var hasAppeared = false
     @State private var sidebarScope = "all"
+    @State private var isEcosystemExpanded = true
     
     // Home Screen Canvas Drag Panning State
     @State private var hubOffset: CGSize = .zero
@@ -135,19 +136,13 @@ struct mainsidebarview: View {
                         Picker("Tool scope", selection: $sidebarScope) {
                             Label("All", systemImage: "square.grid.2x2").tag("all")
                             Label("Favorites", systemImage: "star").tag("favorites")
-                            Label("Recent", systemImage: "clock").tag("recent")
                         }
                         .pickerStyle(.segmented)
                         .padding(.horizontal, 4)
                         
                         // Dynamically filtered workspace items
                         let items = NavigationItem.allCases.filter { item in
-                            let matchesScope: Bool
-                            switch sidebarScope {
-                            case "favorites": matchesScope = navigationPreferences.isFavorite(item)
-                            case "recent": matchesScope = navigationPreferences.recent.contains(item)
-                            default: matchesScope = true
-                            }
+                            let matchesScope: Bool = (sidebarScope == "favorites") ? navigationPreferences.isFavorite(item) : true
                             return item.workspace == currentWorkspace && matchesScope && (sidebarSearch.isEmpty || item.title.localizedCaseInsensitiveContains(sidebarSearch))
                         }
                         
@@ -177,7 +172,7 @@ struct mainsidebarview: View {
                                 }
                             }
                             
-                            // Categorized Subgroups with DisclosureGroups
+                            // Direct Subcategory Listing (1-Click Instant Navigation)
                             let categories = Array(Set(items.map { $0.subcategory })).sorted()
                             ForEach(categories, id: \.self) { category in
                                 let categoryItems = items.filter { $0.subcategory == category }
@@ -187,97 +182,28 @@ struct mainsidebarview: View {
                                         return item1.title < item2.title
                                     }
                                 if !categoryItems.isEmpty {
-                                    DisclosureGroup(isExpanded: .constant(true)) {
+                                    Section(category) {
                                         ForEach(categoryItems) { item in
                                             sidebarLink(for: item)
                                         }
-                                    } label: {
-                                        HStack {
-                                            Text(category)
-                                                .font(.subheadline.weight(.semibold))
-                                                .foregroundStyle(.primary)
-                                                .lineLimit(1)
-                                            Spacer()
-                                            Text("\(categoryItems.count)")
-                                                .font(.caption2)
-                                                .foregroundStyle(.secondary)
-                                        }
                                     }
                                 }
-                            }
-                        }
-
-                        if !hideRecentNavigation && !compactNavigation && sidebarScope == "all" && !navigationPreferences.recent.isEmpty {
-                            Section("Recent Activity") {
-                                ForEach(navigationPreferences.recent) { item in
-                                    sidebarLink(for: item)
-                                }
-                                Button("Clear Recent") { navigationPreferences.clearRecent() }
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
                             }
                         }
                         
-                        // Creator Repositories Section with Collapsible Dropdowns
+                        // Creator Repositories Section (Clean Single Dropdown)
                         Section("Creator Repositories 🌟") {
-                            DisclosureGroup(isExpanded: .constant(true)) {
-                                // macOS Applications Subgroup
-                                DisclosureGroup(isExpanded: .constant(true)) {
-                                    creatorRepoLink(name: "amfi-disable/Juicer", title: "Juicer", desc: "macOS Developer Suite", icon: "shippingbox.fill", color: .orange, tag: "MAIN")
-                                    creatorRepoLink(name: "amfi-disable/Brew-Ghost", title: "Brew-Ghost", desc: "Ghost Package Cleaner", icon: "ghost.fill", color: .purple, tag: "TOP BREW")
-                                    creatorRepoLink(name: "amfi-disable/OmniSuite", title: "OmniSuite", desc: "Productivity Workbench", icon: "square.stack.3d.up.fill", color: .blue)
-                                    creatorRepoLink(name: "amfi-disable/PathDeck", title: "PathDeck", desc: "Workspace Path Launcher", icon: "square.grid.3x3.topleft.filled", color: .teal)
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "laptopcomputer")
-                                            .font(.caption)
-                                            .foregroundColor(.orange)
-                                        Text("macOS Apps (4)")
-                                            .font(.caption.bold())
-                                    }
-                                }
-                                
-                                // Tooling & Homebrew Taps Subgroup
-                                DisclosureGroup(isExpanded: .constant(false)) {
-                                    creatorRepoLink(name: "amfi-disable/homebrew-juicer", title: "homebrew-juicer", desc: "Juicer Cask Tap Repo", icon: "mug.fill", color: .cyan)
-                                    creatorRepoLink(name: "amfi-disable/homebrew-tap", title: "homebrew-tap", desc: "Community Formula Tap", icon: "terminal.fill", color: .cyan)
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "wrench.and.screwdriver.fill")
-                                            .font(.caption)
-                                            .foregroundColor(.cyan)
-                                        Text("Tooling & Taps (2)")
-                                            .font(.caption.bold())
-                                    }
-                                }
-                                
-                                // Extensions & Scripts Subgroup
-                                DisclosureGroup(isExpanded: .constant(false)) {
-                                    creatorRepoLink(name: "amfi-disable/FMG", title: "FMG Extension", desc: "Flight Map Web Extension", icon: "puzzlepiece.extension.fill", color: .green)
-                                    creatorRepoLink(name: "amfi-disable/GeoFS-V3.9", title: "GeoFS V3.9", desc: "Flight Sim Script Tool", icon: "airplane", color: .blue)
-                                    creatorRepoLink(name: "amfi-disable/GimSell", title: "GimSell", desc: "Gimkit Automation Tool", icon: "cart.fill", color: .yellow)
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "puzzlepiece.fill")
-                                            .font(.caption)
-                                            .foregroundColor(.green)
-                                        Text("Extensions (3)")
-                                            .font(.caption.bold())
-                                    }
-                                }
-
-                                // Profile & Meta Subgroup
-                                DisclosureGroup(isExpanded: .constant(false)) {
-                                    creatorRepoLink(name: "amfi-disable/amfi-disable", title: "amfi-disable", desc: "GitHub Profile & README", icon: "person.crop.circle.fill", color: .pink)
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "network")
-                                            .font(.caption)
-                                            .foregroundColor(.pink)
-                                        Text("GitHub Profile (1)")
-                                            .font(.caption.bold())
-                                    }
-                                }
+                            DisclosureGroup(isExpanded: $isEcosystemExpanded) {
+                                creatorRepoLink(name: "amfi-disable/Juicer", title: "Juicer", desc: "macOS Developer Suite", icon: "shippingbox.fill", color: .orange, tag: "MAIN")
+                                creatorRepoLink(name: "amfi-disable/Brew-Ghost", title: "Brew-Ghost", desc: "Ghost Package Cleaner", icon: "ghost.fill", color: .purple, tag: "TOP BREW")
+                                creatorRepoLink(name: "amfi-disable/OmniSuite", title: "OmniSuite", desc: "Productivity Workbench", icon: "square.stack.3d.up.fill", color: .blue)
+                                creatorRepoLink(name: "amfi-disable/PathDeck", title: "PathDeck", desc: "Workspace Path Launcher", icon: "square.grid.3x3.topleft.filled", color: .teal)
+                                creatorRepoLink(name: "amfi-disable/homebrew-juicer", title: "homebrew-juicer", desc: "Juicer Cask Tap Repo", icon: "mug.fill", color: .cyan)
+                                creatorRepoLink(name: "amfi-disable/homebrew-tap", title: "homebrew-tap", desc: "Community Formula Tap", icon: "terminal.fill", color: .cyan)
+                                creatorRepoLink(name: "amfi-disable/FMG", title: "FMG Extension", desc: "Flight Map Web Extension", icon: "puzzlepiece.extension.fill", color: .green)
+                                creatorRepoLink(name: "amfi-disable/GeoFS-V3.9", title: "GeoFS V3.9", desc: "Flight Sim Script Tool", icon: "airplane", color: .blue)
+                                creatorRepoLink(name: "amfi-disable/GimSell", title: "GimSell", desc: "Gimkit Automation Tool", icon: "cart.fill", color: .yellow)
+                                creatorRepoLink(name: "amfi-disable/amfi-disable", title: "amfi-disable", desc: "GitHub Profile & README", icon: "person.crop.circle.fill", color: .pink)
                             } label: {
                                 HStack {
                                     Text("Ecosystem Repositories")
