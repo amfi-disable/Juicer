@@ -23,7 +23,6 @@ struct onboardingview: View {
                         .scaleEffect(animateIcon ? 1.1 : 1.0)
                         .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: animateIcon)
                 }
-                .onAppear { animateIcon = true }
 
                 Text("Companion Setup: Full Disk Access")
                     .font(.title).bold()
@@ -67,7 +66,7 @@ struct onboardingview: View {
                 }
                 .buttonStyle(.borderedProminent)
 
-                Button("Continue to Juicer") {
+                Button("Verify & Continue to Juicer") {
                     verifyAccess()
                 }
                 .buttonStyle(.bordered)
@@ -79,6 +78,14 @@ struct onboardingview: View {
         .padding(40)
         .frame(minWidth: 800, minHeight: 600)
         .background(Color(NSColor.windowBackgroundColor))
+        .onAppear {
+            animateIcon = true
+            if onboardingview.checkFullDiskAccess() {
+                withAnimation {
+                    isAccessGranted = true
+                }
+            }
+        }
     }
 
     private func stepRow(num: String, text: String) -> some View {
@@ -100,8 +107,14 @@ struct onboardingview: View {
     }
 
     private func verifyAccess() {
-        withAnimation {
-            isAccessGranted = true
+        if onboardingview.checkFullDiskAccess() {
+            withAnimation {
+                isAccessGranted = true
+            }
+        } else {
+            withAnimation {
+                checkFailed = true
+            }
         }
     }
 

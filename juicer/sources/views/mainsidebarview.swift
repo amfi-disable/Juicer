@@ -48,18 +48,13 @@ struct mainsidebarview: View {
     @AppStorage("juicer.settings.compactNavigation") private var compactNavigation = false
     @AppStorage("juicer.settings.hideRecentNavigation") private var hideRecentNavigation = false
     @AppStorage("juicer.settings.hubDensity") private var hubDensity = "comfortable"
-    @AppStorage("juicer.settings.skipHomeScreen") private var skipHomeScreen = false
     @StateObject private var navigationPreferences = navigationpreferences.shared
     @State private var hasAppeared = false
     @State private var sidebarScope = "all"
     
-    // Home Screen Canvas Drag & Zoom State
-    @State private var hubScale: CGFloat = 1.0
-    @State private var lastHubScale: CGFloat = 1.0
+    // Home Screen Canvas Drag Panning State
     @State private var hubOffset: CGSize = .zero
     @State private var lastHubOffset: CGSize = .zero
-    @State private var isFullScreenCanvas: Bool = true
-    @State private var isDragPanEnabled: Bool = false
     @State private var isShowingSettings = false
     
     var body: some View {
@@ -514,10 +509,6 @@ struct mainsidebarview: View {
             guard !hasAppeared else { return }
             hasAppeared = true
             TrashObserver.shared.startObserving()
-            if skipHomeScreen {
-                currentWorkspace = .system
-                selectedItem = .dashboard
-            }
             if restoreMainWindow {
                 NSApp.activate(ignoringOtherApps: true)
                 NSApp.windows.first(where: { $0.canBecomeKey && $0.title != "" })?.makeKeyAndOrderFront(nil)
@@ -562,51 +553,63 @@ struct mainsidebarview: View {
         }
     }
     
-    // MARK: - Startup Hub Launchpad View (Interactive Drag & Zoom Whole Screen Canvas)
+    // MARK: - Startup Hub Launchpad View (Interactive Drag Panning Canvas)
     @ViewBuilder
     private func hubLaunchpadView() -> some View {
-        ZStack(alignment: .top) {
+        ZStack(alignment: .topTrailing) {
             ScrollView([.horizontal, .vertical], showsIndicators: false) {
-                VStack(spacing: 24) {
-                    Spacer(minLength: 24)
+                VStack(spacing: 28) {
+                    Spacer(minLength: 20)
                     
                     // App Hub Header
                     VStack(spacing: 10) {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 8, height: 8)
+                            Text("9 WORKSPACES READY")
+                                .font(.caption2.bold())
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color.green.opacity(0.12), in: Capsule())
+
                         Text("Juicer App Hub")
                             .font(.system(size: 38, weight: .black, design: .rounded))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [.orange, .red, .pink],
+                                    colors: [.orange, .red, .purple],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
-                        Text("Select a specialized bundled workspace companion below to begin.")
+
+                        Text("Select a specialized workspace companion below to launch.")
                             .font(.title3)
                             .foregroundStyle(.secondary)
                     }
-                    .padding(.bottom, 10)
+                    .padding(.bottom, 6)
                     
-                    // Startup App Grid (8 Workspace Apps)
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: hubDensity == "compact" ? 220 : 250), spacing: 16)], spacing: 16) {
+                    // Startup App Grid (All 9 Workspace Apps)
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 280, maximum: 360), spacing: 20)], spacing: 20) {
                         hubAppCard(workspace: .store, defaultItem: .appStore)
                         hubAppCard(workspace: .system, defaultItem: .dashboard)
                         hubAppCard(workspace: .network, defaultItem: .speedTest)
                         hubAppCard(workspace: .security, defaultItem: .tccViewer)
                         hubAppCard(workspace: .disk, defaultItem: .diskExplorer)
                         hubAppCard(workspace: .developer, defaultItem: .sdkSwitcher)
+                        hubAppCard(workspace: .git, defaultItem: .juicerGit)
                         hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
                         hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
                     }
-                    .frame(maxWidth: isFullScreenCanvas ? .infinity : 1040)
+                    .frame(maxWidth: 1180)
                     
-                    Spacer(minLength: 24)
+                    Spacer(minLength: 28)
                 }
-                .padding(32)
-                .scaleEffect(hubScale)
+                .padding(36)
                 .offset(hubOffset)
-                .simultaneousGesture(
-                    isDragPanEnabled ?
+                .gesture(
                     DragGesture()
                         .onChanged { value in
                             hubOffset = CGSize(
@@ -617,153 +620,61 @@ struct mainsidebarview: View {
                         .onEnded { _ in
                             lastHubOffset = hubOffset
                         }
-                    : nil
-                )
-                .simultaneousGesture(
-                    MagnificationGesture()
-                        .onChanged { value in
-                            let newScale = lastHubScale * value
-                            hubScale = min(max(newScale, 0.5), 2.5)
-                        }
-                        .onEnded { _ in
-                            lastHubScale = hubScale
-                        }
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             
-            // Top Action Bar Overlay
-            HStack {
-                // Top-Left Direct Bypass & Settings Controls
-                HStack(spacing: 12) {
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            currentWorkspace = .system
-                            selectedItem = .dashboard
-                        }
-                    }) {
-                        HStack(spacing: 6) {
-                            Text("Bypass Home Screen")
-                                .font(.subheadline.weight(.semibold))
-                            Image(systemName: "arrow.right.circle.fill")
-                                .font(.subheadline)
-                        }
+            // Top-Right Reset Canvas Overlay (if canvas was dragged)
+            if hubOffset != .zero {
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        hubOffset = .zero
+                        lastHubOffset = .zero
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.orange)
-                    .help("Skip home screen and enter System Dashboard immediately")
-                    
-                    Toggle("Auto-bypass on launch", isOn: $skipHomeScreen)
-                        .toggleStyle(.checkbox)
-                        .font(.caption.weight(.medium))
-                        .help("Always skip home screen on app launch if permission checks pass")
-                }
-                .padding(8)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
-                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                
-                Spacer()
-                
-                // Top-Right Floating Canvas Control Bar
-                HStack(spacing: 8) {
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            isDragPanEnabled.toggle()
-                        }
-                    }) {
-                        Image(systemName: isDragPanEnabled ? "hand.draw.fill" : "hand.draw")
-                            .font(.body)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(isDragPanEnabled ? .accentColor : .gray)
-                    .help(isDragPanEnabled ? "Disable Canvas Dragging" : "Enable Canvas Dragging (Pan Mode)")
-                    
-                    Divider().frame(height: 16)
-                    
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            hubScale = max(0.5, hubScale - 0.15)
-                            lastHubScale = hubScale
-                        }
-                    }) {
-                        Image(systemName: "minus.magnifyingglass")
-                            .font(.body)
-                    }
-                    .buttonStyle(.bordered)
-                    .help("Zoom Out (Current: \(Int(hubScale * 100))%)")
-                    
-                    Text("\(Int(hubScale * 100))%")
-                        .font(.caption.bold().monospacedDigit())
-                        .frame(width: 42)
-                    
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            hubScale = min(2.5, hubScale + 0.15)
-                            lastHubScale = hubScale
-                        }
-                    }) {
-                        Image(systemName: "plus.magnifyingglass")
-                            .font(.body)
-                    }
-                    .buttonStyle(.bordered)
-                    .help("Zoom In (Current: \(Int(hubScale * 100))%)")
-                    
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            hubScale = 1.0
-                            lastHubScale = 1.0
-                            hubOffset = .zero
-                            lastHubOffset = .zero
-                        }
-                    }) {
+                }) {
+                    HStack(spacing: 6) {
                         Image(systemName: "arrow.counterclockwise")
-                            .font(.body)
+                        Text("Reset Position")
                     }
-                    .buttonStyle(.bordered)
-                    .help("Reset Canvas Offset & Zoom")
-                    
-                    Divider().frame(height: 16)
-                    
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            isFullScreenCanvas.toggle()
-                        }
-                    }) {
-                        Image(systemName: isFullScreenCanvas ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
-                            .font(.body)
-                    }
-                    .buttonStyle(.bordered)
-                    .help(isFullScreenCanvas ? "Fit Window Width" : "Expand to Whole Screen Width")
+                    .font(.caption.weight(.medium))
                 }
-                .padding(8)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
-                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                .buttonStyle(.borderedProminent)
+                .tint(.secondary)
+                .padding(16)
+                .transition(.opacity)
             }
-            .padding(16)
         }
         .background(Color(NSColor.windowBackgroundColor))
     }
     
     @ViewBuilder
     private func hubAppCard(workspace: JuicerWorkspace, defaultItem: NavigationItem) -> some View {
+        let toolCount = NavigationItem.allCases.filter { $0.workspace == workspace }.count
+        
         Button(action: {
             withAnimation(.easeInOut(duration: 0.2)) {
                 currentWorkspace = workspace
                 selectedItem = defaultItem
             }
         }) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 12) {
                     Image(systemName: workspace.iconName)
-                        .font(.title3)
+                        .font(.title2)
                         .foregroundColor(.accentColor)
-                        .frame(width: 32, height: 32)
-                        .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                        .frame(width: 38, height: 38)
+                        .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
                     
-                    Text(workspace.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(workspace.title)
+                            .font(.headline.bold())
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                        
+                        Text("\(toolCount) tools available")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 
                 Text(workspace.description)
@@ -777,17 +688,24 @@ struct mainsidebarview: View {
                 
                 HStack {
                     Spacer()
-                    Text("Open App →")
-                        .font(.caption2.bold())
-                        .foregroundColor(.accentColor)
+                    HStack(spacing: 4) {
+                        Text("Launch Workspace")
+                            .font(.caption.bold())
+                        Image(systemName: "arrow.right.circle.fill")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.accentColor)
                 }
             }
             .padding(16)
-            .frame(height: hubDensity == "compact" ? 122 : 138)
+            .frame(height: 146)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
-            .cornerRadius(14)
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 3)
         }
         .buttonStyle(.plain)
         .contentShape(RoundedRectangle(cornerRadius: 14))
