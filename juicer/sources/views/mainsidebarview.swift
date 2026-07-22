@@ -639,95 +639,102 @@ struct mainsidebarview: View {
         }
     }
     
-    // MARK: - Startup Hub Launchpad View (Interactive Drag Panning Canvas)
+    // MARK: - Startup Hub Launchpad View (Full-Window Centered Grid & Panning Canvas)
     @ViewBuilder
     private func hubLaunchpadView() -> some View {
-        ZStack(alignment: .topTrailing) {
-            ScrollView([.horizontal, .vertical], showsIndicators: false) {
-                VStack(spacing: 28) {
-                    Spacer(minLength: 20)
-                    
-                    // App Hub Header
-                    VStack(spacing: 10) {
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(Color.green)
-                                .frame(width: 8, height: 8)
-                            Text("9 WORKSPACES READY")
-                                .font(.caption2.bold())
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Color.green.opacity(0.12), in: Capsule())
+        GeometryReader { geo in
+            ZStack(alignment: .topTrailing) {
+                ScrollView([.horizontal, .vertical], showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 24)
+                        
+                        VStack(spacing: 32) {
+                            // App Hub Header
+                            VStack(spacing: 12) {
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .fill(Color.green)
+                                        .frame(width: 8, height: 8)
+                                    Text("9 WORKSPACES READY")
+                                        .font(.caption2.bold())
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(Color.green.opacity(0.12), in: Capsule())
 
-                        Text("Juicer App Hub")
-                            .font(.system(size: 38, weight: .black, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.orange, .red, .purple],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+                                Text("Juicer App Hub")
+                                    .font(.system(size: min(geo.size.width * 0.04, 44), weight: .black, design: .rounded))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [.orange, .red, .purple],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+
+                                Text("Select a specialized workspace companion below to launch.")
+                                    .font(.title3)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            
+                            // Startup App Grid (Expands & Fills Full Available Window)
+                            let columnsCount = geo.size.width >= 1000 ? 3 : (geo.size.width >= 640 ? 2 : 1)
+                            let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 20), count: columnsCount)
+                            
+                            LazyVGrid(columns: gridColumns, spacing: 20) {
+                                hubAppCard(workspace: .store, defaultItem: .appStore)
+                                hubAppCard(workspace: .system, defaultItem: .dashboard)
+                                hubAppCard(workspace: .network, defaultItem: .speedTest)
+                                hubAppCard(workspace: .security, defaultItem: .tccViewer)
+                                hubAppCard(workspace: .disk, defaultItem: .diskExplorer)
+                                hubAppCard(workspace: .developer, defaultItem: .sdkSwitcher)
+                                hubAppCard(workspace: .git, defaultItem: .juicerGit)
+                                hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
+                                hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
+                            }
+                            .frame(maxWidth: min(geo.size.width - 64, 1280))
+                        }
+                        .padding(.horizontal, 32)
+                        
+                        Spacer(minLength: 24)
+                    }
+                    .frame(minWidth: geo.size.width, minHeight: geo.size.height, alignment: .center)
+                    .offset(hubOffset)
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                hubOffset = CGSize(
+                                    width: lastHubOffset.width + value.translation.width,
+                                    height: lastHubOffset.height + value.translation.height
                                 )
-                            )
-
-                        Text("Select a specialized workspace companion below to launch.")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.bottom, 6)
-                    
-                    // Startup App Grid (All 9 Workspace Apps)
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 280, maximum: 360), spacing: 20)], spacing: 20) {
-                        hubAppCard(workspace: .store, defaultItem: .appStore)
-                        hubAppCard(workspace: .system, defaultItem: .dashboard)
-                        hubAppCard(workspace: .network, defaultItem: .speedTest)
-                        hubAppCard(workspace: .security, defaultItem: .tccViewer)
-                        hubAppCard(workspace: .disk, defaultItem: .diskExplorer)
-                        hubAppCard(workspace: .developer, defaultItem: .sdkSwitcher)
-                        hubAppCard(workspace: .git, defaultItem: .juicerGit)
-                        hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
-                        hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
-                    }
-                    .frame(maxWidth: 1180)
-                    
-                    Spacer(minLength: 28)
+                            }
+                            .onEnded { _ in
+                                lastHubOffset = hubOffset
+                            }
+                    )
                 }
-                .padding(36)
-                .offset(hubOffset)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            hubOffset = CGSize(
-                                width: lastHubOffset.width + value.translation.width,
-                                height: lastHubOffset.height + value.translation.height
-                            )
+                
+                // Top-Right Reset Canvas Overlay (if canvas was dragged)
+                if hubOffset != .zero {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            hubOffset = .zero
+                            lastHubOffset = .zero
                         }
-                        .onEnded { _ in
-                            lastHubOffset = hubOffset
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset Position")
                         }
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            
-            // Top-Right Reset Canvas Overlay (if canvas was dragged)
-            if hubOffset != .zero {
-                Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        hubOffset = .zero
-                        lastHubOffset = .zero
+                        .font(.caption.weight(.medium))
                     }
-                }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.counterclockwise")
-                        Text("Reset Position")
-                    }
-                    .font(.caption.weight(.medium))
+                    .buttonStyle(.borderedProminent)
+                    .tint(.secondary)
+                    .padding(20)
+                    .transition(.opacity)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.secondary)
-                .padding(16)
-                .transition(.opacity)
             }
         }
         .background(Color(NSColor.windowBackgroundColor))
