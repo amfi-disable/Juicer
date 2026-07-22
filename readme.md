@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/amfi-disable/Juicer/releases/tag/V1.0.1"><img src="https://img.shields.io/badge/Version-V1.0.1-blue" alt="Version" /></a>
+  <a href="https://github.com/amfi-disable/Juicer/releases/tag/V1.0.3"><img src="https://img.shields.io/badge/Version-V1.0.3-blue" alt="Version" /></a>
   <a href="license"><img src="https://img.shields.io/badge/License-MIT-green" alt="License" /></a>
   <a href="https://developer.apple.com/macos"><img src="https://img.shields.io/badge/Platform-macOS%2014.0%2B-lightgrey?logo=apple" alt="Platform" /></a>
   <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6.0-orange?logo=swift" alt="Swift" /></a>

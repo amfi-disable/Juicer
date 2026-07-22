@@ -306,6 +306,8 @@ struct mainsidebarview: View {
                         case .logStream:        logstreamview()
                         case .nlToCommand:      nltocommandview()
                         case .imageConverter:   imageconverterview()
+                        case .juicerGit:        gitdashboardview()
+                        case .gitExtras:        gitextrasview()
                         case .batteryHealth:    batteryhealthview()
                         case .startupItems:     startupitemview()
                         case .loginItemDelays:  loginitemdelayview()

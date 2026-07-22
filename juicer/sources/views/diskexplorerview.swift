@@ -313,7 +313,7 @@ struct diskexplorerview: View {
             Divider()
             ScrollView {
                 VStack(spacing: 6) {
-                    let total = manager.entries.first?.sizeBytes ?? 1
+                    let total = totalBytes > 0 ? totalBytes : 1
                     ForEach(Array(manager.entries.prefix(40).enumerated()), id: \.element.id) { idx, entry in
                         treemapRow(entry: entry, total: total, index: idx)
                     }

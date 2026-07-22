@@ -72,6 +72,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     case nlToCommand
     case imageConverter
     case juicerGit
+    case gitExtras
     case snapshots
     case scriptConsole
     case utilitiesView
@@ -85,7 +86,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     
     var workspace: JuicerWorkspace {
         switch self {
-        case .juicerGit:
+        case .juicerGit, .gitExtras:
             return .git
         case .appStore, .brewExplorer, .appUpdates:
             return .store
@@ -141,6 +142,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .nlToCommand: return "Natural Language Command Generator"
         case .imageConverter: return "Batch Image Converter"
         case .juicerGit: return "Git Studio & Workbench"
+        case .gitExtras: return "Git Analytics & Power Tools"
         case .snapshots: return "Diagnostic Snapshots"
         case .scriptConsole: return "Script Console"
         case .utilitiesView: return "Utilities Settings"
@@ -282,6 +284,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .nlToCommand: return "terminal"
         case .imageConverter: return "photo.stack"
         case .juicerGit: return "arrow.triangle.pull"
+        case .gitExtras: return "chart.bar.doc.horizontal.fill"
         case .snapshots: return "camera.viewfinder"
         case .scriptConsole: return "terminal.fill"
         case .utilitiesView: return "wrench.and.screwdriver.fill"

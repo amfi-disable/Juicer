@@ -416,7 +416,8 @@ struct settingsview: View {
             helpview()
                 .tabItem { Label("Help", systemImage: "questionmark.circle") }
         }
-        .frame(width: 760, height: 530)
+        .frame(minWidth: 650, idealWidth: 780, maxWidth: .infinity, minHeight: 480, idealHeight: 580, maxHeight: .infinity)
+        .allowWindowDragAndFit()
         // First Confirmation Alert
         .alert("Reset Settings to Defaults?", isPresented: $showingResetAlert1) {
             Button("Proceed", role: .none) {

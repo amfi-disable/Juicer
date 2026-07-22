@@ -109,3 +109,30 @@ struct JuicerEmptyState: View {
         .padding()
     }
 }
+
+// MARK: - Window Drag & Fit Support for All Windows
+struct WindowDragAndFitModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(WindowAccessor())
+    }
+}
+
+struct WindowAccessor: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            if let window = view.window {
+                window.isMovableByWindowBackground = true
+            }
+        }
+        return view
+    }
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+extension View {
+    func allowWindowDragAndFit() -> some View {
+        self.modifier(WindowDragAndFitModifier())
+    }
+}

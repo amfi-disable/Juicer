@@ -74,6 +74,7 @@ struct juicerapp: App {
                     .frame(width: 800, height: 600)
                 }
             }
+            .allowWindowDragAndFit()
             .task {
                 let access = await Task.detached(priority: .userInitiated) {
                     onboardingview.checkFullDiskAccess()
@@ -218,6 +219,7 @@ struct juicerapp: App {
         Settings {
             settingsview()
         }
+        .windowResizability(.contentMinSize)
 
     }
 

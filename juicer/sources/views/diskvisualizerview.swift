@@ -6,12 +6,14 @@ import QuickLook
 
 enum DiskViewMode: String, CaseIterable {
     case treemap = "Treemap"
+    case pie = "Pie Chart"
     case sunburst = "Sunburst"
 
     var icon: String {
         switch self {
         case .treemap:  return "square.split.2x2"
-        case .sunburst: return "chart.pie.fill"
+        case .pie:      return "chart.pie.fill"
+        case .sunburst: return "circle.circle"
         }
     }
 }
@@ -48,6 +50,20 @@ struct SunburstArc: Identifiable {
     let sizeBytes : Int64
     let isDirectory: Bool
     let depth     : Int
+    let startAngle: Double   // radians
+    let endAngle  : Double   // radians
+    let innerR    : CGFloat
+    let outerR    : CGFloat
+    let color     : Color
+    let ratio     : Double
+}
+
+struct PieSlice: Identifiable {
+    let id        = UUID()
+    let name      : String
+    let path      : String
+    let sizeBytes : Int64
+    let isDirectory: Bool
     let startAngle: Double   // radians
     let endAngle  : Double   // radians
     let innerR    : CGFloat
@@ -344,6 +360,8 @@ struct diskvisualizerview: View {
                     switch viewMode {
                     case .treemap:
                         treemapCanvas(size: geo.size)
+                    case .pie:
+                        pieChartCanvas(size: geo.size)
                     case .sunburst:
                         sunburstCanvas(size: geo.size)
                     }
@@ -430,6 +448,154 @@ struct diskvisualizerview: View {
         }
         .scaleEffect(isHovered ? 1.005 : 1.0)
         .animation(.interactiveSpring(response: 0.12, dampingFraction: 0.9), value: isHovered)
+    }
+
+    // MARK: - Pie Chart Canvas
+
+    @ViewBuilder
+    private func pieChartCanvas(size: CGSize) -> some View {
+        let slices = buildPieSlices(entries: sortedEntries, size: size)
+        let cx   = size.width  / 2
+        let cy   = size.height / 2
+        let centerEntry = hoveredPath.flatMap { p in sortedEntries.first { $0.path == p } }
+
+        ZStack {
+            Canvas { ctx, _ in
+                for slice in slices {
+                    let path = pieSlicePath(slice: slice, cx: cx, cy: cy)
+                    ctx.fill(path, with: .color(slice.color.opacity(0.88)))
+                    ctx.stroke(path, with: .color(.white.opacity(0.2)), lineWidth: 0.8)
+                }
+            }
+            .contentShape(Rectangle())
+
+            // Invisible hit-test overlays per slice
+            ForEach(slices) { slice in
+                pieSliceHitArea(slice: slice, cx: cx, cy: cy, size: size)
+            }
+
+            // Center label
+            VStack(spacing: 4) {
+                Image(systemName: "folder.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(.secondary)
+                Text(centerEntry?.name ?? (manager.currentPath as NSString).lastPathComponent)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 90)
+                if let entry = centerEntry {
+                    Text(formatBytes(entry.sizeBytes))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 110)
+            .position(x: cx, y: cy)
+            .allowsHitTesting(false)
+        }
+        .frame(width: size.width, height: size.height)
+    }
+
+    @ViewBuilder
+    private func pieSliceHitArea(slice: PieSlice, cx: CGFloat, cy: CGFloat, size: CGSize) -> some View {
+        let isHovered  = hoveredPath == slice.path
+        let isSelected = selectedItem?.path == slice.path
+
+        let midAngle  = (slice.startAngle + slice.endAngle) / 2
+        let midRadius = (slice.innerR + slice.outerR) / 2
+        let x = cx + midRadius * CGFloat(cos(midAngle))
+        let y = cy + midRadius * CGFloat(sin(midAngle))
+
+        Circle()
+            .fill(Color.clear)
+            .frame(width: 1, height: 1)
+            .position(x: x, y: y)
+            .contentShape(pieSliceHitShape(slice: slice, cx: cx, cy: cy))
+            .onHover { inside in
+                hoveredPath = inside ? slice.path : nil
+                if inside {
+                    tooltipPos = CGPoint(x: x + 20, y: y)
+                    tooltipPos = clampTooltip(tooltipPos, in: size)
+                }
+            }
+            .onTapGesture(count: 2) {
+                if slice.isDirectory { navigate(to: slice.path) }
+            }
+            .onTapGesture(count: 1) {
+                if selectedItem?.path == slice.path {
+                    if slice.isDirectory { navigate(to: slice.path) }
+                } else {
+                    selectedItem = manager.entries.first { $0.path == slice.path }
+                }
+            }
+            .overlay(
+                isSelected ? AnyView(
+                    pieSelectedRing(slice: slice, cx: cx, cy: cy)
+                ) : AnyView(EmptyView())
+            )
+    }
+
+    private func pieSliceHitShape(slice: PieSlice, cx: CGFloat, cy: CGFloat) -> some Shape {
+        return AnnularSector(
+            startAngle: slice.startAngle,
+            endAngle: slice.endAngle,
+            innerRadius: slice.innerR,
+            outerRadius: slice.outerR,
+            cx: cx, cy: cy
+        )
+    }
+
+    @ViewBuilder
+    private func pieSelectedRing(slice: PieSlice, cx: CGFloat, cy: CGFloat) -> some View {
+        Canvas { ctx, size in
+            let path = pieSlicePath(slice: slice, cx: cx, cy: cy)
+            ctx.stroke(path, with: .color(.white), lineWidth: 2.5)
+        }
+        .allowsHitTesting(false)
+    }
+
+    private func pieSlicePath(slice: PieSlice, cx: CGFloat, cy: CGFloat) -> Path {
+        var path = Path()
+        let startDeg = Angle(radians: slice.startAngle)
+        let endDeg   = Angle(radians: slice.endAngle)
+        path.addArc(center: CGPoint(x: cx, y: cy), radius: slice.outerR,
+                    startAngle: startDeg, endAngle: endDeg, clockwise: false)
+        path.addArc(center: CGPoint(x: cx, y: cy), radius: slice.innerR,
+                    startAngle: endDeg, endAngle: startDeg, clockwise: true)
+        path.closeSubpath()
+        return path
+    }
+
+    private func buildPieSlices(entries: [DiskEntry], size: CGSize) -> [PieSlice] {
+        let totalSize = entries.reduce(0) { $0 + $1.sizeBytes }
+        guard totalSize > 0 else { return [] }
+
+        let minDim    = min(size.width, size.height)
+        let outerR    = minDim / 2 - 40
+        let innerR    = CGFloat(54)
+
+        var slices: [PieSlice] = []
+        let startAngle = -Double.pi / 2
+
+        var angle = startAngle
+        for entry in entries.sorted(by: { $0.sizeBytes > $1.sizeBytes }) {
+            let fraction  = Double(entry.sizeBytes) / Double(totalSize)
+            let span      = fraction * 2 * Double.pi
+
+            slices.append(PieSlice(
+                name: entry.name, path: entry.path, sizeBytes: entry.sizeBytes,
+                isDirectory: entry.isDirectory,
+                startAngle: angle, endAngle: angle + span,
+                innerR: innerR, outerR: outerR,
+                color: fileColor(for: entry, depth: 0),
+                ratio: fraction
+            ))
+
+            angle += span
+        }
+        return slices
     }
 
     // MARK: - Sunburst Canvas
