@@ -84,9 +84,9 @@ class AppLipoManager: ObservableObject {
               !execName.contains("/"),
               !execName.contains("..") else { return }
         
-        let macosDir = bundleURL.appendingPathComponent("Contents/MacOS").standardizedFileURL
-        let execURL = bundleURL.appendingPathComponent("Contents/MacOS").appendingPathComponent(execName).standardizedFileURL
-        guard execURL.path.hasPrefix(macosDir.path),
+        let macosDir = bundleURL.appendingPathComponent("Contents/MacOS").resolvingSymlinksInPath()
+        let execURL = macosDir.appendingPathComponent(execName).resolvingSymlinksInPath()
+        guard execURL.path.hasPrefix(macosDir.path + "/"),
               fileManager.fileExists(atPath: execURL.path) else { return }
         
         // Parse Mach-O header
@@ -173,9 +173,9 @@ class AppLipoManager: ObservableObject {
                 return
             }
             
-            let macosDir = app.path.appendingPathComponent("Contents/MacOS").standardizedFileURL
-            let execURL = app.path.appendingPathComponent("Contents/MacOS").appendingPathComponent(execName).standardizedFileURL
-            guard execURL.path.hasPrefix(macosDir.path) else {
+            let macosDir = app.path.appendingPathComponent("Contents/MacOS").resolvingSymlinksInPath()
+            let execURL = macosDir.appendingPathComponent(execName).resolvingSymlinksInPath()
+            guard execURL.path.hasPrefix(macosDir.path + "/") else {
                 await MainActor.run { self.isThinning = false }
                 completion(false)
                 return
