@@ -1,3 +1,5 @@
+import SwiftUI
+
 enum JuicerWorkspace: String, CaseIterable, Identifiable {
     case hub = "Juicer Hub"
     case store = "Juicer Store"
@@ -41,6 +43,21 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
         case .git: return "Inspect repositories, branches, commits, remotes, and git operations."
         case .configs: return "Uninstall apps, find orphaned folders, edit launch agents, and tweak macOS defaults."
         case .utilities: return "Window tiler, clipboard historian, hot corners, color loupe, and desktop helpers."
+        }
+    }
+    
+    var themeColor: Color {
+        switch self {
+        case .hub: return .orange
+        case .store: return .cyan
+        case .system: return .blue
+        case .network: return .teal
+        case .security: return .red
+        case .disk: return .orange
+        case .developer: return .green
+        case .git: return .purple
+        case .configs: return .indigo
+        case .utilities: return .gray
         }
     }
 }

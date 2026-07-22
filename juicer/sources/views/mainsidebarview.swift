@@ -152,7 +152,10 @@ struct mainsidebarview: View {
                         }
                         
                         // Workspace Header & Controls
-                        Section(header: HStack {
+                        Section(header: HStack(spacing: 6) {
+                            Image(systemName: currentWorkspace.iconName)
+                                .font(.caption.bold())
+                                .foregroundColor(currentWorkspace.themeColor)
                             Text(currentWorkspace.title)
                                 .font(.caption.bold())
                                 .foregroundStyle(.secondary)
@@ -162,8 +165,8 @@ struct mainsidebarview: View {
                                     .font(.caption2.bold())
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 2)
-                                    .background(Color.accentColor.opacity(0.12), in: Capsule())
-                                    .foregroundColor(.accentColor)
+                                    .background(currentWorkspace.themeColor.opacity(0.14), in: Capsule())
+                                    .foregroundColor(currentWorkspace.themeColor)
                             }
                         }) {
                             if !navigationPreferences.favorites.filter({ $0.workspace == currentWorkspace }).isEmpty && sidebarScope == "all" {
@@ -661,9 +664,9 @@ struct mainsidebarview: View {
                 HStack(spacing: 12) {
                     Image(systemName: workspace.iconName)
                         .font(.title2)
-                        .foregroundColor(.accentColor)
+                        .foregroundColor(workspace.themeColor)
                         .frame(width: 38, height: 38)
-                        .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                        .background(workspace.themeColor.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(workspace.title)
@@ -675,6 +678,8 @@ struct mainsidebarview: View {
                             .font(.caption2.weight(.medium))
                             .foregroundStyle(.secondary)
                     }
+                    
+                    Spacer()
                 }
                 
                 Text(workspace.description)
@@ -694,21 +699,21 @@ struct mainsidebarview: View {
                         Image(systemName: "arrow.right.circle.fill")
                             .font(.caption)
                     }
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(workspace.themeColor)
                 }
             }
             .padding(16)
-            .frame(height: 146)
+            .frame(height: 148)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
             .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(workspace.themeColor.opacity(0.4), lineWidth: 1.5)
             )
-            .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 3)
+            .shadow(color: workspace.themeColor.opacity(0.08), radius: 6, x: 0, y: 3)
         }
         .buttonStyle(.plain)
-        .contentShape(RoundedRectangle(cornerRadius: 14))
+        .contentShape(RoundedRectangle(cornerRadius: 16))
         .onHover { hovering in
             if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
         }
