@@ -80,9 +80,11 @@ class AppLipoManager: ObservableObject {
         // Find main executable
         let infoPlistURL = bundleURL.appendingPathComponent("Contents/Info.plist")
         guard let plist = NSDictionary(contentsOf: infoPlistURL),
-              let execName = plist["CFBundleExecutable"] as? String,
-              !execName.contains("/"),
-              !execName.contains("..") else { return }
+              let execName = plist["CFBundleExecutable"] as? String else { return }
+        
+        // Strict whitelist validation for executable name to prevent path injection
+        let allowedChars = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: " .-_\n\r"))
+        guard execName.unicodeScalars.allSatisfy({ allowedChars.contains($0) }) else { return }
         
         let macosDir = bundleURL.appendingPathComponent("Contents/MacOS").resolvingSymlinksInPath()
         let execURL = macosDir.appendingPathComponent(execName).resolvingSymlinksInPath()
@@ -165,9 +167,15 @@ class AppLipoManager: ObservableObject {
         Task.detached(priority: .userInitiated) {
             let infoPlistURL = app.path.appendingPathComponent("Contents/Info.plist")
             guard let plist = NSDictionary(contentsOf: infoPlistURL),
-                  let execName = plist["CFBundleExecutable"] as? String,
-                  !execName.contains("/"),
-                  !execName.contains("..") else {
+                  let execName = plist["CFBundleExecutable"] as? String else {
+                await MainActor.run { self.isThinning = false }
+                completion(false)
+                return
+            }
+            
+            // Strict whitelist validation for executable name to prevent path injection
+            let allowedChars = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: " .-_\n\r"))
+            guard execName.unicodeScalars.allSatisfy({ allowedChars.contains($0) }) else {
                 await MainActor.run { self.isThinning = false }
                 completion(false)
                 return
