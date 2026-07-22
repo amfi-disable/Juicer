@@ -391,6 +391,8 @@ struct mainsidebarview: View {
                         case .gitExtras:        gitextrasview()
                         case .dockerDashboard, .dockerPurge, .dockerLogs, .dockerCompose: dockerstudioview()
                         case .aiWorkbench, .aiPromptVault, .aiChat, .aiKeyManager: aistudioview()
+                        case .dbDaemonMonitor, .sqliteInspector, .redisViewer, .dbBackupTool: databasestudioview()
+                        case .apiWorkbench, .apiBenchmark, .apiAuthManager, .apiHistory: apistudioview()
                         case .batteryHealth:    batteryhealthview()
                         case .startupItems:     startupitemview()
                         case .loginItemDelays:  loginitemdelayview()
@@ -657,7 +659,7 @@ struct mainsidebarview: View {
                                     Circle()
                                         .fill(Color.green)
                                         .frame(width: 8, height: 8)
-                                    Text("11 WORKSPACES READY")
+                                    Text("13 WORKSPACES READY")
                                         .font(.caption2.bold())
                                         .foregroundStyle(.secondary)
                                 }
@@ -695,6 +697,8 @@ struct mainsidebarview: View {
                                 hubAppCard(workspace: .git, defaultItem: .juicerGit)
                                 hubAppCard(workspace: .containers, defaultItem: .dockerDashboard)
                                 hubAppCard(workspace: .ai, defaultItem: .aiWorkbench)
+                                hubAppCard(workspace: .database, defaultItem: .dbDaemonMonitor)
+                                hubAppCard(workspace: .api, defaultItem: .apiWorkbench)
                                 hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
                                 hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
                             }
