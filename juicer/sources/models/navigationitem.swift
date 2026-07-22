@@ -97,6 +97,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     case undoHistory
     case appUpdates
     case tccViewer
+    case creatorRepos
     case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera, antiKeylogger, secureNotes, clipboardManager, snippetExpander, menuBarCustomizer, desktopIcons, hotCorners, keyboardShortcuts, textCaseConverter, characterCounter, qrCode, colorPicker, screenRuler, screenLoupe, batterySaver, printerQueue, pdfToolbox, markdownPreviewer, codeSnippets, localWebServer, portScanner, lanDiscovery, wifiSurvey, networkProfileSwitcher, vpnAutoConnect, publicIP, speedTest, dnsDiagnostics, hostsFile, blocklistUpdater, appLocker, fileVaultAutoLock, japaneseKana, emojiPicker, unicodeInspector, screenshotAnnotation, windowSnapping, displayProfiles, nightShift, keyboardBacklight, trackpadGestures, shortcutRunner, systemInfoExporter, softwareInventory, autoUpdateChecker, logRotator, systemServices, diskSpacePredictor, backupTrigger, networkLimiter, diskImageMounter, soundVolumeMixer
     
     var id: NavigationItem { self }
@@ -105,7 +106,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         switch self {
         case .juicerGit, .gitExtras:
             return .git
-        case .appStore, .brewExplorer, .appUpdates:
+        case .appStore, .brewExplorer, .appUpdates, .creatorRepos:
             return .store
         case .dashboard, .workflowCenter, .statusMonitor, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .batteryHealth, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .batterySaver, .kextManager, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .systemServices:
             return .system
@@ -152,6 +153,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .statusMonitor: return "Live Status"
         case .cacheCleaner: return "Cache Cleaner"
         case .appStore: return "Software Center"
+        case .creatorRepos: return "Creator Repositories"
         case .envProfiles: return "Env Profiles & Secrets"
         case .appLanguageStripper: return "App Language Stripper"
         case .ocrScreenGrabber: return "OCR Screen Grabber"
@@ -294,6 +296,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .statusMonitor: return "waveform.path.ecg"
         case .cacheCleaner: return "sparkle.magnifyingglass"
         case .appStore: return "square.grid.3x3.fill"
+        case .creatorRepos: return "star.square.on.square.fill"
         case .envProfiles: return "slider.horizontal.3"
         case .appLanguageStripper: return "globe"
         case .ocrScreenGrabber: return "viewfinder"
@@ -465,6 +468,9 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
             return "Desktop & Window Controls"
         case .clipboardManager, .snippetExpander, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .pdfToolbox, .markdownPreviewer:
             return "Tools & Converters"
+        // Juicer Store
+        case .creatorRepos:
+            return "Creator Repositories & Ecosystem"
         default:
             return "General Helpers"
         }

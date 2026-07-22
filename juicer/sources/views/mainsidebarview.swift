@@ -218,92 +218,81 @@ struct mainsidebarview: View {
                             }
                         }
                         
-                        // Creator Repositories Section
+                        // Creator Repositories Section with Collapsible Dropdowns
                         Section("Creator Repositories 🌟") {
-                            Button(action: {
-                                if let url = URL(string: "https://github.com/amfi-disable/Juicer") {
-                                    NSWorkspace.shared.open(url)
-                                }
-                            }) {
-                                HStack(spacing: compactNavigation ? 0 : 10) {
-                                    Image(systemName: "shippingbox.fill")
-                                        .font(.body)
-                                        .frame(width: 18, alignment: .center)
-                                        .foregroundColor(.orange)
-                                    if !compactNavigation {
-                                        VStack(alignment: .leading, spacing: 1) {
-                                            Text("amfi-disable/Juicer")
-                                                .font(.caption.bold())
-                                                .foregroundColor(.primary)
-                                            Text("Main App Repo")
-                                                .font(.caption2)
-                                                .foregroundStyle(.secondary)
-                                        }
+                            DisclosureGroup(isExpanded: .constant(true)) {
+                                // macOS Applications Subgroup
+                                DisclosureGroup(isExpanded: .constant(true)) {
+                                    creatorRepoLink(name: "amfi-disable/Juicer", title: "Juicer", desc: "macOS Developer Suite", icon: "shippingbox.fill", color: .orange, tag: "MAIN")
+                                    creatorRepoLink(name: "amfi-disable/Brew-Ghost", title: "Brew-Ghost", desc: "Ghost Package Cleaner", icon: "ghost.fill", color: .purple, tag: "TOP BREW")
+                                    creatorRepoLink(name: "amfi-disable/OmniSuite", title: "OmniSuite", desc: "Productivity Workbench", icon: "square.stack.3d.up.fill", color: .blue)
+                                    creatorRepoLink(name: "amfi-disable/PathDeck", title: "PathDeck", desc: "Workspace Path Launcher", icon: "square.grid.3x3.topleft.filled", color: .teal)
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "laptopcomputer")
+                                            .font(.caption)
+                                            .foregroundColor(.orange)
+                                        Text("macOS Apps (4)")
+                                            .font(.caption.bold())
                                     }
                                 }
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.vertical, 3)
-                            .help("Open amfi-disable/Juicer on GitHub")
+                                
+                                // Tooling & Homebrew Taps Subgroup
+                                DisclosureGroup(isExpanded: .constant(false)) {
+                                    creatorRepoLink(name: "amfi-disable/homebrew-juicer", title: "homebrew-juicer", desc: "Juicer Cask Tap Repo", icon: "mug.fill", color: .cyan)
+                                    creatorRepoLink(name: "amfi-disable/homebrew-tap", title: "homebrew-tap", desc: "Community Formula Tap", icon: "terminal.fill", color: .cyan)
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "wrench.and.screwdriver.fill")
+                                            .font(.caption)
+                                            .foregroundColor(.cyan)
+                                        Text("Tooling & Taps (2)")
+                                            .font(.caption.bold())
+                                    }
+                                }
+                                
+                                // Extensions & Scripts Subgroup
+                                DisclosureGroup(isExpanded: .constant(false)) {
+                                    creatorRepoLink(name: "amfi-disable/FMG", title: "FMG Extension", desc: "Flight Map Web Extension", icon: "puzzlepiece.extension.fill", color: .green)
+                                    creatorRepoLink(name: "amfi-disable/GeoFS-V3.9", title: "GeoFS V3.9", desc: "Flight Sim Script Tool", icon: "airplane", color: .blue)
+                                    creatorRepoLink(name: "amfi-disable/GimSell", title: "GimSell", desc: "Gimkit Automation Tool", icon: "cart.fill", color: .yellow)
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "puzzlepiece.fill")
+                                            .font(.caption)
+                                            .foregroundColor(.green)
+                                        Text("Extensions (3)")
+                                            .font(.caption.bold())
+                                    }
+                                }
 
-                            Button(action: {
-                                if let url = URL(string: "https://github.com/amfi-disable/Brew-Ghost") {
-                                    NSWorkspace.shared.open(url)
+                                // Profile & Meta Subgroup
+                                DisclosureGroup(isExpanded: .constant(false)) {
+                                    creatorRepoLink(name: "amfi-disable/amfi-disable", title: "amfi-disable", desc: "GitHub Profile & README", icon: "person.crop.circle.fill", color: .pink)
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "network")
+                                            .font(.caption)
+                                            .foregroundColor(.pink)
+                                        Text("GitHub Profile (1)")
+                                            .font(.caption.bold())
+                                    }
                                 }
-                            }) {
-                                HStack(spacing: compactNavigation ? 0 : 10) {
-                                    Image(systemName: "ghost.fill")
-                                        .font(.body)
-                                        .frame(width: 18, alignment: .center)
-                                        .foregroundColor(.purple)
+                            } label: {
+                                HStack {
+                                    Text("Ecosystem Repositories")
+                                        .font(.subheadline.weight(.semibold))
+                                    Spacer()
                                     if !compactNavigation {
-                                        VStack(alignment: .leading, spacing: 1) {
-                                            HStack(spacing: 4) {
-                                                Text("amfi-disable/Brew-Ghost")
-                                                    .font(.caption.bold())
-                                                    .foregroundColor(.primary)
-                                                Text("TOP")
-                                                    .font(.system(size: 8, weight: .black))
-                                                    .padding(.horizontal, 4)
-                                                    .background(Color.purple.opacity(0.18), in: Capsule())
-                                                    .foregroundColor(.purple)
-                                            }
-                                            Text("Ghost Package Cleaner")
-                                                .font(.caption2)
-                                                .foregroundStyle(.secondary)
-                                        }
+                                        Text("10")
+                                            .font(.caption2.bold())
+                                            .padding(.horizontal, 5)
+                                            .padding(.vertical, 1)
+                                            .background(Color.purple.opacity(0.14), in: Capsule())
+                                            .foregroundColor(.purple)
                                     }
                                 }
                             }
-                            .buttonStyle(.plain)
-                            .padding(.vertical, 3)
-                            .help("Open amfi-disable/Brew-Ghost on GitHub")
-
-                            Button(action: {
-                                if let url = URL(string: "https://github.com/amfi-disable/homebrew-juicer") {
-                                    NSWorkspace.shared.open(url)
-                                }
-                            }) {
-                                HStack(spacing: compactNavigation ? 0 : 10) {
-                                    Image(systemName: "mug.fill")
-                                        .font(.body)
-                                        .frame(width: 18, alignment: .center)
-                                        .foregroundColor(.cyan)
-                                    if !compactNavigation {
-                                        VStack(alignment: .leading, spacing: 1) {
-                                            Text("amfi-disable/homebrew-juicer")
-                                                .font(.caption.bold())
-                                                .foregroundColor(.primary)
-                                            Text("Homebrew Cask Tap")
-                                                .font(.caption2)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                    }
-                                }
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.vertical, 3)
-                            .help("Open amfi-disable/homebrew-juicer Homebrew Tap on GitHub")
                         }
 
                         // Footer Settings & Minimize Controls
@@ -380,6 +369,7 @@ struct mainsidebarview: View {
                         case .statusMonitor:    statusmonitorview()
                         case .cacheCleaner:     cachecleanerview()
                         case .appStore:         storeview()
+                        case .creatorRepos:     creatorecosystemview()
                         case .snapshots:        snapshotsview()
                         case .scriptConsole:    scriptconsoleview()
                         case .utilitiesView:    utilitiesview()
@@ -847,6 +837,47 @@ struct mainsidebarview: View {
         }
     }
     
+    @ViewBuilder
+    private func creatorRepoLink(name: String, title: String, desc: String, icon: String, color: Color, tag: String? = nil) -> some View {
+        Button(action: {
+            if let url = URL(string: "https://github.com/\(name)") {
+                NSWorkspace.shared.open(url)
+            }
+        }) {
+            HStack(spacing: compactNavigation ? 0 : 8) {
+                Image(systemName: icon)
+                    .font(.body)
+                    .frame(width: 16, alignment: .center)
+                    .foregroundColor(color)
+                if !compactNavigation {
+                    VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 4) {
+                            Text(title)
+                                .font(.caption.bold())
+                                .foregroundColor(.primary)
+                                .lineLimit(1)
+                            if let tag {
+                                Text(tag)
+                                    .font(.system(size: 8, weight: .black))
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 1)
+                                    .background(color.opacity(0.18), in: Capsule())
+                                    .foregroundColor(color)
+                            }
+                        }
+                        Text(desc)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .padding(.vertical, 2)
+        .help("Open https://github.com/\(name) on GitHub")
+    }
+
     @ViewBuilder
     private func sidebarStoreLink(for item: UnifiedStoreItem) -> some View {
         Button(action: {
