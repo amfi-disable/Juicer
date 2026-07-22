@@ -13,6 +13,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
     case ai = "Juicer AI Studio"
     case database = "Juicer Database Studio"
     case api = "Juicer API Studio"
+    case converter = "Juicer Converter Studio"
     case configs = "Juicer Configs Studio"
     case utilities = "Juicer Utilities Studio"
     
@@ -34,6 +35,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
         case .ai: return "sparkles"
         case .database: return "cylinder.split.1x2.fill"
         case .api: return "paperplane.fill"
+        case .converter: return "arrow.triangle.2.circlepath.doc.on.clipboard"
         case .configs: return "slider.horizontal.3"
         case .utilities: return "wrench.and.screwdriver.fill"
         }
@@ -53,6 +55,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
         case .ai: return "Monitor local Ollama / LM Studio models, manage developer prompts, and chat with AI."
         case .database: return "Inspect local Postgres, MySQL, SQLite, and Redis databases, browse keys, and run dumps."
         case .api: return "Native REST request workbench, cURL importer, load benchmarker, and header inspector."
+        case .converter: return "Offline converter for documents, images, code schemas, archives, and media."
         case .configs: return "App uninstaller, launch daemons, and system tweaks."
         case .utilities: return "Window tiler, clipboard manager, hot corners, and desktop tools."
         }
@@ -72,6 +75,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
         case .ai: return .purple
         case .database: return .indigo
         case .api: return .teal
+        case .converter: return .orange
         case .configs: return .indigo
         case .utilities: return .gray
         }
@@ -118,6 +122,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     case aiWorkbench, aiPromptVault, aiChat, aiKeyManager
     case dbDaemonMonitor, sqliteInspector, redisViewer, dbBackupTool
     case apiWorkbench, apiBenchmark, apiAuthManager, apiHistory
+    case docConverter, imageConverterStudio, codeSchemaConverter, archiveConverter
     case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera, antiKeylogger, secureNotes, clipboardManager, snippetExpander, menuBarCustomizer, desktopIcons, hotCorners, keyboardShortcuts, textCaseConverter, characterCounter, qrCode, colorPicker, screenRuler, screenLoupe, batterySaver, printerQueue, pdfToolbox, markdownPreviewer, codeSnippets, localWebServer, portScanner, lanDiscovery, wifiSurvey, networkProfileSwitcher, vpnAutoConnect, publicIP, speedTest, dnsDiagnostics, hostsFile, blocklistUpdater, appLocker, fileVaultAutoLock, japaneseKana, emojiPicker, unicodeInspector, screenshotAnnotation, windowSnapping, displayProfiles, nightShift, keyboardBacklight, trackpadGestures, shortcutRunner, systemInfoExporter, softwareInventory, autoUpdateChecker, logRotator, systemServices, diskSpacePredictor, backupTrigger, networkLimiter, diskImageMounter, soundVolumeMixer
     
     var id: NavigationItem { self }
@@ -134,6 +139,8 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
             return .database
         case .apiWorkbench, .apiBenchmark, .apiAuthManager, .apiHistory:
             return .api
+        case .docConverter, .imageConverterStudio, .codeSchemaConverter, .archiveConverter:
+            return .converter
         case .appStore, .brewExplorer, .appUpdates, .creatorRepos:
             return .store
         case .dashboard, .workflowCenter, .statusMonitor, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .batteryHealth, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .batterySaver, .kextManager, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .systemServices:
@@ -198,6 +205,10 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .apiBenchmark: return "Endpoint Latency Benchmarker"
         case .apiAuthManager: return "Bearer Tokens & Headers"
         case .apiHistory: return "Request History & Presets"
+        case .docConverter: return "Document & Text Converter"
+        case .imageConverterStudio: return "Image & Graphic Converter"
+        case .codeSchemaConverter: return "Code & Data Schema Converter"
+        case .archiveConverter: return "Archive & Compression Studio"
         case .envProfiles: return "Env Profiles & Secrets"
         case .appLanguageStripper: return "App Language Stripper"
         case .ocrScreenGrabber: return "OCR Screen Grabber"
@@ -357,6 +368,10 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .apiBenchmark: return "stopwatch.fill"
         case .apiAuthManager: return "key.horizontal.fill"
         case .apiHistory: return "clock.arrow.circlepath"
+        case .docConverter: return "doc.richtext.fill"
+        case .imageConverterStudio: return "photo.stack.fill"
+        case .codeSchemaConverter: return "curlybraces.square.fill"
+        case .archiveConverter: return "archivebox.fill"
         case .envProfiles: return "slider.horizontal.3"
         case .appLanguageStripper: return "globe"
         case .ocrScreenGrabber: return "viewfinder"
@@ -540,6 +555,9 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         // API & HTTP Tools
         case .apiWorkbench, .apiBenchmark, .apiAuthManager, .apiHistory:
             return "API & HTTP Tools"
+        // Universal Conversion Tools
+        case .docConverter, .imageConverterStudio, .codeSchemaConverter, .archiveConverter:
+            return "Universal Conversion Tools"
         // Juicer Store
         case .creatorRepos:
             return "Creator Repositories & Ecosystem"

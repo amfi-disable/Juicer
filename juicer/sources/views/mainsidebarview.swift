@@ -393,6 +393,7 @@ struct mainsidebarview: View {
                         case .aiWorkbench, .aiPromptVault, .aiChat, .aiKeyManager: aistudioview()
                         case .dbDaemonMonitor, .sqliteInspector, .redisViewer, .dbBackupTool: databasestudioview()
                         case .apiWorkbench, .apiBenchmark, .apiAuthManager, .apiHistory: apistudioview()
+                        case .docConverter, .imageConverterStudio, .codeSchemaConverter, .archiveConverter: converterstudioview()
                         case .batteryHealth:    batteryhealthview()
                         case .startupItems:     startupitemview()
                         case .loginItemDelays:  loginitemdelayview()
@@ -659,7 +660,7 @@ struct mainsidebarview: View {
                                     Circle()
                                         .fill(Color.green)
                                         .frame(width: 8, height: 8)
-                                    Text("13 WORKSPACES READY")
+                                    Text("14 WORKSPACES READY")
                                         .font(.caption2.bold())
                                         .foregroundStyle(.secondary)
                                 }
@@ -699,6 +700,7 @@ struct mainsidebarview: View {
                                 hubAppCard(workspace: .ai, defaultItem: .aiWorkbench)
                                 hubAppCard(workspace: .database, defaultItem: .dbDaemonMonitor)
                                 hubAppCard(workspace: .api, defaultItem: .apiWorkbench)
+                                hubAppCard(workspace: .converter, defaultItem: .docConverter)
                                 hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
                                 hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
                             }
