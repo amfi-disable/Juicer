@@ -27,12 +27,45 @@ struct brewghostview: View {
                         .foregroundColor(.white)
                 }
                 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Brew-Ghost Companion")
-                        .font(.title2).bold()
-                    Text("Cross-integrated CLI history helper for purging idle Homebrew packages")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) {
+                        Text("Brew-Ghost Companion")
+                            .font(.title2).bold()
+                        
+                        Text("🌟 CREATOR ORIGINAL")
+                            .font(.system(size: 9, weight: .black))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.purple.opacity(0.18), in: Capsule())
+                            .foregroundColor(.purple)
+                        
+                        Text("TOP BREW TOOL")
+                            .font(.system(size: 9, weight: .black))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.orange.opacity(0.18), in: Capsule())
+                            .foregroundColor(.orange)
+                    }
+                    
+                    HStack(spacing: 8) {
+                        Text("Automated ghost package & orphan formula cleanup utility")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        
+                        Button(action: {
+                            if let url = URL(string: "https://github.com/amfi-disable/Brew-Ghost") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.up.right.square.fill")
+                                Text("amfi-disable/Brew-Ghost")
+                            }
+                            .font(.caption.bold())
+                            .foregroundColor(.purple)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
                 
                 Spacer()
