@@ -1,16 +1,16 @@
 import SwiftUI
 
 enum JuicerWorkspace: String, CaseIterable, Identifiable {
-    case hub = "Juicer Hub"
-    case store = "Juicer Store"
-    case system = "System & Hardware"
-    case network = "Network & Ports"
-    case security = "Security & Privacy"
-    case disk = "Disk & Storage"
-    case developer = "Developer Suite"
+    case hub = "Juicer Hub Studio"
+    case store = "Juicer Store Studio"
+    case system = "Juicer System Studio"
+    case network = "Juicer Network Studio"
+    case security = "Juicer Security Studio"
+    case disk = "Juicer Disk Studio"
+    case developer = "Juicer Developer Studio"
     case git = "Juicer Git Studio"
-    case configs = "System Configs"
-    case utilities = "Utilities & Desktop"
+    case configs = "Juicer Configs Studio"
+    case utilities = "Juicer Utilities Studio"
     
     var id: String { rawValue }
     
@@ -33,16 +33,16 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
     
     var description: String {
         switch self {
-        case .hub: return "Central launcher and active workspace dashboard."
-        case .store: return "Browse Homebrew casks, formula repositories, and software updates."
-        case .system: return "Inspect CPU/GPU gauges, memory pressure, battery, power, and thermal sensors."
-        case .network: return "Monitor network speed, Wi-Fi surveys, open ports, DNS, and active VPNs."
-        case .security: return "Audit TCC permissions, privacy settings, quarantine, FileVault, and app locks."
-        case .disk: return "Drill down drive directories, clean developer caches, and locate duplicate/large files."
-        case .developer: return "Manage SDK runtimes, script plugins, local web servers, and code snippets."
-        case .git: return "Inspect repositories, branches, commits, remotes, and git operations."
-        case .configs: return "Uninstall apps, find orphaned folders, edit launch agents, and tweak macOS defaults."
-        case .utilities: return "Window tiler, clipboard historian, hot corners, color loupe, and desktop helpers."
+        case .hub: return "Central launchpad canvas and workspace navigator."
+        case .store: return "Homebrew casks, formula repositories, and app updates."
+        case .system: return "CPU, GPU, memory gauges, battery, power, and thermal monitor."
+        case .network: return "Network speed test, Wi-Fi survey, port listener, and DNS."
+        case .security: return "TCC permissions audit, privacy cabinet, FileVault, and app lock."
+        case .disk: return "Space Lens visualizer, dev cache cleaner, and duplicate finder."
+        case .developer: return "SDK runtimes, script plugins, local web server, and snippets."
+        case .git: return "Git repository workbench, commit graph, and analytics."
+        case .configs: return "App uninstaller, launch daemons, and system tweaks."
+        case .utilities: return "Window tiler, clipboard manager, hot corners, and desktop tools."
         }
     }
     
