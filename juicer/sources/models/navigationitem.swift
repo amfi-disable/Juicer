@@ -6,6 +6,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
     case security = "Security & Privacy"
     case disk = "Disk & Storage"
     case developer = "Developer Suite"
+    case git = "Juicer Git Studio"
     case configs = "System Configs"
     case utilities = "Utilities & Desktop"
     
@@ -22,6 +23,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
         case .security: return "lock.shield.fill"
         case .disk: return "internaldrive.fill"
         case .developer: return "terminal.fill"
+        case .git: return "arrow.triangle.pull"
         case .configs: return "slider.horizontal.3"
         case .utilities: return "wrench.and.screwdriver.fill"
         }
@@ -36,6 +38,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
         case .security: return "Audit TCC permissions, privacy settings, quarantine, FileVault, and app locks."
         case .disk: return "Drill down drive directories, clean developer caches, and locate duplicate/large files."
         case .developer: return "Manage SDK runtimes, script plugins, local web servers, and code snippets."
+        case .git: return "Inspect repositories, branches, commits, remotes, and git operations."
         case .configs: return "Uninstall apps, find orphaned folders, edit launch agents, and tweak macOS defaults."
         case .utilities: return "Window tiler, clipboard historian, hot corners, color loupe, and desktop helpers."
         }
@@ -68,6 +71,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     case logStream
     case nlToCommand
     case imageConverter
+    case juicerGit
     case snapshots
     case scriptConsole
     case utilitiesView
@@ -81,6 +85,8 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     
     var workspace: JuicerWorkspace {
         switch self {
+        case .juicerGit:
+            return .git
         case .appStore, .brewExplorer, .appUpdates:
             return .store
         case .dashboard, .workflowCenter, .statusMonitor, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .batteryHealth, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .batterySaver, .kextManager, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .systemServices:
@@ -134,6 +140,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .logStream: return "Unified Log Stream"
         case .nlToCommand: return "Natural Language Command Generator"
         case .imageConverter: return "Batch Image Converter"
+        case .juicerGit: return "Git Studio & Workbench"
         case .snapshots: return "Diagnostic Snapshots"
         case .scriptConsole: return "Script Console"
         case .utilitiesView: return "Utilities Settings"
@@ -274,6 +281,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .logStream: return "doc.text.magnifyingglass"
         case .nlToCommand: return "terminal"
         case .imageConverter: return "photo.stack"
+        case .juicerGit: return "arrow.triangle.pull"
         case .snapshots: return "camera.viewfinder"
         case .scriptConsole: return "terminal.fill"
         case .utilitiesView: return "wrench.and.screwdriver.fill"
