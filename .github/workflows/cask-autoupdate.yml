@@ -49,12 +49,10 @@ jobs:
           cd homebrew-juicer
           VERSION="${{ steps.calc_hash.outputs.version }}"
           SHA256="${{ steps.calc_hash.outputs.sha256 }}"
-          DOWNLOAD_URL="${{ steps.calc_hash.outputs.download_url }}"
           
-          # Replace version, sha256, and url in casks/juicer.rb
+          # Replace version and sha256 in casks/juicer.rb
           sed -i "s|version \".*\"|version \"${VERSION}\"|g" casks/juicer.rb
           sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|g" casks/juicer.rb
-          sed -i "s|url \".*\"|url \"${DOWNLOAD_URL}\"|g" casks/juicer.rb
           
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
