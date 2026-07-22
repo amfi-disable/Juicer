@@ -215,7 +215,8 @@ struct dashboardview: View {
             
             VStack(spacing: 8) {
                 curatedToolRow(title: "App Uninstaller", desc: "Drag & drop cleaner companion", icon: "trash.fill", color: .red, dest: "juicer.nav.uninstaller")
-                curatedToolRow(title: "Software Center", desc: "Browse Casks & Formulae", icon: "square.grid.3x3.fill", color: .purple, dest: "juicer.nav.appStore")
+                curatedToolRow(title: "Brew-Ghost Companion", desc: "Purge & track idle Homebrew packages", icon: "ghost.fill", color: .purple, dest: "juicer.nav.brewGhost")
+                curatedToolRow(title: "Software Center", desc: "Browse Casks & Formulae", icon: "square.grid.3x3.fill", color: .indigo, dest: "juicer.nav.appStore")
                 curatedToolRow(title: "System Optimizer", desc: "Refresh cache databases & flush DNS", icon: "bolt.fill", color: .yellow, dest: "juicer.nav.systemOptimizer")
             }
         }

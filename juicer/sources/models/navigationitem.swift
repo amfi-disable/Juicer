@@ -48,13 +48,8 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     case actionHistory
     case permissionCenter
     case scriptPlugins
-    case appUninstaller
-    case orphanScanner
-    case serviceManager
-    case devCaches
-    case systemTweaks
-    case quarantineStripper
-    case dnsEditor
+    case appUninstaller, orphanScanner, brewGhost, serviceManager
+    case devCaches, systemTweaks, quarantineStripper, dnsEditor
     case launchServices
     case hiddenFiles
     case appLipo
@@ -98,7 +93,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
             return .disk
         case .sdkSwitcher, .scriptPlugins, .envProfiles, .appLanguageStripper, .ocrScreenGrabber, .logStream, .nlToCommand, .imageConverter, .scriptConsole, .codeSnippets, .localWebServer:
             return .developer
-        case .appUninstaller, .orphanScanner, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .systemOptimizer, .permissionRepair, .extendedAttributes, .metadataEditor, .autoUpdateChecker, .logRotator:
+        case .appUninstaller, .orphanScanner, .brewGhost, .appLipo, .serviceManager, .systemTweaks, .quarantineStripper, .dnsEditor, .launchServices, .systemOptimizer, .permissionRepair, .extendedAttributes, .metadataEditor, .autoUpdateChecker, .logRotator:
             return .configs
         case .featureCatalog, .actionHistory, .utilitiesView, .clipboardManager, .snippetExpander, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .printerQueue, .pdfToolbox, .markdownPreviewer, .japaneseKana, .emojiPicker, .unicodeInspector, .screenshotAnnotation, .windowSnapping, .displayProfiles, .nightShift, .keyboardBacklight, .trackpadGestures, .shortcutRunner, .systemInfoExporter, .softwareInventory, .snapshots, .soundVolumeMixer:
             return .utilities
@@ -115,6 +110,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .scriptPlugins: return "Script Plugins"
         case .appUninstaller: return "App Uninstaller"
         case .orphanScanner: return "Orphan Finder"
+        case .brewGhost: return "Brew-Ghost Companion"
         case .serviceManager: return "Service Manager"
         case .devCaches: return "Developer Caches"
         case .systemTweaks: return "System Tweaks"
@@ -254,6 +250,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .scriptPlugins: return "puzzlepiece.extension"
         case .appUninstaller: return "trash.fill"
         case .orphanScanner: return "folder.badge.minus"
+        case .brewGhost: return "ghost.fill"
         case .serviceManager: return "cpu"
         case .devCaches: return "hammer.fill"
         case .systemTweaks: return "slider.horizontal.3"
@@ -424,7 +421,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
             return "Code & Tooling"
             
         // System Configs
-        case .appUninstaller, .orphanScanner, .appLipo, .systemOptimizer:
+        case .appUninstaller, .orphanScanner, .brewGhost, .appLipo, .systemOptimizer:
             return "App Maintenance"
         case .serviceManager, .systemTweaks, .launchServices, .autoUpdateChecker, .logRotator:
             return "Services & Tweaks"

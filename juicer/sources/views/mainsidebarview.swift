@@ -271,6 +271,7 @@ struct mainsidebarview: View {
                         case .workflowCenter:  workflowcenterview()
                         case .appUninstaller:   appuninstallerview()
                         case .orphanScanner:    orphanscannerview()
+                        case .brewGhost:        brewghostview()
                         case .serviceManager:   launchdmanagerview()
                         case .devCaches:        cacheprunerview()
                         case .systemTweaks:     systemtweakerview()
@@ -438,6 +439,10 @@ struct mainsidebarview: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.brewExplorer"))) { _ in
             currentWorkspace = .store
             selectedItem = .brewExplorer
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.brewGhost"))) { _ in
+            currentWorkspace = .configs
+            selectedItem = .brewGhost
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.serviceManager"))) { _ in
             currentWorkspace = .configs
