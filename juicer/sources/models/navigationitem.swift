@@ -9,6 +9,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
     case disk = "Juicer Disk Studio"
     case developer = "Juicer Developer Studio"
     case git = "Juicer Git Studio"
+    case containers = "Juicer Docker Studio"
     case configs = "Juicer Configs Studio"
     case utilities = "Juicer Utilities Studio"
     
@@ -26,6 +27,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
         case .disk: return "internaldrive.fill"
         case .developer: return "terminal.fill"
         case .git: return "arrow.triangle.pull"
+        case .containers: return "cube.fill"
         case .configs: return "slider.horizontal.3"
         case .utilities: return "wrench.and.screwdriver.fill"
         }
@@ -41,6 +43,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
         case .disk: return "Space Lens visualizer, dev cache cleaner, and duplicate finder."
         case .developer: return "SDK runtimes, script plugins, local web server, and snippets."
         case .git: return "Git repository workbench, commit graph, and analytics."
+        case .containers: return "Inspect running containers, purge build caches, stream logs, and launch compose stacks."
         case .configs: return "App uninstaller, launch daemons, and system tweaks."
         case .utilities: return "Window tiler, clipboard manager, hot corners, and desktop tools."
         }
@@ -56,6 +59,7 @@ enum JuicerWorkspace: String, CaseIterable, Identifiable {
         case .disk: return .orange
         case .developer: return .green
         case .git: return .purple
+        case .containers: return .cyan
         case .configs: return .indigo
         case .utilities: return .gray
         }
@@ -98,6 +102,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
     case appUpdates
     case tccViewer
     case creatorRepos
+    case dockerDashboard, dockerPurge, dockerLogs, dockerCompose
     case cpuMemoryMonitor, gpuMonitor, diskIOMonitor, networkTraffic, batteryHealth, startupItems, loginItemDelays, processKiller, systemLogs, kextManager, powerSchedule, thermalMonitor, fanController, memoryPurge, swapManager, vpnProfiles, networkLocations, bluetoothDevices, airDropQuickSend, duplicateFiles, emptyFolders, downloadOrganizer, archiveUtility, diskImages, permissionRepair, extendedAttributes, fileTypeConverter, metadataEditor, symbolicLinks, diskVerification, storageSnapshots, fileVault, firewall, privacyScanner, passwordAudit, secureDelete, quarantinedFiles, sandboxInspector, networkExposure, usbDeviceGuard, screenRecording, clipboardAccess, locationServices, microphoneCamera, antiKeylogger, secureNotes, clipboardManager, snippetExpander, menuBarCustomizer, desktopIcons, hotCorners, keyboardShortcuts, textCaseConverter, characterCounter, qrCode, colorPicker, screenRuler, screenLoupe, batterySaver, printerQueue, pdfToolbox, markdownPreviewer, codeSnippets, localWebServer, portScanner, lanDiscovery, wifiSurvey, networkProfileSwitcher, vpnAutoConnect, publicIP, speedTest, dnsDiagnostics, hostsFile, blocklistUpdater, appLocker, fileVaultAutoLock, japaneseKana, emojiPicker, unicodeInspector, screenshotAnnotation, windowSnapping, displayProfiles, nightShift, keyboardBacklight, trackpadGestures, shortcutRunner, systemInfoExporter, softwareInventory, autoUpdateChecker, logRotator, systemServices, diskSpacePredictor, backupTrigger, networkLimiter, diskImageMounter, soundVolumeMixer
     
     var id: NavigationItem { self }
@@ -106,6 +111,8 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         switch self {
         case .juicerGit, .gitExtras:
             return .git
+        case .dockerDashboard, .dockerPurge, .dockerLogs, .dockerCompose:
+            return .containers
         case .appStore, .brewExplorer, .appUpdates, .creatorRepos:
             return .store
         case .dashboard, .workflowCenter, .statusMonitor, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor, .batteryHealth, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager, .batterySaver, .kextManager, .startupItems, .loginItemDelays, .processKiller, .systemLogs, .systemServices:
@@ -154,6 +161,10 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .cacheCleaner: return "Cache Cleaner"
         case .appStore: return "Software Center"
         case .creatorRepos: return "Creator Repositories"
+        case .dockerDashboard: return "Container Workbench"
+        case .dockerPurge: return "Container Disk Purge"
+        case .dockerLogs: return "Container Log Streamer"
+        case .dockerCompose: return "Compose Stack Manager"
         case .envProfiles: return "Env Profiles & Secrets"
         case .appLanguageStripper: return "App Language Stripper"
         case .ocrScreenGrabber: return "OCR Screen Grabber"
@@ -297,6 +308,10 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .cacheCleaner: return "sparkle.magnifyingglass"
         case .appStore: return "square.grid.3x3.fill"
         case .creatorRepos: return "star.square.on.square.fill"
+        case .dockerDashboard: return "cube.fill"
+        case .dockerPurge: return "trash.circle.fill"
+        case .dockerLogs: return "doc.text.magnifyingglass"
+        case .dockerCompose: return "square.stack.3d.up.fill"
         case .envProfiles: return "slider.horizontal.3"
         case .appLanguageStripper: return "globe"
         case .ocrScreenGrabber: return "viewfinder"
@@ -468,6 +483,9 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
             return "Desktop & Window Controls"
         case .clipboardManager, .snippetExpander, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .pdfToolbox, .markdownPreviewer:
             return "Tools & Converters"
+        // Docker & Containers
+        case .dockerDashboard, .dockerPurge, .dockerLogs, .dockerCompose:
+            return "Docker & Container Tools"
         // Juicer Store
         case .creatorRepos:
             return "Creator Repositories & Ecosystem"

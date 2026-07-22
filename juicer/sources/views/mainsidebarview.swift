@@ -389,6 +389,7 @@ struct mainsidebarview: View {
                         case .imageConverter:   imageconverterview()
                         case .juicerGit:        gitdashboardview()
                         case .gitExtras:        gitextrasview()
+                        case .dockerDashboard, .dockerPurge, .dockerLogs, .dockerCompose: dockerstudioview()
                         case .batteryHealth:    batteryhealthview()
                         case .startupItems:     startupitemview()
                         case .loginItemDelays:  loginitemdelayview()
@@ -655,7 +656,7 @@ struct mainsidebarview: View {
                                     Circle()
                                         .fill(Color.green)
                                         .frame(width: 8, height: 8)
-                                    Text("9 WORKSPACES READY")
+                                    Text("10 WORKSPACES READY")
                                         .font(.caption2.bold())
                                         .foregroundStyle(.secondary)
                                 }
@@ -691,6 +692,7 @@ struct mainsidebarview: View {
                                 hubAppCard(workspace: .disk, defaultItem: .diskExplorer)
                                 hubAppCard(workspace: .developer, defaultItem: .sdkSwitcher)
                                 hubAppCard(workspace: .git, defaultItem: .juicerGit)
+                                hubAppCard(workspace: .containers, defaultItem: .dockerDashboard)
                                 hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
                                 hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
                             }
