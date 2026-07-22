@@ -60,6 +60,7 @@ struct mainsidebarview: View {
     @State private var lastHubOffset: CGSize = .zero
     @State private var isFullScreenCanvas: Bool = true
     @State private var isDragPanEnabled: Bool = false
+    @State private var isShowingSettings = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -144,7 +145,7 @@ struct mainsidebarview: View {
                         .pickerStyle(.segmented)
                         .padding(.horizontal, 4)
                         
-                        // Dynamically filtered workspace sections
+                        // Dynamically filtered workspace items
                         let items = NavigationItem.allCases.filter { item in
                             let matchesScope: Bool
                             switch sidebarScope {
@@ -154,22 +155,57 @@ struct mainsidebarview: View {
                             }
                             return item.workspace == currentWorkspace && matchesScope && (sidebarSearch.isEmpty || item.title.localizedCaseInsensitiveContains(sidebarSearch))
                         }
-                        Section(currentWorkspace.title) {
-                            if !navigationPreferences.favorites.filter({ $0.workspace == currentWorkspace }).isEmpty {
-                                ForEach(navigationPreferences.favorites.filter { $0.workspace == currentWorkspace }) { item in
-                                    sidebarLink(for: item)
-                                }
-                                Divider()
+                        
+                        // Workspace Header & Controls
+                        Section(header: HStack {
+                            Text(currentWorkspace.title)
+                                .font(.caption.bold())
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            if !compactNavigation {
+                                Text("\(items.count)")
+                                    .font(.caption2.bold())
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.accentColor.opacity(0.12), in: Capsule())
+                                    .foregroundColor(.accentColor)
                             }
-                            ForEach(items) { item in
-                                if !navigationPreferences.isFavorite(item) {
-                                    sidebarLink(for: item)
+                        }) {
+                            if !navigationPreferences.favorites.filter({ $0.workspace == currentWorkspace }).isEmpty && sidebarScope == "all" {
+                                Section("Favorites ⭐") {
+                                    ForEach(navigationPreferences.favorites.filter { $0.workspace == currentWorkspace }) { item in
+                                        sidebarLink(for: item)
+                                    }
+                                }
+                            }
+                            
+                            // Categorized Subgroups with DisclosureGroups
+                            let categories = Array(Set(items.map { $0.subcategory })).sorted()
+                            ForEach(categories, id: \.self) { category in
+                                let categoryItems = items.filter { $0.subcategory == category }
+                                if !categoryItems.isEmpty {
+                                    DisclosureGroup(isExpanded: .constant(true)) {
+                                        ForEach(categoryItems) { item in
+                                            sidebarLink(for: item)
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Text(category)
+                                                .font(.subheadline.weight(.semibold))
+                                                .foregroundStyle(.primary)
+                                                .lineLimit(1)
+                                            Spacer()
+                                            Text("\(categoryItems.count)")
+                                                .font(.caption2)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
                                 }
                             }
                         }
 
                         if !hideRecentNavigation && !compactNavigation && sidebarScope == "all" && !navigationPreferences.recent.isEmpty {
-                            Section("Recent") {
+                            Section("Recent Activity") {
                                 ForEach(navigationPreferences.recent) { item in
                                     sidebarLink(for: item)
                                 }
@@ -178,10 +214,52 @@ struct mainsidebarview: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        
+                        // Footer Settings & Minimize Controls
+                        Section("Preferences") {
+                            Button(action: { isShowingSettings = true }) {
+                                HStack(spacing: compactNavigation ? 0 : 10) {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.body)
+                                        .frame(width: 18, alignment: .center)
+                                        .foregroundColor(.accentColor)
+                                    if !compactNavigation {
+                                        Text("App Settings")
+                                            .font(.body)
+                                            .lineLimit(1)
+                                    }
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.vertical, 4)
+                            .help("Open Juicer Preferences & Settings")
+                            
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    compactNavigation.toggle()
+                                }
+                            }) {
+                                HStack(spacing: compactNavigation ? 0 : 10) {
+                                    Image(systemName: compactNavigation ? "sidebar.right" : "sidebar.left")
+                                        .font(.body)
+                                        .frame(width: 18, alignment: .center)
+                                        .foregroundColor(.secondary)
+                                    if !compactNavigation {
+                                        Text("Minimize Sidebar")
+                                            .font(.body)
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(1)
+                                    }
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.vertical, 4)
+                            .help(compactNavigation ? "Expand Sidebar Labels" : "Minimize Sidebar to Icons Only")
+                        }
                     }
                     .listStyle(.sidebar)
-                    .searchable(text: $sidebarSearch, placement: .sidebar, prompt: compactNavigation ? "Search all tools" : "Search tools")
-                    .navigationSplitViewColumnWidth(min: 200, ideal: CGFloat(sidebarWidth), max: 340)
+                    .searchable(text: $sidebarSearch, placement: .sidebar, prompt: compactNavigation ? "Search" : "Search workspace tools")
+                    .navigationSplitViewColumnWidth(min: compactNavigation ? 56 : 220, ideal: compactNavigation ? 64 : CGFloat(sidebarWidth), max: 360)
                 } detail: {
                     if let item = selectedItem {
                         switch item {
@@ -719,12 +797,16 @@ struct mainsidebarview: View {
                     .font(.body)
                     .frame(width: 18, alignment: .center)
                 if !compactNavigation || !sidebarSearch.isEmpty {
-                    Text(item.title).font(.body)
+                    Text(item.title)
+                        .font(.body)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                        .truncationMode(.tail)
                 }
             }
         }
         .padding(.vertical, 4)
-        .help(compactNavigation ? item.title : "")
+        .help(item.title)
         .contextMenu {
             Button(navigationPreferences.isFavorite(item) ? "Remove from Favorites" : "Add to Favorites") {
                 navigationPreferences.toggleFavorite(item)

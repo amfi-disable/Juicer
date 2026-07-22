@@ -42,7 +42,7 @@ struct additionalfeaturecatalogview: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 10) {
-                    TextField("Search 100 features...", text: $query)
+                    TextField("Search features & shortcuts...", text: $query)
                         .textFieldStyle(.roundedBorder)
                     
                     Picker("Category", selection: $category) {

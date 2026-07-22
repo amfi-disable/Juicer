@@ -382,4 +382,62 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .soundVolumeMixer: return "speaker.wave.2"
         }
     }
+    
+    var subcategory: String {
+        switch self {
+        // System & Hardware
+        case .dashboard, .statusMonitor, .cpuMemoryMonitor, .gpuMonitor, .diskIOMonitor:
+            return "Monitoring & Gauges"
+        case .batteryHealth, .batterySaver, .powerSchedule, .thermalMonitor, .fanController, .memoryPurge, .swapManager:
+            return "Hardware & Power"
+        case .processKiller, .startupItems, .loginItemDelays, .systemLogs, .systemServices, .kextManager, .workflowCenter:
+            return "Process & System Logs"
+            
+        // Network & Ports
+        case .speedTest, .networkTraffic, .publicIP, .networkLimiter:
+            return "Speed & Traffic"
+        case .wifiSurvey, .lanDiscovery, .portScanner, .portListener, .dnsDiagnostics:
+            return "Diagnostics & Ports"
+        case .firewall, .vpnProfiles, .vpnAutoConnect, .networkExposure, .hostsFile, .blocklistUpdater, .networkLocations, .bluetoothDevices, .airDropQuickSend, .networkProfileSwitcher:
+            return "Firewall & Security"
+            
+        // Security & Privacy
+        case .tccViewer, .privacyScanner, .locationServices, .clipboardAccess, .microphoneCamera, .screenRecording:
+            return "Privacy & Permissions"
+        case .fileVault, .fileVaultAutoLock, .secureNotes, .appLocker, .passwordAudit, .secureDelete:
+            return "Vault & Encryption"
+        case .antiKeylogger, .quarantinedFiles, .sandboxInspector, .usbDeviceGuard, .permissionCenter:
+            return "System Defense"
+            
+        // Disk & Storage
+        case .diskExplorer, .diskVisualizer, .storageSnapshots, .diskVerification, .diskImageMounter:
+            return "Explorers & Visualizers"
+        case .cacheCleaner, .devCaches, .largeFiles, .duplicateFiles, .emptyFolders:
+            return "Cleaners & Large Files"
+        case .undoHistory, .downloadOrganizer, .archiveUtility, .diskImages, .fileTypeConverter, .symbolicLinks, .diskSpacePredictor, .backupTrigger:
+            return "File Utilities"
+            
+        // Developer Suite
+        case .sdkSwitcher, .scriptPlugins, .scriptConsole, .localWebServer:
+            return "Runtimes & Scripts"
+        case .codeSnippets, .envProfiles, .ocrScreenGrabber, .logStream, .nlToCommand, .imageConverter, .appLanguageStripper:
+            return "Code & Tooling"
+            
+        // System Configs
+        case .appUninstaller, .orphanScanner, .appLipo, .systemOptimizer:
+            return "App Maintenance"
+        case .serviceManager, .systemTweaks, .launchServices, .autoUpdateChecker, .logRotator:
+            return "Services & Tweaks"
+        case .permissionRepair, .extendedAttributes, .metadataEditor, .quarantineStripper, .dnsEditor:
+            return "Permissions & Attributes"
+            
+        // Utilities & Desktop
+        case .windowSnapping, .menuBarCustomizer, .desktopIcons, .hotCorners, .keyboardShortcuts, .displayProfiles, .nightShift, .keyboardBacklight, .trackpadGestures:
+            return "Desktop & Window Controls"
+        case .clipboardManager, .snippetExpander, .textCaseConverter, .characterCounter, .qrCode, .colorPicker, .screenRuler, .screenLoupe, .pdfToolbox, .markdownPreviewer:
+            return "Tools & Converters"
+        default:
+            return "General Helpers"
+        }
+    }
 }
