@@ -153,8 +153,14 @@ struct diskvisualizerview: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
-            let home = FileManager.default.homeDirectoryForCurrentUser.path
-            navigate(to: home, addHistory: false)
+            let activeDir = WorkspaceDirectoryManager.shared.currentDirectory
+            navigate(to: activeDir, addHistory: false)
+        }
+        .onReceive(WorkspaceDirectoryManager.shared.$currentDirectory) { newDir in
+            guard !newDir.isEmpty else { return }
+            if manager.currentPath != newDir {
+                navigate(to: newDir, addHistory: true)
+            }
         }
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             _ = providers.first?.loadObject(ofClass: URL.self) { url, _ in
@@ -1117,6 +1123,10 @@ struct diskvisualizerview: View {
         manager.scanDirectory(path: clean)
         selectedItem = nil
         hoveredPath  = nil
+        
+        if WorkspaceDirectoryManager.shared.currentDirectory != clean {
+            WorkspaceDirectoryManager.shared.currentDirectory = clean
+        }
     }
 
     private func navBack() {

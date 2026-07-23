@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 struct gitdashboardview: View {
-    @StateObject private var manager = GitRepositoryManager(repoPath: FileManager.default.homeDirectoryForCurrentUser.path + "/Desktop/Projects/Apps/Juicer")
+    @StateObject private var manager = GitRepositoryManager()
     @State private var commitMessage = ""
     @State private var conventionalPrefix = "feat"
     @State private var showNewBranchSheet = false
@@ -60,7 +60,7 @@ struct gitdashboardview: View {
                     panel.canChooseFiles = false
                     panel.allowsMultipleSelection = false
                     if panel.runModal() == .OK, let url = panel.url {
-                        manager.openRepository(at: url.path)
+                        WorkspaceDirectoryManager.shared.currentDirectory = url.path
                     }
                 }
                 .buttonStyle(.bordered)
@@ -106,7 +106,7 @@ struct gitdashboardview: View {
                         panel.canChooseDirectories = true
                         panel.canChooseFiles = false
                         if panel.runModal() == .OK, let url = panel.url {
-                            manager.openRepository(at: url.path)
+                            WorkspaceDirectoryManager.shared.currentDirectory = url.path
                         }
                     }
                     .buttonStyle(.borderedProminent)
@@ -140,6 +140,18 @@ struct gitdashboardview: View {
                 }
             }
             .padding(24)
+        }
+        .onAppear {
+            let activeDir = WorkspaceDirectoryManager.shared.currentDirectory
+            if FileManager.default.fileExists(atPath: "\(activeDir)/.git") {
+                manager.openRepository(at: activeDir)
+            }
+        }
+        .onReceive(WorkspaceDirectoryManager.shared.$currentDirectory) { newDir in
+            guard !newDir.isEmpty else { return }
+            if manager.repoPath != newDir && FileManager.default.fileExists(atPath: "\(newDir)/.git") {
+                manager.openRepository(at: newDir)
+            }
         }
     }
     

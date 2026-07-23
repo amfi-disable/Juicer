@@ -26,19 +26,20 @@ struct creatorecosystemview: View {
     
     // Category expansion state
     @State private var expandedCategories: [String: Bool] = [
-        "macOS Applications": true,
-        "Developer Tooling & Homebrew Taps": true,
-        "Extensions & Scripts": true,
-        "GitHub Profile & Meta": true
+        "Apps": true,
+        "Extensions": true,
+        "Meta": true,
+        "Scripts": true,
+        "Tooling": true
     ]
     
     let allRepos: [CreatorRepoItem] = [
-        // macOS Apps
+        // Apps
         CreatorRepoItem(
             name: "Juicer",
             repository: "amfi-disable/Juicer",
-            category: "macOS Applications",
-            description: "The ultimate 14-studio macOS developer workbench, system cleaner, and companion suite.",
+            category: "Apps",
+            description: "The ultimate 15-studio macOS developer workbench, system cleaner, and companion suite.",
             iconName: "shippingbox.fill",
             themeColor: .orange,
             tag: "MAIN APP",
@@ -49,7 +50,7 @@ struct creatorecosystemview: View {
         CreatorRepoItem(
             name: "Brew-Ghost",
             repository: "amfi-disable/Brew-Ghost",
-            category: "macOS Applications",
+            category: "Apps",
             description: "Automated ghost package finder, orphan formula scanner, and Homebrew cellar cleaner.",
             iconName: "ghost.fill",
             themeColor: .purple,
@@ -61,7 +62,7 @@ struct creatorecosystemview: View {
         CreatorRepoItem(
             name: "OmniSuite",
             repository: "amfi-disable/OmniSuite",
-            category: "macOS Applications",
+            category: "Apps",
             description: "Modular system productivity & developer workbench for high-efficiency macOS workflows.",
             iconName: "square.stack.3d.up.fill",
             themeColor: .blue,
@@ -73,7 +74,7 @@ struct creatorecosystemview: View {
         CreatorRepoItem(
             name: "PathDeck",
             repository: "amfi-disable/PathDeck",
-            category: "macOS Applications",
+            category: "Apps",
             description: "Streamlined workspace path launcher, hotkey trigger, and directory navigator.",
             iconName: "square.grid.3x3.topleft.filled",
             themeColor: .teal,
@@ -83,11 +84,39 @@ struct creatorecosystemview: View {
             brewCommand: nil
         ),
         
-        // Tooling & Taps
+        // Extensions
+        CreatorRepoItem(
+            name: "FMG_Free-MapGenie",
+            repository: "amfi-disable/FMG_Free-MapGenie",
+            category: "Extensions",
+            description: "Chromium & Firefox extension unlocking all premium interactive maps on MapGenie.",
+            iconName: "puzzlepiece.extension.fill",
+            themeColor: .green,
+            tag: "EXTENSION",
+            language: "TypeScript",
+            starsCount: "v1.0",
+            brewCommand: nil
+        ),
+        
+        // Meta
+        CreatorRepoItem(
+            name: "amfi-disable Profile",
+            repository: "amfi-disable/amfi-disable",
+            category: "Meta",
+            description: "GitHub organization profile, README showcase, and community highlights.",
+            iconName: "person.crop.circle.fill",
+            themeColor: .pink,
+            tag: "PROFILE",
+            language: "Markdown",
+            starsCount: "Org",
+            brewCommand: nil
+        ),
+        
+        // Tooling
         CreatorRepoItem(
             name: "homebrew-juicer",
             repository: "amfi-disable/homebrew-juicer",
-            category: "Developer Tooling & Homebrew Taps",
+            category: "Tooling",
             description: "Official Homebrew Cask tap repository for installing and updating Juicer via brew.",
             iconName: "mug.fill",
             themeColor: .cyan,
@@ -97,9 +126,9 @@ struct creatorecosystemview: View {
             brewCommand: "brew tap amfi-disable/juicer"
         ),
         CreatorRepoItem(
-            name: "homebrew-tap",
-            repository: "amfi-disable/homebrew-tap",
-            category: "Developer Tooling & Homebrew Taps",
+            name: "Homebrew-Tap",
+            repository: "amfi-disable/Homebrew-Tap",
+            category: "Tooling",
             description: "Community Homebrew formula tap containing custom CLI tools and developer binaries.",
             iconName: "terminal.fill",
             themeColor: .cyan,
@@ -109,65 +138,183 @@ struct creatorecosystemview: View {
             brewCommand: "brew tap amfi-disable/tap"
         ),
         
-        // Extensions & Scripts
+        // Scripts
         CreatorRepoItem(
-            name: "FMG",
-            repository: "amfi-disable/FMG",
-            category: "Extensions & Scripts",
-            description: "Flight & map web extension for real-time telemetry and navigation overlays.",
-            iconName: "puzzlepiece.extension.fill",
-            themeColor: .green,
-            tag: "EXTENSION",
-            language: "JavaScript / Web",
-            starsCount: "v1.0",
-            brewCommand: nil
-        ),
-        CreatorRepoItem(
-            name: "GeoFS-V3.9",
-            repository: "amfi-disable/GeoFS-V3.9",
-            category: "Extensions & Scripts",
-            description: "Flight simulator script enhancements, autopilot tools, and HUD additions.",
+            name: "GeoFS-V3.9_Core-Library",
+            repository: "amfi-disable/GeoFS-V3.9_Core-Library",
+            category: "Scripts",
+            description: "Foundation API for the GeoFS module framework, initializing standard telemetry.",
             iconName: "airplane",
             themeColor: .blue,
-            tag: "SCRIPT",
+            tag: "CORE",
             language: "JavaScript",
             starsCount: "v3.9",
             brewCommand: nil
         ),
         CreatorRepoItem(
-            name: "GimSell",
-            repository: "amfi-disable/GimSell",
-            category: "Extensions & Scripts",
-            description: "Gimkit automation script for market trading and automated item inventory.",
+            name: "GeoFS-V3.9_Realism-Pack",
+            repository: "amfi-disable/GeoFS-V3.9_Realism-Pack",
+            category: "Scripts",
+            description: "Advanced simulator physics, camera shake, visual effects, and environmental feedback.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "PHYSICS",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Autothrottle",
+            repository: "amfi-disable/GeoFS-V3.9_Autothrottle",
+            category: "Scripts",
+            description: "Precision PID-based autothrottle panel with auto-retard landing mode.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "AUTOPILOT",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Failure-Simulator",
+            repository: "amfi-disable/GeoFS-V3.9_Failure-Simulator",
+            category: "Scripts",
+            description: "Randomized emergency systems failures engine for flight training scenarios.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "SIMULATION",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Information-Display",
+            repository: "amfi-disable/GeoFS-V3.9_Information-Display",
+            category: "Scripts",
+            description: "Glassmorphic telemetry instrumentation HUD displaying real-time aero data.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "HUD",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Landing-Statistics",
+            repository: "amfi-disable/GeoFS-V3.9_Landing-Statistics",
+            category: "Scripts",
+            description: "Touchdown analyzer tracking vertical speed, G-force impact, and runway roll.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "ANALYTICS",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Checklist-System",
+            repository: "amfi-disable/GeoFS-V3.9_Checklist-System",
+            category: "Scripts",
+            description: "Interactive pre-flight, takeoff, cruise, and landing checklists for aircraft.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "PROCEDURE",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Fuel-Simulator",
+            repository: "amfi-disable/GeoFS-V3.9_Fuel-Simulator",
+            category: "Scripts",
+            description: "Simulated fuel burn engine modifying aircraft weight and center of gravity.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "ENGINE",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Flight-Path-Vector",
+            repository: "amfi-disable/GeoFS-V3.9_Flight-Path-Vector",
+            category: "Scripts",
+            description: "Head-up display vector showing actual flight path velocity direction.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "HUD",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Overpowered-Engines",
+            repository: "amfi-disable/GeoFS-V3.9_Overpowered-Engines",
+            category: "Scripts",
+            description: "Bypass typical thrust coefficient limits with simulated booster scaling.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "BOOST",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Addon-Pack",
+            repository: "amfi-disable/GeoFS-V3.9_Addon-Pack",
+            category: "Scripts",
+            description: "Aggregated flight scripts bundled with standard autopilot configuration.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "BUNDLE",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Design-System",
+            repository: "amfi-disable/GeoFS-V3.9_Design-System",
+            category: "Scripts",
+            description: "Standard orange and dark theme UI layout components and telemetry panels.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "DESIGN",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "GeoFS-V3.9_Assets",
+            repository: "amfi-disable/GeoFS-V3.9_Assets",
+            category: "Scripts",
+            description: "Asset storage server for sounds, layout templates, and custom avionics.",
+            iconName: "airplane",
+            themeColor: .blue,
+            tag: "ASSETS",
+            language: "JavaScript",
+            starsCount: "v3.9",
+            brewCommand: nil
+        ),
+        CreatorRepoItem(
+            name: "Gimkit-Seller",
+            repository: "amfi-disable/Gimkit-Seller",
+            category: "Scripts",
+            description: "Browser automation script facilitating batch cosmetic transactions on Gimkit.",
             iconName: "cart.fill",
             themeColor: .yellow,
             tag: "AUTOMATION",
             language: "JavaScript",
             starsCount: "v1.0",
             brewCommand: nil
-        ),
-        
-        // Profile & Meta
-        CreatorRepoItem(
-            name: "amfi-disable Profile",
-            repository: "amfi-disable/amfi-disable",
-            category: "GitHub Profile & Meta",
-            description: "GitHub organization profile, README showcase, and community highlights.",
-            iconName: "person.crop.circle.fill",
-            themeColor: .pink,
-            tag: "PROFILE",
-            language: "Markdown",
-            starsCount: "Org",
-            brewCommand: nil
         )
     ]
     
     var categories: [String] {
-        ["macOS Applications", "Developer Tooling & Homebrew Taps", "Extensions & Scripts", "GitHub Profile & Meta"]
+        ["Apps", "Extensions", "Meta", "Scripts", "Tooling"]
     }
     
     var filterOptions: [String] {
-        ["All", "macOS Applications", "Developer Tooling & Homebrew Taps", "Extensions & Scripts", "GitHub Profile & Meta"]
+        ["All", "Apps", "Extensions", "Meta", "Scripts", "Tooling"]
     }
 
     var body: some View {
@@ -188,7 +335,7 @@ struct creatorecosystemview: View {
                         Text("Juicer Creator's Studio")
                             .font(.title2).bold()
                         
-                        Text("10 REPOSITORIES")
+                        Text("22 REPOSITORIES")
                             .font(.system(size: 9, weight: .black))
                             .padding(.horizontal, 7)
                             .padding(.vertical, 3)
@@ -550,6 +697,7 @@ struct creatorecosystemview: View {
                             self.cloneStatusMessage = "Successfully cloned \(repo.name)!"
                             self.cloneStatusColor = .green
                             self.lastClonedPath = clonedFolder.path
+                            WorkspaceDirectoryManager.shared.currentDirectory = clonedFolder.path
                         } else {
                             self.cloneStatusMessage = "Failed to clone repository. Make sure git is installed."
                             self.cloneStatusColor = .red
@@ -568,19 +716,23 @@ struct creatorecosystemview: View {
     
     private func categoryIcon(for category: String) -> String {
         switch category {
-        case "macOS Applications": return "laptopcomputer"
-        case "Developer Tooling & Homebrew Taps": return "wrench.and.screwdriver.fill"
-        case "Extensions & Scripts": return "puzzlepiece.extension.fill"
+        case "Apps": return "laptopcomputer"
+        case "Extensions": return "puzzlepiece.extension.fill"
+        case "Meta": return "person.crop.circle.fill"
+        case "Scripts": return "scroll.fill"
+        case "Tooling": return "wrench.and.screwdriver.fill"
         default: return "network"
         }
     }
     
     private func categoryColor(for category: String) -> Color {
         switch category {
-        case "macOS Applications": return .orange
-        case "Developer Tooling & Homebrew Taps": return .cyan
-        case "Extensions & Scripts": return .green
-        default: return .pink
+        case "Apps": return .orange
+        case "Extensions": return .green
+        case "Meta": return .pink
+        case "Scripts": return .blue
+        case "Tooling": return .cyan
+        default: return .gray
         }
     }
 }

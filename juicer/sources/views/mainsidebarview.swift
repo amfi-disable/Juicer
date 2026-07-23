@@ -52,6 +52,7 @@ struct mainsidebarview: View {
     @State private var hasAppeared = false
     @State private var sidebarScope = "all"
     @State private var isEcosystemExpanded = true
+    @State private var showTerminal = false
     
     // Home Screen Canvas Drag Panning State
     @State private var hubOffset: CGSize = .zero
@@ -191,35 +192,6 @@ struct mainsidebarview: View {
                             }
                         }
                         
-                        // Juicer Creator's Studio Section (Clean Single Dropdown)
-                        Section("Juicer Creator's Studio 🌟") {
-                            DisclosureGroup(isExpanded: $isEcosystemExpanded) {
-                                creatorRepoLink(name: "amfi-disable/Juicer", title: "Juicer", desc: "macOS Developer Suite", icon: "shippingbox.fill", color: .orange, tag: "MAIN")
-                                creatorRepoLink(name: "amfi-disable/Brew-Ghost", title: "Brew-Ghost", desc: "Ghost Package Cleaner", icon: "ghost.fill", color: .purple, tag: "TOP BREW")
-                                creatorRepoLink(name: "amfi-disable/OmniSuite", title: "OmniSuite", desc: "Productivity Workbench", icon: "square.stack.3d.up.fill", color: .blue)
-                                creatorRepoLink(name: "amfi-disable/PathDeck", title: "PathDeck", desc: "Workspace Path Launcher", icon: "square.grid.3x3.topleft.filled", color: .teal)
-                                creatorRepoLink(name: "amfi-disable/homebrew-juicer", title: "homebrew-juicer", desc: "Juicer Cask Tap Repo", icon: "mug.fill", color: .cyan)
-                                creatorRepoLink(name: "amfi-disable/homebrew-tap", title: "homebrew-tap", desc: "Community Formula Tap", icon: "terminal.fill", color: .cyan)
-                                creatorRepoLink(name: "amfi-disable/FMG", title: "FMG Extension", desc: "Flight Map Web Extension", icon: "puzzlepiece.extension.fill", color: .green)
-                                creatorRepoLink(name: "amfi-disable/GeoFS-V3.9", title: "GeoFS V3.9", desc: "Flight Sim Script Tool", icon: "airplane", color: .blue)
-                                creatorRepoLink(name: "amfi-disable/GimSell", title: "GimSell", desc: "Gimkit Automation Tool", icon: "cart.fill", color: .yellow)
-                                creatorRepoLink(name: "amfi-disable/amfi-disable", title: "amfi-disable", desc: "GitHub Profile & README", icon: "person.crop.circle.fill", color: .pink)
-                            } label: {
-                                HStack {
-                                    Text("Juicer Creator's Studio")
-                                        .font(.subheadline.weight(.semibold))
-                                    Spacer()
-                                    if !compactNavigation {
-                                        Text("10")
-                                            .font(.caption2.bold())
-                                            .padding(.horizontal, 5)
-                                            .padding(.vertical, 1)
-                                            .background(Color.purple.opacity(0.14), in: Capsule())
-                                            .foregroundColor(.purple)
-                                    }
-                                }
-                            }
-                        }
 
                         // Footer Settings & Minimize Controls
                         Section("Preferences") {
@@ -320,6 +292,16 @@ struct mainsidebarview: View {
                         case .dbDaemonMonitor, .sqliteInspector, .redisViewer, .dbBackupTool: databasestudioview()
                         case .apiWorkbench, .apiBenchmark, .apiAuthManager, .apiHistory: apistudioview()
                         case .docConverter, .imageConverterStudio, .codeSchemaConverter, .archiveConverter: converterstudioview()
+                        case .pathSecurityAuditor: PathSecurityAuditorView()
+                        case .duplicateSanitizer: DuplicateSanitizerView()
+                        case .zeroDayTCCAudit: ZeroDayTCCAuditView()
+                        case .kextOrphanDetector: KernelExtensionDetectorView()
+                        case .dylibOrphanDetector: DylibIntegrityDetectorView()
+                        case .dockerBuildCachePurge: DockerBuildCachePurgeView()
+                        case .localLLMBenchmark: LocalLLMBenchmarkView()
+                        case .apiLoadTester: APILoadTesterView()
+                        case .sqliteSchemaInspector: SQLiteSchemaInspectorView()
+                        case .memoryPressureOptimizer: MemoryPressureOptimizerView()
                         case .batteryHealth:    batteryhealthview()
                         case .startupItems:     startupitemview()
                         case .loginItemDelays:  loginitemdelayview()
@@ -419,12 +401,21 @@ struct mainsidebarview: View {
                 }
             }
             
+            if showTerminal {
+                bottomterminalview()
+                Divider()
+            }
             if showStatusBar {
                 statusbarview()
             }
         }
         .preferredColorScheme(preferredColorScheme)
         .tint(selectedAccentColor)
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.toggleTerminal"))) { _ in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showTerminal.toggle()
+            }
+        }
         // Menu navigation event listeners (switching workspace automatically)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("juicer.nav.dashboard"))) { _ in
             currentWorkspace = .system
@@ -586,7 +577,7 @@ struct mainsidebarview: View {
                                     Circle()
                                         .fill(Color.green)
                                         .frame(width: 8, height: 8)
-                                    Text("14 WORKSPACES READY")
+                                    Text("15 WORKSPACES READY")
                                         .font(.caption2.bold())
                                         .foregroundStyle(.secondary)
                                 }
@@ -629,6 +620,7 @@ struct mainsidebarview: View {
                                 hubAppCard(workspace: .converter, defaultItem: .docConverter)
                                 hubAppCard(workspace: .configs, defaultItem: .appUninstaller)
                                 hubAppCard(workspace: .utilities, defaultItem: .utilitiesView)
+                                hubAppCard(workspace: .creator, defaultItem: .creatorRepos)
                             }
                             .frame(maxWidth: min(geo.size.width - 64, 1280))
                         }

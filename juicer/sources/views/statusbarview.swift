@@ -12,11 +12,18 @@ struct statusbarview: View {
     
     var body: some View {
         HStack(spacing: 20) {
-            // Logs display
+            // Logs & Terminal toggle display
             HStack(spacing: 8) {
-                Image(systemName: "terminal")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Button(action: {
+                    NotificationCenter.default.post(name: Notification.Name("juicer.toggleTerminal"), object: nil)
+                }) {
+                    Image(systemName: "terminal.fill")
+                        .font(.caption)
+                        .foregroundColor(.accentColor)
+                }
+                .buttonStyle(.plain)
+                .help("Toggle Bottom Terminal")
+                
                 Text(logger.latestLog)
                     .font(.caption)
                     .lineLimit(1)

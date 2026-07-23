@@ -38,7 +38,16 @@ struct diskexplorerview: View {
         .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
             manager.loadVolumes()
-            manager.scanDirectory(path: "")
+            let activeDir = WorkspaceDirectoryManager.shared.currentDirectory
+            pathInput = activeDir
+            manager.scanDirectory(path: activeDir)
+        }
+        .onReceive(WorkspaceDirectoryManager.shared.$currentDirectory) { newDir in
+            guard !newDir.isEmpty else { return }
+            if manager.currentPath != newDir {
+                pathInput = newDir
+                manager.scanDirectory(path: newDir)
+            }
         }
     }
 
@@ -158,8 +167,7 @@ struct diskexplorerview: View {
             // Home
             Button(action: {
                 let home = FileManager.default.homeDirectoryForCurrentUser.path
-                pathInput = home
-                manager.scanDirectory(path: home)
+                WorkspaceDirectoryManager.shared.currentDirectory = home
             }) {
                 Image(systemName: "house.fill")
             }
@@ -169,7 +177,7 @@ struct diskexplorerview: View {
             // Breadcrumb path field
             Image(systemName: "folder.fill").foregroundStyle(.secondary)
             TextField("Enter path or pick a folder…", text: $pathInput, onCommit: {
-                manager.scanDirectory(path: pathInput)
+                WorkspaceDirectoryManager.shared.currentDirectory = pathInput
             })
             .textFieldStyle(.roundedBorder)
 
@@ -186,15 +194,14 @@ struct diskexplorerview: View {
                 panel.prompt = "Scan This Folder"
                 panel.message = "Select a folder or navigate to a volume to scan:"
                 if panel.runModal() == .OK, let url = panel.url {
-                    pathInput = url.path
-                    manager.scanDirectory(path: url.path)
+                    WorkspaceDirectoryManager.shared.currentDirectory = url.path
                 }
             }
             .buttonStyle(.bordered)
 
             // Go button
             Button("Go") {
-                manager.scanDirectory(path: pathInput)
+                WorkspaceDirectoryManager.shared.currentDirectory = pathInput
             }
             .buttonStyle(.borderedProminent)
             .disabled(pathInput.isEmpty || manager.isScanning)
@@ -505,8 +512,7 @@ struct diskexplorerview: View {
     private func goUp() {
         let url = URL(fileURLWithPath: manager.currentPath)
         let parent = url.deletingLastPathComponent().path
-        pathInput = parent
-        manager.scanDirectory(path: parent)
+        WorkspaceDirectoryManager.shared.currentDirectory = parent
     }
 
     private func formatBytes(_ bytes: Int64) -> String {
