@@ -13,9 +13,9 @@
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleIconFile</key>
-	<string>AppIcon.icns</string>
+	<string>appicon.icns</string>
 	<key>CFBundleIconName</key>
-	<string>AppIcon</string>
+	<string>appicon</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
