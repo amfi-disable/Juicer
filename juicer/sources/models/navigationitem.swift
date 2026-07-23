@@ -188,7 +188,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
         case .statusMonitor: return "Live Status"
         case .cacheCleaner: return "Cache Cleaner"
         case .appStore: return "Software Center"
-        case .creatorRepos: return "Creator Repositories"
+        case .creatorRepos: return "Juicer Creator's Studio"
         case .dockerDashboard: return "Container Workbench"
         case .dockerPurge: return "Container Disk Purge"
         case .dockerLogs: return "Container Log Streamer"
@@ -560,7 +560,7 @@ enum NavigationItem: String, CaseIterable, Identifiable, Equatable {
             return "Universal Conversion Tools"
         // Juicer Store
         case .creatorRepos:
-            return "Creator Repositories & Ecosystem"
+            return "Juicer Creator's Studio"
         default:
             return "General Helpers"
         }

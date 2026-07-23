@@ -191,8 +191,8 @@ struct mainsidebarview: View {
                             }
                         }
                         
-                        // Creator Repositories Section (Clean Single Dropdown)
-                        Section("Creator Repositories 🌟") {
+                        // Juicer Creator's Studio Section (Clean Single Dropdown)
+                        Section("Juicer Creator's Studio 🌟") {
                             DisclosureGroup(isExpanded: $isEcosystemExpanded) {
                                 creatorRepoLink(name: "amfi-disable/Juicer", title: "Juicer", desc: "macOS Developer Suite", icon: "shippingbox.fill", color: .orange, tag: "MAIN")
                                 creatorRepoLink(name: "amfi-disable/Brew-Ghost", title: "Brew-Ghost", desc: "Ghost Package Cleaner", icon: "ghost.fill", color: .purple, tag: "TOP BREW")
@@ -206,7 +206,7 @@ struct mainsidebarview: View {
                                 creatorRepoLink(name: "amfi-disable/amfi-disable", title: "amfi-disable", desc: "GitHub Profile & README", icon: "person.crop.circle.fill", color: .pink)
                             } label: {
                                 HStack {
-                                    Text("Ecosystem Repositories")
+                                    Text("Juicer Creator's Studio")
                                         .font(.subheadline.weight(.semibold))
                                     Spacer()
                                     if !compactNavigation {
