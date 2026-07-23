@@ -14,7 +14,10 @@ struct JuicerFeatureHeader: View { let title: String; let subtitle: String; let 
             }
             .layoutPriority(1)
             Spacer(minLength: 12)
-            Button(action: action) {
+            Button(action: {
+                JuicerHaptic.performClick()
+                action()
+            }) {
                 Image(systemName: refreshing ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
                     .symbolEffect(.pulse, isActive: refreshing)
             }
@@ -134,5 +137,31 @@ struct WindowAccessor: NSViewRepresentable {
 extension View {
     func allowWindowDragAndFit() -> some View {
         self.modifier(WindowDragAndFitModifier())
+    }
+}
+
+// MARK: - Haptic Feedback & Animated Button Mechanics
+enum JuicerHaptic {
+    static func performClick() {
+        NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
+    }
+    static func performSuccess() {
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+    }
+}
+
+struct JuicerAnimatedButtonStyle: ButtonStyle {
+    var isProminent: Bool = false
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .opacity(configuration.isPressed ? 0.85 : 1.0)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { isPressed in
+                if isPressed {
+                    JuicerHaptic.performClick()
+                }
+            }
     }
 }

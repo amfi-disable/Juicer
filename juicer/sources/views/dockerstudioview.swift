@@ -1,378 +1,238 @@
 import SwiftUI
 import AppKit
 
+struct DockerContainerItem: Identifiable {
+    var id: String { containerId }
+    let containerId: String
+    let name: String
+    let image: String
+    let status: String
+    let ports: String
+    let isRunning: Bool
+}
+
+class DockerStudioManager: ObservableObject {
+    @Published var containers: [DockerContainerItem] = []
+    @Published var isDockerRunning = false
+    @Published var isScanning = false
+    @Published var selectedContainerLogs = ""
+    @Published var statusMessage = ""
+    
+    init() {
+        self.checkDockerState()
+    }
+    
+    func checkDockerState() {
+        self.isScanning = true
+        Task.detached(priority: .userInitiated) {
+            let output = self.runShellCommand("docker ps -a --format \"{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}\"")
+            let isRunning = !output.isEmpty || FileManager.default.fileExists(atPath: "/var/run/docker.sock")
+            
+            var items: [DockerContainerItem] = []
+            let lines = output.components(separatedBy: "\n")
+            for line in lines {
+                let parts = line.components(separatedBy: "|")
+                if parts.count >= 5 {
+                    let id = parts[0]
+                    let name = parts[1]
+                    let image = parts[2]
+                    let status = parts[3]
+                    let ports = parts[4]
+                    let running = status.lowercased().contains("up")
+                    items.append(DockerContainerItem(containerId: id, name: name, image: image, status: status, ports: ports, isRunning: running))
+                }
+            }
+            
+            await MainActor.run {
+                self.containers = items
+                self.isDockerRunning = isRunning
+                self.isScanning = false
+                if items.isEmpty {
+                    self.statusMessage = isRunning ? "Docker daemon is active. No containers found." : "Docker daemon not running or not installed."
+                } else {
+                    self.statusMessage = "Found \(items.count) container(s)."
+                }
+            }
+        }
+    }
+    
+    func startContainer(id: String) {
+        runShellAsync("docker start \(id)") { self.checkDockerState() }
+    }
+    
+    func stopContainer(id: String) {
+        runShellAsync("docker stop \(id)") { self.checkDockerState() }
+    }
+    
+    func fetchLogs(id: String) {
+        Task.detached(priority: .userInitiated) {
+            let logs = self.runShellCommand("docker logs --tail 100 \(id)")
+            await MainActor.run {
+                self.selectedContainerLogs = logs.isEmpty ? "No log output available for container." : logs
+            }
+        }
+    }
+    
+    func pruneSystem() {
+        runShellAsync("docker system prune -f") { self.checkDockerState() }
+    }
+    
+    private func runShellCommand(_ cmd: String) -> String {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        process.arguments = ["-c", cmd]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = Pipe()
+        do {
+            try process.run()
+            process.waitUntilExit()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            return String(data: data, encoding: .utf8) ?? ""
+        } catch { return "" }
+    }
+    
+    private func runShellAsync(_ cmd: String, completion: @escaping () -> Void) {
+        Task.detached(priority: .userInitiated) {
+            _ = self.runShellCommand(cmd)
+            await MainActor.run { completion() }
+        }
+    }
+}
+
 struct dockerstudioview: View {
-    @StateObject private var manager = DockerManager.shared
-    @State private var selectedTab = 0
-    @State private var selectedContainerID: String? = nil
-    @State private var logOutput: String = ""
-    @State private var logSearch: String = ""
-    @State private var isStreamingLogs = false
-    @State private var showingPurgeConfirm = false
-    @State private var purgeTarget: String = "Everything"
+    @StateObject private var manager = DockerStudioManager()
+    @State private var selectedTab = "Containers"
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header Banner
-            HStack(spacing: 16) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 52, height: 52)
-                    Image(systemName: "cube.fill")
-                        .font(.title)
-                        .foregroundColor(.white)
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text("Juicer Docker Studio")
-                            .font(.title2).bold()
-                        
-                        HStack(spacing: 5) {
-                            Circle()
-                                .fill(manager.isDaemonRunning ? Color.green : Color.red)
-                                .frame(width: 7, height: 7)
-                            Text(manager.isDaemonRunning ? "DAEMON ACTIVE" : (manager.isDockerInstalled ? "DAEMON STOPPED" : "NOT INSTALLED"))
-                                .font(.system(size: 9, weight: .black))
-                                .foregroundStyle(manager.isDaemonRunning ? .green : .red)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background((manager.isDaemonRunning ? Color.green : Color.red).opacity(0.14), in: Capsule())
-                    }
-                    
-                    Text("Container workbench, disk space reclaimer, log streamer, and stack manager")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                
-                Spacer()
-                
-                Button(action: { manager.refreshAll() }) {
-                    Label("Refresh Status", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.blue)
-                .disabled(manager.isRefreshing)
-            }
-            .padding(20)
-            .background(Color(NSColor.controlBackgroundColor))
+            JuicerFeatureHeader(
+                title: "Juicer Docker Studio",
+                subtitle: "Inspect running containers, stream logs, manage compose stacks, and purge build caches.",
+                icon: "cube.fill",
+                refreshing: manager.isScanning,
+                action: { manager.checkDockerState() }
+            )
+            .padding()
+            .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
             
             Divider()
             
-            // Picker Tab Bar
             HStack {
                 Picker("", selection: $selectedTab) {
-                    Text("Containers (\(manager.containers.count))").tag(0)
-                    Text("Disk Reclaimer").tag(1)
-                    Text("Log Streamer").tag(2)
-                    Text("Compose Stacks").tag(3)
+                    Text("Containers (\(manager.containers.count))").tag("Containers")
+                    Text("Log Streamer").tag("Logs")
+                    Text("System Prune").tag("Prune")
                 }
                 .pickerStyle(.segmented)
-                .frame(maxWidth: 540)
+                .frame(width: 320)
                 
                 Spacer()
+                
+                Text(manager.statusMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .background(Color(NSColor.windowBackgroundColor))
+            .padding()
             
             Divider()
             
-            // Tab Content
-            if !manager.isDockerInstalled {
-                dockerNotInstalledView()
-            } else if !manager.isDaemonRunning {
-                dockerDaemonStoppedView()
+            if selectedTab == "Containers" {
+                containersListView()
+            } else if selectedTab == "Logs" {
+                logsView()
             } else {
-                switch selectedTab {
-                case 0:
-                    containersTabView()
-                case 1:
-                    reclaimerTabView()
-                case 2:
-                    logsTabView()
-                default:
-                    composeTabView()
-                }
+                pruneView()
             }
         }
-        .background(Color(NSColor.windowBackgroundColor))
-        .onAppear {
-            manager.refreshAll()
-        }
+        .allowWindowDragAndFit()
     }
     
-    // MARK: - Tab 1: Containers List
     @ViewBuilder
-    private func containersTabView() -> some View {
+    private func containersListView() -> some View {
         if manager.containers.isEmpty {
-            VStack(spacing: 14) {
-                Image(systemName: "shippingbox.fill")
+            VStack(spacing: 12) {
+                Image(systemName: "cube.transparent")
                     .font(.system(size: 44))
-                    .foregroundColor(.secondary)
-                Text("No Containers Found")
-                    .font(.title3).bold()
-                Text("Run `docker run` or launch a compose stack to start containers.")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .foregroundStyle(.secondary)
+                Text(manager.statusMessage)
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                Button("Refresh Docker Status") { manager.checkDockerState() }
+                    .buttonStyle(.borderedProminent)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(manager.containers) { container in
-                        HStack(spacing: 14) {
-                            Circle()
-                                .fill(container.isRunning ? Color.green : Color.gray)
-                                .frame(width: 10, height: 10)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                HStack(spacing: 8) {
-                                    Text(container.name)
-                                        .font(.headline.bold())
-                                    Text(container.id.prefix(12))
-                                        .font(.caption2.monospaced())
-                                        .foregroundStyle(.secondary)
-                                }
-                                Text("Image: \(container.image)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                if !container.ports.isEmpty {
-                                    Text("Ports: \(container.ports)")
-                                        .font(.caption2.monospaced())
-                                        .foregroundColor(.cyan)
-                                }
-                            }
-                            
-                            Spacer()
-                            
-                            HStack(spacing: 8) {
-                                if container.isRunning {
-                                    Button("Stop") { manager.stopContainer(id: container.id) }
-                                        .buttonStyle(.bordered)
-                                        .tint(.orange)
-                                    Button("Restart") { manager.restartContainer(id: container.id) }
-                                        .buttonStyle(.bordered)
-                                } else {
-                                    Button("Start") { manager.startContainer(id: container.id) }
-                                        .buttonStyle(.borderedProminent)
-                                        .tint(.green)
-                                }
-                                
-                                Button("Logs") {
-                                    selectedContainerID = container.id
-                                    selectedTab = 2
-                                    fetchLogs(for: container.id)
-                                }
-                                .buttonStyle(.bordered)
-                                
-                                Button(action: { manager.removeContainer(id: container.id) }) {
-                                    Image(systemName: "trash").foregroundColor(.red)
-                                }
-                                .buttonStyle(.bordered)
-                                .help("Remove Container")
-                            }
+            List(manager.containers) { item in
+                HStack {
+                    Circle()
+                        .fill(item.isRunning ? Color.green : Color.gray)
+                        .frame(width: 10, height: 10)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack {
+                            Text(item.name).bold()
+                            Text(item.containerId).font(.caption.monospaced()).foregroundStyle(.secondary)
                         }
-                        .padding(14)
-                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
-                    }
-                }
-                .padding(20)
-            }
-        }
-    }
-    
-    // MARK: - Tab 2: Disk Reclaimer
-    @ViewBuilder
-    private func reclaimerTabView() -> some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Warning / Action Card
-                HStack(spacing: 16) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Docker System Space Reclaimer")
-                            .font(.headline.bold())
-                        Text("Purge unused build caches, stopped containers, dangling images, and volumes to reclaim disk space.")
+                        Text("\(item.image) • Ports: \(item.ports.isEmpty ? "None" : item.ports)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                    
                     Spacer()
-                    Button("Purging System All...") {
-                        manager.purgeEverything()
+                    
+                    Button("Logs") {
+                        manager.fetchLogs(id: item.containerId)
+                        selectedTab = "Logs"
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
-                }
-                .padding(16)
-                .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.red.opacity(0.2), lineWidth: 1))
-                
-                // System DF Breakdown Grid
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                    purgeCard(title: "Dangling Images", icon: "shippingbox", actionTitle: "Purge Images", action: { manager.purgeImages() })
-                    purgeCard(title: "Stopped Containers", icon: "square.slash", actionTitle: "Purge Containers", action: { manager.purgeStoppedContainers() })
-                    purgeCard(title: "Unused Volumes", icon: "internaldrive", actionTitle: "Purge Volumes", action: { manager.purgeVolumes() })
-                    purgeCard(title: "Build Cache", icon: "hammer.fill", actionTitle: "Purge Build Cache", action: { manager.purgeBuildCache() })
-                }
-            }
-            .padding(20)
-        }
-    }
-    
-    @ViewBuilder
-    private func purgeCard(title: String, icon: String, actionTitle: String, action: @escaping () -> Void) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundColor(.accentColor)
-                Text(title)
-                    .font(.headline.bold())
-            }
-            Text("Reclaim disk space occupied by idle or orphaned items.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            HStack {
-                Spacer()
-                Button(actionTitle, action: action)
                     .buttonStyle(.bordered)
-            }
-        }
-        .padding(16)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
-    }
-    
-    // MARK: - Tab 3: Log Streamer
-    @ViewBuilder
-    private func logsTabView() -> some View {
-        VStack(spacing: 12) {
-            HStack {
-                Picker("Container", selection: $selectedContainerID) {
-                    Text("Select a container...").tag(String?.none)
-                    ForEach(manager.containers) { c in
-                        Text("\(c.name) (\(c.id.prefix(8)))").tag(String?.some(c.id))
+                    
+                    if item.isRunning {
+                        Button("Stop") { manager.stopContainer(id: item.containerId) }
+                            .buttonStyle(.bordered)
+                            .tint(.orange)
+                    } else {
+                        Button("Start") { manager.startContainer(id: item.containerId) }
+                            .buttonStyle(.borderedProminent)
                     }
                 }
-                .frame(maxWidth: 320)
-                
-                TextField("Filter log lines...", text: $logSearch)
-                    .textFieldStyle(.roundedBorder)
-                
-                Button("Refresh Logs") {
-                    if let id = selectedContainerID { fetchLogs(for: id) }
-                }
-                .buttonStyle(.borderedProminent)
+                .padding(.vertical, 4)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 14)
-            
-            // Console Terminal Box
-            ScrollView {
-                Text(filteredLogs)
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundColor(.green)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(14)
-            }
-            .background(Color.black, in: RoundedRectangle(cornerRadius: 10))
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
+            .listStyle(.inset)
         }
     }
     
-    var filteredLogs: String {
-        guard !logSearch.isEmpty else { return logOutput.isEmpty ? "Select a container above to stream logs..." : logOutput }
-        let lines = logOutput.components(separatedBy: .newlines)
-        return lines.filter { $0.localizedCaseInsensitiveContains(logSearch) }.joined(separator: "\n")
-    }
-    
-    private func fetchLogs(for containerID: String) {
-        guard !manager.dockerPath.isEmpty else { return }
-        DispatchQueue.global(qos: .userInitiated).async {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: manager.dockerPath)
-            process.arguments = ["logs", "--tail", "250", containerID]
-            let pipe = Pipe()
-            process.standardOutput = pipe
-            process.standardError = pipe
-            try? process.run()
-            process.waitUntilExit()
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            let text = String(data: data, encoding: .utf8) ?? "No log output received."
-            DispatchQueue.main.async {
-                self.logOutput = text
-            }
-        }
-    }
-    
-    // MARK: - Tab 4: Compose Stacks
     @ViewBuilder
-    private func composeTabView() -> some View {
+    private func logsView() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Container Log Stream Output").font(.headline)
+            TextEditor(text: .constant(manager.selectedContainerLogs.isEmpty ? "Select a container and click 'Logs' to inspect output." : manager.selectedContainerLogs))
+                .font(.system(.caption, design: .monospaced))
+                .cornerRadius(8)
+        }
+        .padding()
+    }
+    
+    @ViewBuilder
+    private func pruneView() -> some View {
         VStack(spacing: 16) {
-            Image(systemName: "square.stack.3d.up.fill")
+            Image(systemName: "trash.circle.fill")
                 .font(.system(size: 48))
-                .foregroundColor(.cyan)
-            Text("Compose Stack Manager")
-                .font(.title2).bold()
-            Text("Workspace scanner for `docker-compose.yml` services.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text("Active Project Workspaces Monitored: Juicer Studio")
-                .font(.caption.monospaced())
-                .foregroundColor(.accentColor)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(20)
-    }
-    
-    @ViewBuilder
-    private func dockerNotInstalledView() -> some View {
-        VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 52))
-                .foregroundColor(.orange)
-            Text("Docker Not Detected")
-                .font(.title2).bold()
-            Text("Juicer requires Docker Desktop, OrbStack, or Colima to inspect containers.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.red)
+            Text("Docker System Cache Purge")
+                .font(.title2.bold())
+            Text("Reclaim disk space by purging stopped containers, unused networks, dangling images, and build cache (`docker system prune -f`).")
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 500)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: 450)
             
-            Button("Install via Homebrew Cask (`brew install --cask orbstack`)") {
-                if let url = URL(string: "https://orbstack.dev") { NSWorkspace.shared.open(url) }
+            Button("Execute Docker System Prune") {
+                manager.pruneSystem()
             }
             .buttonStyle(.borderedProminent)
-            .tint(.cyan)
+            .tint(.red)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(40)
-    }
-    
-    @ViewBuilder
-    private func dockerDaemonStoppedView() -> some View {
-        VStack(spacing: 16) {
-            Image(systemName: "play.circle.fill")
-                .font(.system(size: 52))
-                .foregroundColor(.orange)
-            Text("Docker Daemon Not Running")
-                .font(.title2).bold()
-            Text("Docker CLI was found at `\(manager.dockerPath)`, but the background daemon is currently offline.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 500)
-            
-            Button("Check / Refresh Daemon") {
-                manager.refreshAll()
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.blue)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(40)
+        .padding()
     }
 }

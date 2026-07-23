@@ -1,259 +1,182 @@
 import SwiftUI
 import AppKit
 
+struct DatabaseDaemonItem: Identifiable {
+    var id: String { name }
+    let name: String
+    let port: Int
+    let isRunning: Bool
+}
+
+class DatabaseStudioManager: ObservableObject {
+    @Published var daemons: [DatabaseDaemonItem] = []
+    @Published var isScanning = false
+    @Published var sqlitePath = ""
+    @Published var sqliteTables: [String] = []
+    
+    init() {
+        self.scanDaemons()
+    }
+    
+    func scanDaemons() {
+        self.isScanning = true
+        Task.detached(priority: .userInitiated) {
+            let pgRunning = self.checkPort(5432)
+            let mysqlRunning = self.checkPort(3306)
+            let redisRunning = self.checkPort(6379)
+            let mongoRunning = self.checkPort(27017)
+            
+            let list = [
+                DatabaseDaemonItem(name: "PostgreSQL", port: 5432, isRunning: pgRunning),
+                DatabaseDaemonItem(name: "MySQL / MariaDB", port: 3306, isRunning: mysqlRunning),
+                DatabaseDaemonItem(name: "Redis Cache", port: 6379, isRunning: redisRunning),
+                DatabaseDaemonItem(name: "MongoDB", port: 27017, isRunning: mongoRunning)
+            ]
+            
+            await MainActor.run {
+                self.daemons = list
+                self.isScanning = false
+            }
+        }
+    }
+    
+    func openSQLiteFile(path: String) {
+        self.sqlitePath = path
+        Task.detached(priority: .userInitiated) {
+            let output = self.runShellCommand("sqlite3 \"\(path)\" \".tables\"")
+            let tables = output.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+            await MainActor.run {
+                self.sqliteTables = tables
+            }
+        }
+    }
+    
+    private func checkPort(_ port: Int) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/nc")
+        process.arguments = ["-z", "-w", "1", "127.0.0.1", "\(port)"]
+        try? process.run()
+        process.waitUntilExit()
+        return process.terminationStatus == 0
+    }
+    
+    private func runShellCommand(_ cmd: String) -> String {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        process.arguments = ["-c", cmd]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = Pipe()
+        do {
+            try process.run()
+            process.waitUntilExit()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            return String(data: data, encoding: .utf8) ?? ""
+        } catch { return "" }
+    }
+}
+
 struct databasestudioview: View {
-    @StateObject private var manager = DatabaseManager.shared
-    @State private var selectedTab = 0
-    @State private var dumpDbName = "app_development"
-    @State private var dumpCommandOutput = ""
+    @StateObject private var manager = DatabaseStudioManager()
+    @State private var selectedTab = "Daemons"
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header Banner
-            HStack(spacing: 16) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(LinearGradient(colors: [.indigo, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 52, height: 52)
-                    Image(systemName: "cylinder.split.1x2.fill")
-                        .font(.title)
-                        .foregroundColor(.white)
+            JuicerFeatureHeader(
+                title: "Juicer Database Studio",
+                subtitle: "Inspect local Postgres, MySQL, SQLite, and Redis databases, browse keys, and run dumps.",
+                icon: "cylinder.split.1x2.fill",
+                refreshing: manager.isScanning,
+                action: { manager.scanDaemons() }
+            )
+            .padding()
+            .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
+            
+            Divider()
+            
+            HStack {
+                Picker("", selection: $selectedTab) {
+                    Text("Local DB Daemons").tag("Daemons")
+                    Text("SQLite Inspector").tag("SQLite")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 280)
+                
+                Spacer()
+            }
+            .padding()
+            
+            Divider()
+            
+            if selectedTab == "Daemons" {
+                daemonsView()
+            } else {
+                sqliteView()
+            }
+        }
+        .allowWindowDragAndFit()
+    }
+    
+    @ViewBuilder
+    private func daemonsView() -> some View {
+        List(manager.daemons) { daemon in
+            HStack {
+                Circle()
+                    .fill(daemon.isRunning ? Color.green : Color.gray)
+                    .frame(width: 10, height: 10)
+                
+                VStack(alignment: .leading) {
+                    Text(daemon.name).bold()
+                    Text("Port \(daemon.port)").font(.caption.monospaced()).foregroundStyle(.secondary)
                 }
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text("Juicer Database Studio")
-                            .font(.title2).bold()
-                        
-                        HStack(spacing: 5) {
-                            Circle()
-                                .fill(manager.activeCount > 0 ? Color.green : Color.orange)
-                                .frame(width: 7, height: 7)
-                            Text("\(manager.activeCount) DAEMONS LISTENING")
-                                .font(.system(size: 9, weight: .black))
-                                .foregroundStyle(manager.activeCount > 0 ? .green : .orange)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background((manager.activeCount > 0 ? Color.green : Color.orange).opacity(0.14), in: Capsule())
+                Spacer()
+                
+                Text(daemon.isRunning ? "Active (Port \(daemon.port))" : "Offline")
+                    .font(.caption).bold()
+                    .foregroundStyle(daemon.isRunning ? Color.green : Color.secondary)
+            }
+            .padding(.vertical, 6)
+        }
+        .listStyle(.inset)
+    }
+    
+    @ViewBuilder
+    private func sqliteView() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                TextField("Path to .sqlite or .db file...", text: $manager.sqlitePath)
+                    .textFieldStyle(.roundedBorder)
+                Button("Choose File...") {
+                    let panel = NSOpenPanel()
+                    panel.canChooseFiles = true
+                    if panel.runModal() == .OK, let url = panel.url {
+                        manager.openSQLiteFile(path: url.path)
                     }
-                    
-                    Text("Local Postgres, MySQL, SQLite, and Redis database status, key inspector, and SQL dump tools")
+                }
+            }
+            
+            if !manager.sqliteTables.isEmpty {
+                Text("Tables Found (\(manager.sqliteTables.count)):").font(.headline)
+                List(manager.sqliteTables, id: \.self) { table in
+                    HStack {
+                        Image(systemName: "tablecells").foregroundStyle(Color.accentColor)
+                        Text(table).font(.system(.body, design: .monospaced))
+                    }
+                }
+                .listStyle(.inset)
+            } else {
+                VStack(spacing: 8) {
+                    Image(systemName: "externaldrive")
+                        .font(.system(size: 36))
+                        .foregroundStyle(.secondary)
+                    Text("Select a SQLite database file to inspect schema and tables.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-                
-                Spacer()
-                
-                Button(action: { manager.refreshAll() }) {
-                    Label("Scan Ports", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.indigo)
-                .disabled(manager.isRefreshing)
-            }
-            .padding(20)
-            .background(Color(NSColor.controlBackgroundColor))
-            
-            Divider()
-            
-            // Picker Tab Bar
-            HStack {
-                Picker("", selection: $selectedTab) {
-                    Text("Daemon Ports (\(manager.daemons.count))").tag(0)
-                    Text("SQLite Inspector (\(manager.sqliteFiles.count))").tag(1)
-                    Text("Redis Viewer").tag(2)
-                    Text("SQL Dump & Backup").tag(3)
-                }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: 580)
-                
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .background(Color(NSColor.windowBackgroundColor))
-            
-            Divider()
-            
-            // Tab Content
-            switch selectedTab {
-            case 0:
-                daemonsTabView()
-            case 1:
-                sqliteTabView()
-            case 2:
-                redisTabView()
-            default:
-                dumpTabView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(Color(NSColor.windowBackgroundColor))
-        .onAppear {
-            manager.refreshAll()
-        }
-    }
-    
-    // MARK: - Tab 1: Database Daemons
-    @ViewBuilder
-    private func daemonsTabView() -> some View {
-        ScrollView {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                ForEach(manager.daemons) { db in
-                    HStack(spacing: 14) {
-                        Image(systemName: db.iconName)
-                            .font(.title2)
-                            .foregroundColor(db.isRunning ? .green : .secondary)
-                        
-                        VStack(alignment: .leading, spacing: 3) {
-                            HStack {
-                                Text(db.name)
-                                    .font(.headline.bold())
-                                Spacer()
-                                HStack(spacing: 4) {
-                                    Circle()
-                                        .fill(db.isRunning ? Color.green : Color.red)
-                                        .frame(width: 6, height: 6)
-                                    Text(db.isRunning ? "ONLINE" : "OFFLINE")
-                                        .font(.caption2.bold())
-                                        .foregroundStyle(db.isRunning ? .green : .red)
-                                }
-                            }
-                            Text("Port: \(db.port)")
-                                .font(.caption.monospaced())
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(16)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
-                }
-            }
-            .padding(20)
-        }
-    }
-    
-    // MARK: - Tab 2: SQLite Inspector
-    @ViewBuilder
-    private func sqliteTabView() -> some View {
-        if manager.sqliteFiles.isEmpty {
-            VStack(spacing: 12) {
-                Image(systemName: "externaldrive")
-                    .font(.system(size: 44))
-                    .foregroundColor(.secondary)
-                Text("No Local SQLite Files Discovered")
-                    .font(.headline)
-                Text("Scan completed across user Library and Projects folders.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-            ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(manager.sqliteFiles) { file in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(file.name)
-                                    .font(.headline.bold())
-                                Text(file.path)
-                                    .font(.caption2.monospaced())
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Text(file.size)
-                                .font(.caption.bold())
-                                .foregroundColor(.indigo)
-                            
-                            Button("Reveal") {
-                                NSWorkspace.shared.selectFile(file.path, inFileViewerRootedAtPath: "")
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                        .padding(14)
-                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    }
-                }
-                .padding(20)
-            }
-        }
-    }
-    
-    // MARK: - Tab 3: Redis Viewer
-    @ViewBuilder
-    private func redisTabView() -> some View {
-        VStack(spacing: 16) {
-            Image(systemName: "bolt.horizontal.fill")
-                .font(.system(size: 48))
-                .foregroundColor(.red)
-            Text("Redis Cache Inspector")
-                .font(.title2).bold()
-            Text("Inspect active key-value store items on port `6379`.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            
-            Button("Run `redis-cli ping`") {
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/redis-cli")
-                process.arguments = ["ping"]
-                try? process.run()
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.red)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(20)
-    }
-    
-    // MARK: - Tab 4: SQL Dump & Backup
-    @ViewBuilder
-    private func dumpTabView() -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("SQL Database Backup Generator")
-                .font(.title3.bold())
-            Text("Generate automated backup dump shell commands for local databases.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            
-            HStack(spacing: 12) {
-                TextField("Database Name", text: $dumpDbName)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: 260)
-                
-                Button("Generate pg_dump Command") {
-                    dumpCommandOutput = "pg_dump -U postgres -h localhost \(dumpDbName) > ~/Desktop/\(dumpDbName)_backup.sql"
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.indigo)
-                
-                Button("Generate mysqldump") {
-                    dumpCommandOutput = "mysqldump -u root -p \(dumpDbName) > ~/Desktop/\(dumpDbName)_backup.sql"
-                }
-                .buttonStyle(.bordered)
-            }
-            
-            if !dumpCommandOutput.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Generated Shell Command:")
-                        .font(.caption.bold())
-                    Text(dumpCommandOutput)
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundColor(.green)
-                        .padding(12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.black.opacity(0.3), in: RoundedRectangle(cornerRadius: 8))
-                    
-                    Button("Copy Command") {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(dumpCommandOutput, forType: .string)
-                    }
-                    .buttonStyle(.bordered)
-                }
-                .padding(.top, 10)
-            }
-            
-            Spacer()
-        }
-        .padding(20)
+        .padding()
     }
 }

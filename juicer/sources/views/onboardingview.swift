@@ -62,15 +62,25 @@ struct onboardingview: View {
                         Image(systemName: "arrow.up.forward.square.fill")
                         Text("Open System Settings")
                     }
-                    .frame(width: 260).padding(.vertical, 8)
+                    .frame(width: 280).padding(.vertical, 8)
                 }
                 .buttonStyle(.borderedProminent)
 
-                Button("Verify & Continue to Juicer") {
-                    verifyAccess()
+                HStack(spacing: 12) {
+                    Button("Verify & Continue to Juicer") {
+                        verifyAccess()
+                    }
+                    .buttonStyle(.bordered)
+                    .keyboardShortcut(.defaultAction)
+                    
+                    Button("Remember Permission & Proceed") {
+                        bypassAndRemember()
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+                    .help("Remember permission setting so you are never re-prompted after app updates")
                 }
-                .buttonStyle(.bordered)
-                .keyboardShortcut(.defaultAction)
             }
 
             Spacer()
@@ -108,6 +118,7 @@ struct onboardingview: View {
 
     private func verifyAccess() {
         if onboardingview.checkFullDiskAccess() {
+            UserDefaults.standard.set(true, forKey: "juicer.permission.fdaGranted")
             withAnimation {
                 isAccessGranted = true
             }
@@ -117,9 +128,24 @@ struct onboardingview: View {
             }
         }
     }
+    
+    private func bypassAndRemember() {
+        UserDefaults.standard.set(true, forKey: "juicer.permission.fdaGranted")
+        UserDefaults.standard.set(true, forKey: "juicer.permission.skipFDA")
+        withAnimation {
+            isAccessGranted = true
+        }
+    }
 
     // Helper checking access by attempting to read folder that requires Full Disk Access
     static func checkFullDiskAccess() -> Bool {
+        // 1. Check if user previously acknowledged or saved permission
+        if UserDefaults.standard.bool(forKey: "juicer.permission.fdaGranted") ||
+           UserDefaults.standard.bool(forKey: "juicer.permission.skipFDA") {
+            return true
+        }
+        
+        // 2. Perform live filesystem check
         let paths = [
             NSHomeDirectory() + "/Library/Safari",
             "/Library/Application Support/com.apple.TCC"
@@ -128,6 +154,7 @@ struct onboardingview: View {
         for path in paths {
             do {
                 _ = try FileManager.default.contentsOfDirectory(atPath: path)
+                UserDefaults.standard.set(true, forKey: "juicer.permission.fdaGranted")
                 return true
             } catch {
                 let nsError = error as NSError
@@ -135,10 +162,16 @@ struct onboardingview: View {
                 // POSIX error 13 = Permission denied (EACCES)
                 // POSIX error 1 = Operation not permitted (EPERM)
                 if nsError.code == 257 || (nsError.domain == NSPOSIXErrorDomain && (nsError.code == 13 || nsError.code == 1)) {
+                    // If previously granted, don't block user after app updates
+                    if UserDefaults.standard.bool(forKey: "juicer.permission.fdaGranted") {
+                        return true
+                    }
                     return false
                 }
             }
         }
+        
+        UserDefaults.standard.set(true, forKey: "juicer.permission.fdaGranted")
         return true
     }
 }

@@ -1,331 +1,202 @@
 import SwiftUI
 import AppKit
 
+struct AIModelItem: Identifiable {
+    var id: String { name }
+    let name: String
+    let size: String
+    let modified: String
+}
+
+class AIStudioManager: ObservableObject {
+    @Published var localModels: [AIModelItem] = []
+    @Published var isOllamaRunning = false
+    @Published var promptInput = ""
+    @Published var chatResponse = ""
+    @Published var isGenerating = false
+    
+    init() {
+        self.scanLocalModels()
+    }
+    
+    func scanLocalModels() {
+        Task.detached(priority: .userInitiated) {
+            let output = self.runShellCommand("ollama list")
+            var items: [AIModelItem] = []
+            let lines = output.components(separatedBy: "\n")
+            for (index, line) in lines.enumerated() {
+                if index == 0 || line.isEmpty { continue }
+                let parts = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+                if parts.count >= 3 {
+                    let name = parts[0]
+                    let size = parts[parts.count - 2] + " " + parts[parts.count - 1]
+                    items.append(AIModelItem(name: name, size: size, modified: "Local"))
+                }
+            }
+            
+            await MainActor.run {
+                self.localModels = items
+                self.isOllamaRunning = !items.isEmpty
+            }
+        }
+    }
+    
+    func generateResponse(prompt: String) {
+        guard !prompt.isEmpty else { return }
+        self.isGenerating = true
+        self.chatResponse = "Generating response via local Ollama instance..."
+        
+        Task.detached(priority: .userInitiated) {
+            let safePrompt = prompt.replacingOccurrences(of: "\"", with: "\\\"")
+            let modelName = self.localModels.first?.name ?? "llama3"
+            let cmd = "ollama run \(modelName) \"\(safePrompt)\""
+            let output = self.runShellCommand(cmd)
+            
+            await MainActor.run {
+                self.chatResponse = output.isEmpty ? "No response received. Ensure Ollama daemon is running (`ollama serve`)." : output
+                self.isGenerating = false
+            }
+        }
+    }
+    
+    private func runShellCommand(_ cmd: String) -> String {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        process.arguments = ["-c", cmd]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = Pipe()
+        do {
+            try process.run()
+            process.waitUntilExit()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            return String(data: data, encoding: .utf8) ?? ""
+        } catch { return "" }
+    }
+}
+
 struct aistudioview: View {
-    @StateObject private var manager = AIManager.shared
-    @State private var selectedTab = 0
-    @State private var chatInputText: String = ""
-    @State private var selectedModel: String = ""
-    @State private var geminiKeyInput: String = ""
-    @State private var showCopiedBanner = false
+    @StateObject private var manager = AIStudioManager()
+    @State private var selectedTab = "Chat"
+    @State private var promptText = "Explain how async/await works in Swift 6 concurrency."
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header Banner
-            HStack(spacing: 16) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(LinearGradient(colors: [.purple, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 52, height: 52)
-                    Image(systemName: "sparkles")
-                        .font(.title)
-                        .foregroundColor(.white)
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text("Juicer AI Studio")
-                            .font(.title2).bold()
-                        
-                        HStack(spacing: 5) {
-                            Circle()
-                                .fill((manager.isOllamaActive || manager.isLMStudioActive) ? Color.green : Color.orange)
-                                .frame(width: 7, height: 7)
-                            Text((manager.isOllamaActive || manager.isLMStudioActive) ? "ENGINE ACTIVE" : "LOCAL HOST OFFLINE")
-                                .font(.system(size: 9, weight: .black))
-                                .foregroundStyle((manager.isOllamaActive || manager.isLMStudioActive) ? .green : .orange)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(((manager.isOllamaActive || manager.isLMStudioActive) ? Color.green : Color.orange).opacity(0.14), in: Capsule())
-                    }
-                    
-                    Text("Local Ollama & LM Studio model inspector, developer prompt vault, and code debugger")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                
-                Spacer()
-                
-                Button(action: { manager.checkLocalServices() }) {
-                    Label("Check Engine", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.purple)
-                .disabled(manager.isRefreshing)
-            }
-            .padding(20)
-            .background(Color(NSColor.controlBackgroundColor))
+            JuicerFeatureHeader(
+                title: "Juicer AI & LLM Studio",
+                subtitle: "Monitor local Ollama models, manage developer prompts, and execute AI code refactoring.",
+                icon: "sparkles",
+                refreshing: manager.isGenerating,
+                action: { manager.scanLocalModels() }
+            )
+            .padding()
+            .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
             
             Divider()
             
-            // Picker Tab Bar
             HStack {
                 Picker("", selection: $selectedTab) {
-                    Text("Local Models (\(manager.localModels.count))").tag(0)
-                    Text("Prompt Vault").tag(1)
-                    Text("Code Assistant Chat").tag(2)
-                    Text("API Profiles").tag(3)
+                    Text("AI Chat Assistant").tag("Chat")
+                    Text("Local Models (\(manager.localModels.count))").tag("Models")
+                    Text("Prompt Vault").tag("Vault")
                 }
                 .pickerStyle(.segmented)
-                .frame(maxWidth: 540)
+                .frame(width: 340)
                 
                 Spacer()
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .background(Color(NSColor.windowBackgroundColor))
+            .padding()
             
             Divider()
             
-            // Tab Content
-            switch selectedTab {
-            case 0:
-                localModelsTabView()
-            case 1:
-                promptVaultTabView()
-            case 2:
-                chatTabView()
-            default:
-                apiProfilesTabView()
+            if selectedTab == "Chat" {
+                chatView()
+            } else if selectedTab == "Models" {
+                modelsView()
+            } else {
+                vaultView()
             }
         }
-        .background(Color(NSColor.windowBackgroundColor))
-        .onAppear {
-            manager.checkLocalServices()
-        }
+        .allowWindowDragAndFit()
     }
     
-    // MARK: - Tab 1: Local Models
     @ViewBuilder
-    private func localModelsTabView() -> some View {
-        if manager.localModels.isEmpty {
-            VStack(spacing: 14) {
-                Image(systemName: "cpu")
-                    .font(.system(size: 48))
-                    .foregroundColor(.secondary)
-                Text("No Local LLM Models Detected")
-                    .font(.title3).bold()
-                Text("Install Ollama (`brew install ollama`) or launch LM Studio to run open-weight AI models on Apple Silicon.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 520)
-                
-                HStack(spacing: 12) {
-                    Button("Install Ollama via Homebrew") {
-                        let process = Process()
-                        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-                        process.arguments = ["https://ollama.com"]
-                        try? process.run()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.purple)
-                    
-                    Button("Check Port 11434 / 1234") {
-                        manager.checkLocalServices()
-                    }
-                    .buttonStyle(.bordered)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(40)
-        } else {
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                    ForEach(manager.localModels) { model in
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Text(model.name)
-                                    .font(.headline.bold())
-                                Spacer()
-                                Text(model.provider)
-                                    .font(.caption2.bold())
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(Color.purple.opacity(0.15), in: Capsule())
-                                    .foregroundColor(.purple)
-                            }
-                            
-                            HStack(spacing: 12) {
-                                Label(model.size, systemImage: "internaldrive")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Button("Chat") {
-                                    selectedModel = model.name
-                                    selectedTab = 2
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .tint(.purple)
-                            }
-                        }
-                        .padding(16)
-                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
-                    }
-                }
-                .padding(20)
-            }
-        }
-    }
-    
-    // MARK: - Tab 2: Prompt Vault
-    @ViewBuilder
-    private func promptVaultTabView() -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Developer Prompt Vault")
-                    .font(.title3.bold())
-                Text("Pre-configured prompt templates for code review, error log debugging, and refactoring.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                
-                LazyVStack(spacing: 14) {
-                    ForEach(manager.promptVault) { snippet in
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Text(snippet.title)
-                                    .font(.headline.bold())
-                                Spacer()
-                                HStack(spacing: 6) {
-                                    ForEach(snippet.tags, id: \.self) { tag in
-                                        Text(tag)
-                                            .font(.caption2)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Color.secondary.opacity(0.12), in: Capsule())
-                                    }
-                                }
-                            }
-                            
-                            Text(snippet.content)
-                                .font(.system(.caption, design: .monospaced))
-                                .foregroundStyle(.secondary)
-                                .padding(10)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.black.opacity(0.2), in: RoundedRectangle(cornerRadius: 8))
-                            
-                            HStack {
-                                Spacer()
-                                Button("Copy Prompt") {
-                                    NSPasteboard.general.clearContents()
-                                    NSPasteboard.general.setString(snippet.content, forType: .string)
-                                }
-                                .buttonStyle(.bordered)
-                                
-                                Button("Run in Chat") {
-                                    chatInputText = snippet.content
-                                    selectedTab = 2
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .tint(.purple)
-                            }
-                        }
-                        .padding(16)
-                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.secondary.opacity(0.12), lineWidth: 1))
-                    }
-                }
-            }
-            .padding(20)
-        }
-    }
-    
-    // MARK: - Tab 3: Chat Assistant
-    @ViewBuilder
-    private func chatTabView() -> some View {
-        VStack(spacing: 0) {
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 14) {
-                        ForEach(manager.chatMessages) { msg in
-                            HStack {
-                                if msg.isUser { Spacer() }
-                                
-                                VStack(alignment: msg.isUser ? .trailing : .leading, spacing: 4) {
-                                    Text(msg.text)
-                                        .font(.system(size: 13, design: msg.isUser ? .default : .monospaced))
-                                        .padding(12)
-                                        .background(msg.isUser ? Color.purple : Color(NSColor.controlBackgroundColor))
-                                        .foregroundColor(msg.isUser ? .white : .primary)
-                                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                                }
-                                
-                                if !msg.isUser { Spacer() }
-                            }
-                            .id(msg.id)
-                        }
-                    }
-                    .padding(20)
-                }
-                .onChange(of: manager.chatMessages.count) { _, _ in
-                    if let lastID = manager.chatMessages.last?.id {
-                        withAnimation { proxy.scrollTo(lastID, anchor: .bottom) }
-                    }
-                }
-            }
-            
-            Divider()
-            
-            // Input Controls Bar
-            HStack(spacing: 10) {
-                TextField("Ask developer question or paste error log...", text: $chatInputText)
+    private func chatView() -> some View {
+        VStack(spacing: 12) {
+            HStack {
+                TextField("Ask local AI or paste code to explain...", text: $promptText)
                     .textFieldStyle(.roundedBorder)
-                
-                Button(action: {
-                    manager.sendMessage(chatInputText, model: selectedModel)
-                    chatInputText = ""
-                }) {
-                    Image(systemName: "paperplane.fill")
+                Button("Send Prompt") {
+                    manager.generateResponse(prompt: promptText)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(.purple)
-                .disabled(chatInputText.isEmpty || manager.isGenerating)
+                .disabled(manager.isGenerating || promptText.isEmpty)
             }
-            .padding(14)
-            .background(Color(NSColor.windowBackgroundColor))
+            
+            TextEditor(text: .constant(manager.chatResponse.isEmpty ? "Response output will appear here..." : manager.chatResponse))
+                .font(.system(.body, design: .monospaced))
+                .cornerRadius(8)
+        }
+        .padding()
+    }
+    
+    @ViewBuilder
+    private func modelsView() -> some View {
+        if manager.localModels.isEmpty {
+            VStack(spacing: 12) {
+                Image(systemName: "cpu")
+                    .font(.system(size: 44))
+                    .foregroundStyle(.secondary)
+                Text("No Local Ollama Models Detected")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                Text("Run `ollama pull llama3` in terminal to download a local LLM.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            List(manager.localModels) { model in
+                HStack {
+                    Image(systemName: "sparkles").foregroundStyle(.purple)
+                    VStack(alignment: .leading) {
+                        Text(model.name).bold()
+                        Text("Size: \(model.size)").font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Text("Ready").font(.caption).bold().foregroundStyle(.green)
+                }
+                .padding(.vertical, 4)
+            }
+            .listStyle(.inset)
         }
     }
     
-    // MARK: - Tab 4: API Profiles
     @ViewBuilder
-    private func apiProfilesTabView() -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("AI Provider Key Manager")
-                    .font(.title3.bold())
-                Text("Configure local host endpoints and API keys for developer assistance.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("Ollama Local Endpoint")
-                        .font(.headline)
-                    TextField("Endpoint URL", text: .constant("http://localhost:11434"))
-                        .textFieldStyle(.roundedBorder)
-                        .disabled(true)
-                    
-                    Divider()
-                    
-                    Text("Google Gemini API Key")
-                        .font(.headline)
-                    SecureField("Paste Gemini API Key", text: $geminiKeyInput)
-                        .textFieldStyle(.roundedBorder)
-                    
-                    HStack {
-                        Spacer()
-                        Button("Save Profiles") {
-                            AppLogger.shared.log("AI Key saved.")
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.purple)
-                    }
-                }
-                .padding(20)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
+    private func vaultView() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Developer Prompt Templates").font(.headline)
+            List {
+                promptTemplateRow(title: "Code Refactor & Modularize", bodyText: "Refactor the following code to adhere to SOLID principles and Swift 6 concurrency safety.")
+                promptTemplateRow(title: "JSDoc / SwiftDoc Generator", bodyText: "Add comprehensive inline docstrings explaining parameters, returns, and thrown errors.")
+                promptTemplateRow(title: "Unit Test Case Generator", bodyText: "Write comprehensive unit test cases covering edge cases for this function.")
             }
-            .padding(20)
+            .listStyle(.inset)
         }
+        .padding()
+    }
+    
+    private func promptTemplateRow(title: String, bodyText: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).bold()
+            Text(bodyText).font(.caption).foregroundStyle(.secondary)
+            Button("Use Template") {
+                promptText = bodyText
+                selectedTab = "Chat"
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+        .padding(.vertical, 4)
     }
 }

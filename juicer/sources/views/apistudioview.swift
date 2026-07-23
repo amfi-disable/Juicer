@@ -2,277 +2,166 @@ import SwiftUI
 import AppKit
 
 struct apistudioview: View {
-    @StateObject private var manager = APIManager.shared
-    @State private var selectedTab = 0
-    @State private var selectedMethod = "GET"
-    @State private var urlInput = "https://api.github.com/zen"
-    @State private var headersInput = "Accept: application/json\nUser-Agent: Juicer-API-Studio"
-    @State private var bodyInput = ""
-    @State private var curlInput = ""
-    @State private var bearerToken = ""
-    
-    let methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"]
+    @State private var httpMethod = "GET"
+    @State private var urlString = "https://api.github.com/zen"
+    @State private var requestHeaders = "User-Agent: Juicer-API-Studio/1.0"
+    @State private var responseBody = ""
+    @State private var statusCode = ""
+    @State private var isExecuting = false
+    @State private var benchmarkCount = "10"
+    @State private var benchmarkResults = ""
+    @State private var selectedTab = "Workbench"
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header Banner
-            HStack(spacing: 16) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(LinearGradient(colors: [.teal, .mint], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 52, height: 52)
-                    Image(systemName: "paperplane.fill")
-                        .font(.title)
-                        .foregroundColor(.white)
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text("Juicer API Studio")
-                            .font(.title2).bold()
-                        
-                        HStack(spacing: 5) {
-                            Circle()
-                                .fill(Color.green)
-                                .frame(width: 7, height: 7)
-                            Text("REST WORKBENCH READY")
-                                .font(.system(size: 9, weight: .black))
-                                .foregroundStyle(.green)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color.green.opacity(0.14), in: Capsule())
-                    }
-                    
-                    Text("Native REST request workbench, cURL importer, load benchmarker, and header inspector")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                
-                Spacer()
-            }
-            .padding(20)
-            .background(Color(NSColor.controlBackgroundColor))
+            JuicerFeatureHeader(
+                title: "Juicer API & HTTP Studio",
+                subtitle: "Native REST request workbench, cURL importer, endpoint load benchmarker, and header inspector.",
+                icon: "paperplane.fill",
+                refreshing: isExecuting,
+                action: { sendRequest() }
+            )
+            .padding()
+            .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
             
             Divider()
             
-            // Picker Tab Bar
             HStack {
                 Picker("", selection: $selectedTab) {
-                    Text("REST Workbench").tag(0)
-                    Text("cURL Importer").tag(1)
-                    Text("Bearer & Auth").tag(2)
-                    Text("Presets (\(manager.presets.count))").tag(3)
+                    Text("REST Workbench").tag("Workbench")
+                    Text("Load Benchmarker").tag("Benchmark")
                 }
                 .pickerStyle(.segmented)
-                .frame(maxWidth: 540)
+                .frame(width: 280)
                 
                 Spacer()
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .background(Color(NSColor.windowBackgroundColor))
+            .padding()
             
             Divider()
             
-            // Tab Content
-            switch selectedTab {
-            case 0:
-                workbenchTabView()
-            case 1:
-                curlTabView()
-            case 2:
-                authTabView()
-            default:
-                presetsTabView()
+            if selectedTab == "Workbench" {
+                workbenchView()
+            } else {
+                benchmarkView()
             }
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .allowWindowDragAndFit()
     }
     
-    // MARK: - Tab 1: REST Workbench
     @ViewBuilder
-    private func workbenchTabView() -> some View {
-        VStack(spacing: 12) {
-            // URL Bar
-            HStack(spacing: 8) {
-                Picker("", selection: $selectedMethod) {
-                    ForEach(methods, id: \.self) { m in
-                        Text(m).tag(m)
-                    }
+    private func workbenchView() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Picker("", selection: $httpMethod) {
+                    Text("GET").tag("GET")
+                    Text("POST").tag("POST")
+                    Text("PUT").tag("PUT")
+                    Text("DELETE").tag("DELETE")
                 }
-                .frame(width: 100)
+                .frame(width: 90)
                 
-                TextField("Enter request URL (e.g. https://api.github.com/...)", text: $urlInput)
+                TextField("https://api.example.com/v1/resource", text: $urlString)
                     .textFieldStyle(.roundedBorder)
                 
-                Button("Send") {
-                    manager.executeRequest(method: selectedMethod, urlString: urlInput, headersText: headersInput, bodyText: bodyInput)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.teal)
-                .disabled(urlInput.isEmpty || manager.isExecuting)
+                Button("Send Request") { sendRequest() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isExecuting || urlString.isEmpty)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 14)
             
-            // Request Payload / Headers Split View
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Headers (Key: Value):")
-                        .font(.caption.bold())
-                    TextEditor(text: $headersInput)
-                        .font(.system(.caption, design: .monospaced))
-                        .padding(6)
-                        .background(Color(NSColor.controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
-                }
-                
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("JSON Body Payload:")
-                        .font(.caption.bold())
-                    TextEditor(text: $bodyInput)
-                        .font(.system(.caption, design: .monospaced))
-                        .padding(6)
-                        .background(Color(NSColor.controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+            if !statusCode.isEmpty {
+                HStack {
+                    Text("Status: \(statusCode)").bold()
+                        .foregroundStyle(statusCode.contains("200") || statusCode.contains("201") ? Color.green : Color.orange)
+                    Spacer()
                 }
             }
-            .frame(height: 140)
-            .padding(.horizontal, 20)
             
-            Divider()
+            TextEditor(text: .constant(responseBody.isEmpty ? "Response body will appear here after sending request..." : responseBody))
+                .font(.system(.body, design: .monospaced))
+                .cornerRadius(8)
+        }
+        .padding()
+    }
+    
+    @ViewBuilder
+    private func benchmarkView() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Rapid Request Benchmarker").font(.headline)
+                Spacer()
+                TextField("Requests count", text: $benchmarkCount)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 80)
+                Button("Run Benchmark") { runBenchmark() }
+                    .buttonStyle(.borderedProminent)
+            }
             
-            // Response Viewer Box
-            if let resp = manager.lastResponse {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 16) {
-                        Text("STATUS: \(resp.statusCode)")
-                            .font(.caption.bold())
-                            .foregroundColor(resp.statusCode < 400 ? .green : .red)
-                        Text("LATENCY: \(Int(resp.latencyMs)) ms")
-                            .font(.caption.bold())
-                            .foregroundColor(.cyan)
-                        Text("SIZE: \(ByteCountFormatter.string(fromByteCount: resp.sizeBytes, countStyle: .file))")
-                            .font(.caption.bold())
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.secondary.opacity(0.12), in: Capsule())
-                    
-                    ScrollView {
-                        Text(resp.body)
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(.green)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
-                    }
-                    .background(Color.black, in: RoundedRectangle(cornerRadius: 10))
+            TextEditor(text: .constant(benchmarkResults.isEmpty ? "Benchmark latency and RPS statistics will appear here..." : benchmarkResults))
+                .font(.system(.body, design: .monospaced))
+                .cornerRadius(8)
+        }
+        .padding()
+    }
+    
+    private func sendRequest() {
+        guard let url = URL(string: urlString) else { return }
+        isExecuting = true
+        responseBody = "Sending request..."
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = httpMethod
+        request.setValue("Juicer-API-Studio/1.0", forHTTPHeaderField: "User-Agent")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                isExecuting = false
+                if let httpResponse = response as? HTTPURLResponse {
+                    statusCode = "\(httpResponse.statusCode) \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))"
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 16)
+                if let data = data, let text = String(data: data, encoding: .utf8) {
+                    responseBody = text
+                } else if let error = error {
+                    responseBody = "Error: \(error.localizedDescription)"
+                }
+            }
+        }.resume()
+    }
+    
+    private func runBenchmark() {
+        guard let count = Int(benchmarkCount), count > 0 else { return }
+        isExecuting = true
+        benchmarkResults = "Running \(count) concurrent requests to \(urlString)..."
+        
+        let start = Date()
+        let group = DispatchGroup()
+        
+        for _ in 0..<count {
+            group.enter()
+            if let url = URL(string: urlString) {
+                var req = URLRequest(url: url)
+                req.httpMethod = httpMethod
+                URLSession.shared.dataTask(with: req) { _, _, _ in
+                    group.leave()
+                }.resume()
             } else {
-                VStack(spacing: 10) {
-                    Image(systemName: "paperplane")
-                        .font(.system(size: 36))
-                        .foregroundColor(.secondary)
-                    Text("Ready to Send Request")
-                        .font(.headline)
-                    Text("Click 'Send' to dispatch HTTP request and view output.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                group.leave()
             }
         }
-    }
-    
-    // MARK: - Tab 2: cURL Importer
-    @ViewBuilder
-    private func curlTabView() -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Paste cURL Command")
-                .font(.title3.bold())
-            Text("Paste any standard `curl` command to automatically extract HTTP method, headers, and URL.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            
-            TextEditor(text: $curlInput)
-                .font(.system(.caption, design: .monospaced))
-                .padding(8)
-                .frame(height: 120)
-                .background(Color(NSColor.controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
-            
-            Button("Import to Workbench") {
-                if curlInput.contains("http") {
-                    urlInput = curlInput.components(separatedBy: " ").first(where: { $0.hasPrefix("http") }) ?? urlInput
-                    selectedTab = 0
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.teal)
-            
-            Spacer()
-        }
-        .padding(20)
-    }
-    
-    // MARK: - Tab 3: Bearer & Auth
-    @ViewBuilder
-    private func authTabView() -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Bearer Token & Auth Profiles")
-                .font(.title3.bold())
-            Text("Configure Bearer tokens to automatically append `Authorization: Bearer <token>` to requests.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            
-            SecureField("Paste Bearer Token", text: $bearerToken)
-                .textFieldStyle(.roundedBorder)
-                .frame(maxWidth: 400)
-            
-            Button("Apply Token to Headers") {
-                if !bearerToken.isEmpty {
-                    headersInput += "\nAuthorization: Bearer \(bearerToken)"
-                    selectedTab = 0
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.teal)
-            
-            Spacer()
-        }
-        .padding(20)
-    }
-    
-    // MARK: - Tab 4: Presets
-    @ViewBuilder
-    private func presetsTabView() -> some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                ForEach(manager.presets) { preset in
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(preset.name)
-                                .font(.headline.bold())
-                            Text("\(preset.method)  \(preset.url)")
-                                .font(.caption.monospaced())
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Button("Load") {
-                            selectedMethod = preset.method
-                            urlInput = preset.url
-                            bodyInput = preset.body
-                            selectedTab = 0
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.teal)
-                    }
-                    .padding(14)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                }
-            }
-            .padding(20)
+        
+        group.notify(queue: .main) {
+            let elapsed = Date().timeIntervalSince(start)
+            let rps = Double(count) / elapsed
+            isExecuting = false
+            benchmarkResults = """
+            Benchmark Completed!
+            ---------------------------------------
+            Target URL: \(urlString)
+            Total Requests: \(count)
+            Total Time: \(String(format: "%.3f", elapsed)) s
+            Requests Per Second (RPS): \(String(format: "%.1f", rps)) req/s
+            Avg Latency per Request: \(String(format: "%.1f", (elapsed / Double(count)) * 1000)) ms
+            """
         }
     }
 }
